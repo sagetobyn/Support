@@ -1,0 +1,8 @@
+order_id,awb,order_date,customer_name,phone,email,full_address,landmark,pincode,city,state,sku,product_name,quantity,order_value,payment_mode,courier,shipment_status,ndr_reason,attempt_count,final_status,source_platform,campaign_name
+NS-2001,SR987650001,2026-04-25,Rahul Sharma,9876543221,rahul@example.com,"Flat 304 Tower B Green Valley Apartments Vaishali Sector 4",Near Metro Station,201010,Ghaziabad,Uttar Pradesh,TSH-BLK-L,Oversized Black Tee,1,799,COD,Delhivery,Delivered,,0,Delivered,Shopify,Meta Summer
+NS-2002,XB987650002,2026-04-25,Pooja Verma,9898989821,pooja@example.com,"Near mandir ghaziabad",,201001,Ghaziabad,Uttar Pradesh,SNEAK-WHT-8,White Sneakers,1,1999,COD,Xpressbees,Undelivered,Incorrect address,1,In NDR,Instagram,Meta Shoes COD
+NS-2003,BD987650003,2026-04-26,Amit Khan,9811111121,amit@example.com,"House 45 Gali 3 Lajpat Nagar 2",Near Central Market,110024,Delhi,Delhi,HOOD-GRN-M,Green Hoodie,1,1299,Prepaid,Bluedart,Delivered,,0,Delivered,Shopify,
+NS-2004,EK987650004,2026-04-26,Sneha Iyer,9123456721,sneha@example.com,"B 12 2nd Floor Koramangala 5th Block",Near Forum Mall,560095,Bengaluru,Karnataka,DRESS-RED-S,Red Summer Dress,1,2499,COD,Ekart,RTO,Customer refused delivery,2,RTO,Shopify,Meta Fashion Sale
+NS-2005,DT987650005,2026-04-27,Kiran Patel,9000000021,kiran@example.com,"Plot 72 Silver Residency Satellite Road",Opposite Star Bazaar,380015,Ahmedabad,Gujarat,WATCH-BLK,Smart Fitness Watch,1,3999,COD,DTDC,Undelivered,No response on phone,2,In NDR,WooCommerce,
+NS-2006,SF987650006,2026-04-27,Meena Kumari,9111111121,meena@example.com,"Village Rampur near school",,302001,Jaipur,Rajasthan,KURTI-BLU-M,Blue Printed Kurti,2,1299,COD,Shadowfax,Undelivered,Customer not available,1,In NDR,WhatsApp,
+
