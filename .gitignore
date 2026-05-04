@@ -3,3 +3,7 @@
 # dependencies
 node_modules/
 .next/
+
+# local QA/dev artifacts
+.codex-next-*.log
+qa-*.png

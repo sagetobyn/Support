@@ -36,7 +36,7 @@ import { generateAuditReport } from "@/lib/auditReport";
 import { normalizeNdrReason } from "@/lib/ndr";
 import { actionableGroupLabels, buildActionGroups, isDeliveredNoAction, isNdrOrder } from "@/lib/actionGroups";
 import { estimatedLeakageForOrder, estimatedRecoverableLeakage, findPrepaidConversionOpportunities } from "@/lib/profitRecovery";
-import { currentProPlan, getProLimitWarning, getScaleEnterprisePlaceholder, scaleEnterprisePlaceholders, type PlanId } from "@/features/plans";
+import { currentProPlan, getPlanConfig, getProLimitWarning, getScaleEnterprisePlaceholder, planConfigs, scaleEnterprisePlaceholders, type PlanId } from "@/features/plans";
 import { exportMessagesCsv, queueMockMessage } from "@/features/messaging";
 import { updateBrandSettings, starterMultiBrandMessage } from "@/features/brand";
 import { runImportPipeline } from "@/shared/connectors";
@@ -62,6 +62,8 @@ import { sopTemplates } from "@/features/sops";
 import { canRole } from "@/features/roles";
 import { exportRowsCsv } from "@/features/reports";
 import { demoProfiles, generateDemoWorkspace, ordersToCsv, type DemoProfileId } from "@/features/demo";
+import { buildProfitMissions, getMissionProgress, getNextProfitMission } from "@/features/missions";
+import { buildLeakageAtlas, getTopLeakageDriver, type LeakageAtlasDriver } from "@/features/leakage-atlas";
 import {
   ActionCard,
   DataQualityBadge,
@@ -72,6 +74,7 @@ import {
   InsightCard,
   MetricCard,
   PageHeader,
+  PriorityBadge,
   PrintButton,
   RiskBadge,
   SearchInput,
@@ -81,6 +84,8 @@ import {
 type View =
   | "dashboard"
   | "briefing"
+  | "missions"
+  | "atlas"
   | "demo"
   | "onboarding"
   | "brand"
@@ -112,50 +117,58 @@ const allNavGroups: Array<{
   links: Array<{ id?: View; label: string; href?: string; badge?: string }>;
 }> = [
   {
-    title: "Start Here",
+    title: "Profit Recovery",
     links: [
-      { id: "briefing", label: "Morning Briefing" },
-      { id: "dashboard", label: "Profit Cockpit" },
-      { id: "demo", label: "Demo / Client Test Mode", badge: "Local" }
+      { id: "briefing", label: "Daily Profit Briefing" },
+      { id: "missions", label: "Profit Mission Mode" },
+      { id: "atlas", label: "Leakage Atlas" },
+      { id: "ndr", label: "NDR Rescue" },
+      { id: "savings", label: "Savings Proof" }
     ]
   },
   {
-    title: "Service Products",
+    title: "Founder Intelligence",
     links: [
-      { href: "/calculator", label: "Free RTO Leakage Check" },
+      { id: "weekly", label: "Founder Story" },
+      { id: "dashboard", label: "Profit Cockpit" },
+      { id: "reports", label: "Leakage Report" },
+      { id: "simulator", label: "Policy Simulator" },
+      { id: "monthly", label: "Monthly Strategy" }
+    ]
+  },
+  {
+    title: "Plan Path",
+    links: [
+      { href: "/calculator", label: "Free Leakage Check" },
       { href: "/sample-report", label: "Sample Audit Report" },
       { href: "/audit", label: "RTO Profit Audit" },
-      { href: "/pilot", label: "14-Day RTO Rescue Pilot" },
-      { id: "actions", label: "Daily Ops Control Room" },
-      { id: "weekly", label: "Founder Profit Intelligence" }
+      { href: "/pilot", label: "14-Day Pilot" },
+      { id: "billing", label: "Plan & Value" }
     ]
   },
   {
-    title: "Core Workflow",
+    title: "Operations Detail",
     links: [
       { id: "upload", label: "CSV Upload" },
       { id: "orders", label: "Order Risk" },
-      { id: "ndr", label: "NDR Rescue" },
       { id: "prepaid", label: "Prepaid Opportunities" },
       { id: "templates", label: "Messaging Outbox" },
-      { id: "savings", label: "Savings Ledger" },
-      { id: "reports", label: "Leakage Report" }
+      { id: "actions", label: "Grouped Action Queue" }
     ]
   },
   {
-    title: "Advanced / Pro",
+    title: "Advanced Signals",
     links: [
       { id: "pincode", label: "Pincode Intelligence" },
       { id: "courier", label: "Courier Intelligence" },
       { id: "sku", label: "SKU Intelligence" },
-      { id: "campaigns", label: "Campaign Intelligence" },
-      { id: "simulator", label: "Policy Simulator" },
-      { id: "monthly", label: "Monthly Strategy Report" }
+      { id: "campaigns", label: "Campaign Intelligence" }
     ]
   },
   {
-    title: "Setup & Admin",
+    title: "Setup",
     links: [
+      { id: "demo", label: "Demo / Client Test Mode", badge: "Local" },
       { id: "brand", label: "Brand Settings" },
       { id: "stores", label: "Stores" },
       { id: "rules", label: "Custom Rules" },
@@ -163,8 +176,7 @@ const allNavGroups: Array<{
       { id: "integrations", label: "Integration Readiness", badge: "Gated" },
       { id: "sops", label: "SOPs" },
       { id: "onboarding", label: "Onboarding" },
-      { id: "privacy", label: "Privacy & Audit" },
-      { id: "billing", label: "Plan & Billing" }
+      { id: "privacy", label: "Privacy & Audit" }
     ]
   }
 ];
@@ -173,14 +185,14 @@ function roleNavGroups(role: Role): typeof allNavGroups {
   if (role === "admin") return allNavGroups;
   const allowed = (ids: View[]) => (link: { id?: View; label: string; href?: string; badge?: string }) => !link.id || ids.includes(link.id);
   if (role === "ops") {
-    const ids: View[] = ["briefing", "dashboard", "demo", "actions", "upload", "orders", "ndr", "templates", "savings", "reports", "brand", "privacy", "billing"];
+    const ids: View[] = ["briefing", "missions", "atlas", "dashboard", "demo", "actions", "upload", "orders", "ndr", "templates", "savings", "reports", "brand", "privacy", "billing"];
     return allNavGroups.map((group) => ({ ...group, links: group.links.filter(allowed(ids)) })).filter((g) => g.links.length);
   }
   if (role === "analyst") {
-    const ids: View[] = ["briefing", "dashboard", "demo", "actions", "upload", "orders", "ndr", "prepaid", "templates", "savings", "reports", "weekly", "pincode", "courier", "sku", "campaigns", "simulator", "monthly", "brand", "privacy", "billing"];
+    const ids: View[] = ["briefing", "missions", "atlas", "dashboard", "demo", "actions", "upload", "orders", "ndr", "prepaid", "templates", "savings", "reports", "weekly", "pincode", "courier", "sku", "campaigns", "simulator", "monthly", "brand", "privacy", "billing"];
     return allNavGroups.map((group) => ({ ...group, links: group.links.filter(allowed(ids)) })).filter((g) => g.links.length);
   }
-  const ids: View[] = ["briefing", "dashboard", "demo", "weekly", "reports", "savings", "brand", "privacy", "billing"];
+  const ids: View[] = ["briefing", "atlas", "dashboard", "demo", "weekly", "reports", "savings", "brand", "privacy", "billing"];
   return allNavGroups.map((group) => ({ ...group, links: group.links.filter(allowed(ids)) })).filter((g) => g.links.length);
 }
 
@@ -231,7 +243,7 @@ const serviceProducts: Array<{
     title: "14-Day RTO Rescue Pilot",
     persona: "Founders and ops managers",
     promise: "Work the highest-value COD/NDR actions and track estimated savings.",
-    uses: "Daily queue, NDR rescue, mock messaging, savings ledger",
+    uses: "Profit missions, NDR rescue, mock messaging, savings proof",
     actionLabel: "Create pilot",
     href: "/pilot"
   },
@@ -239,9 +251,9 @@ const serviceProducts: Array<{
     title: "Daily Ops Control Room",
     persona: "Ops executives, support teams, warehouse teams",
     promise: "Know which orders to confirm, hold, correct, reattempt, cancel, or mark RTO.",
-    uses: "Order risk, action queue, NDR rescue, prepaid opportunities",
-    actionLabel: "Open queue",
-    view: "actions"
+    uses: "Mission mode, order risk, NDR rescue, prepaid opportunities",
+    actionLabel: "Open missions",
+    view: "missions"
   },
   {
     title: "Founder Profit Intelligence",
@@ -402,9 +414,11 @@ export default function Home() {
   }, [state.orders]);
 
   const { brand, orders, ndrCases, messages, responses, savingsEvents, actions, audits, imports, currentPlan } = state;
+  const activePlan = getPlanConfig(currentPlan);
   const stores = state.stores || [];
   const roi = useMemo(() => calculateRoi(orders, savingsEvents, brand), [orders, savingsEvents, brand]);
   const report = useMemo(() => generateAuditReport(orders, brand), [orders, brand]);
+  const atlasDrivers = useMemo(() => buildLeakageAtlas(orders, ndrCases, brand), [orders, ndrCases, brand]);
   const selectedOrder = orders.find((order) => order.id === selectedOrderId) || orders[0];
   const lastImport = imports[0];
   const dataQualityScore = useMemo(() => {
@@ -441,6 +455,11 @@ export default function Home() {
 
   const actionGroups = useMemo(() => buildActionGroups(orders, ndrCases), [orders, ndrCases]);
   const proLimitWarning = getProLimitWarning(orders.length, currentProPlan);
+
+  function openAtlasDriver(driver: LeakageAtlasDriver) {
+    if (driver.route.quickFilter) setFilters((current) => ({ ...current, quick: driver.route.quickFilter || current.quick }));
+    setView(driver.route.view);
+  }
 
   function addAudit(input: Omit<AuditLog, "id" | "brandId" | "createdAt">) {
     const eventTypeByAuditAction = {
@@ -869,7 +888,7 @@ export default function Home() {
         <div className="topbar">
           <div>
             <h1>{viewLabels[view] || "SupportWaala"}</h1>
-            <div className="muted">{brand.name} · {currentProPlan.name} plan · {orders.length.toLocaleString("en-IN")} orders · {dateRange === "30d" ? "Last 30 days" : dateRange}</div>
+            <div className="muted">{brand.name} · {activePlan.name} plan · {orders.length.toLocaleString("en-IN")} orders · {dateRange === "30d" ? "Last 30 days" : dateRange}</div>
           </div>
           <div className="toolbar tight">
             <DataQualityBadge score={dataQualityScore} />
@@ -907,8 +926,25 @@ export default function Home() {
           />
         )}
 
+        {view === "missions" && (
+          <MissionModeView
+            orders={orders}
+            ndrCases={ndrCases}
+            role={role}
+            brand={brand}
+            savingsEvents={savingsEvents}
+            queueMessage={queueMessage}
+            completeAction={completeAction}
+            setView={setView}
+          />
+        )}
+
+        {view === "atlas" && (
+          <LeakageAtlasView drivers={atlasDrivers} openDriver={openAtlasDriver} />
+        )}
+
         {view === "dashboard" && (
-          <Dashboard roi={roi} actionGroups={actionGroups} brand={brand} savingsEvents={savingsEvents} orders={orders} setView={setView} />
+          <Dashboard roi={roi} actionGroups={actionGroups} brand={brand} savingsEvents={savingsEvents} orders={orders} ndrCases={ndrCases} setView={setView} />
         )}
 
         {view === "demo" && (
@@ -1051,12 +1087,13 @@ function WorkspaceSummary({ orders, roi, lastImport }: { orders: Order[]; roi: R
   );
 }
 
-function Dashboard({ roi, actionGroups, brand, savingsEvents, orders, setView }: {
+function Dashboard({ roi, actionGroups, brand, savingsEvents, orders, ndrCases, setView }: {
   roi: ReturnType<typeof calculateRoi>;
   actionGroups: Record<string, Order[]>;
   brand: BrandSettings;
   savingsEvents: SavingsEvent[];
   orders: Order[];
+  ndrCases: NdrCase[];
   setView: (view: View) => void;
 }) {
   const recoverableLeakage = estimatedRecoverableLeakage(orders, brand);
@@ -1082,7 +1119,10 @@ function Dashboard({ roi, actionGroups, brand, savingsEvents, orders, setView }:
     { label: "Campaign", value: campaignLeakage[0]?.estimatedLoss || 0 }
   ].sort((a, b) => b.value - a.value);
   const nextBestPincode = pincodePolicies[0];
-  const nextBestMove = nextBestPincode
+  const topAtlasDriver = getTopLeakageDriver(buildLeakageAtlas(orders, ndrCases, brand));
+  const nextBestMove = topAtlasDriver
+    ? topAtlasDriver.recommendation
+    : nextBestPincode
     ? `${nextBestPincode.recommendation} Estimated leakage affected: ${money(nextBestPincode.estimatedLeakage)}.`
     : "Load demo data or upload a seller CSV to unlock policy recommendations.";
 
@@ -1094,12 +1134,13 @@ function Dashboard({ roi, actionGroups, brand, savingsEvents, orders, setView }:
           <div className="hero-insight__value">{money(recoverableLeakage)}</div>
           <p>Estimated preventable leakage this month. Start with the business problem, then the daily recovery workflow: COD failures, weak addresses, courier lanes, and delayed NDR action.</p>
           <div className="toolbar tight">
-            <button className="button" onClick={() => setView("actions")}>Open today&apos;s action queue</button>
-            <button className="button secondary" onClick={() => setView("reports")}>Review leakage report</button>
+            <button className="button" onClick={() => setView("missions")}>Start Profit Mission</button>
+            <button className="button secondary" onClick={() => setView("atlas")}>Open Leakage Atlas</button>
+            <button className="button secondary" onClick={() => setView("reports")}>Review report</button>
           </div>
         </div>
         <div>
-          <h3>Next best move</h3>
+          <h3>{topAtlasDriver?.title || "Next best move"}</h3>
           <p>{nextBestMove}</p>
           <span className="impact-pill">Estimated, not guaranteed</span>
         </div>
@@ -1140,7 +1181,7 @@ function Dashboard({ roi, actionGroups, brand, savingsEvents, orders, setView }:
                 <div className="muted">{order.orderId} · {order.pincode} · {order.courier}</div>
                 <div>{money(estimatedLeakageForOrder(order, brand))} estimated impact</div>
                 <div className="muted">{order.recommendedActionReason}</div>
-                <button className="button secondary" onClick={() => setView("actions")}>Open action</button>
+                <button className="button secondary" onClick={() => setView("missions")}>Open mission</button>
               </div>
             )) : <EmptyState title="No open actions" description="Delivered/no-action orders are intentionally kept out of the daily queue." />}
           </div>
@@ -1198,6 +1239,8 @@ function MorningBriefing({ orders, ndrCases, actionGroups, brand, savingsEvents,
   const urgentNdrs = ndrCases.filter((ndr) => (ndr.hoursSinceNdr || 0) >= 8 && !["delivered_after_ndr", "rto"].includes(ndr.state));
   const ndrBreachingSoon = urgentNdrs.filter((ndr) => (ndr.hoursSinceNdr || 0) >= 10).length;
   const completedToday = orders.filter((order) => order.actionStatus === "done").length;
+  const missionProgress = getMissionProgress(orders);
+  const topDriver = getTopLeakageDriver(buildLeakageAtlas(orders, ndrCases, brand));
   const todaySavings = savingsEvents.filter((event) => {
     const created = new Date(event.createdAt);
     const now = new Date();
@@ -1205,17 +1248,19 @@ function MorningBriefing({ orders, ndrCases, actionGroups, brand, savingsEvents,
   }).reduce((sum, event) => sum + event.estimatedSaving, 0);
   const hour = new Date().getHours();
   const greeting = hour < 12 ? "Good morning" : hour < 17 ? "Good afternoon" : "Good evening";
-  const nextAction = criticalActions[0] || highActions[0] || allActions[0];
+  const nextMission = getNextProfitMission(orders, brand, ndrCases);
+  const nextAction = nextMission?.order || criticalActions[0] || highActions[0] || allActions[0];
 
   return (
     <div className="grid">
       <section className="hero-insight">
         <div>
-          <h2>{greeting}. Here is what needs your attention today.</h2>
+          <h2>{greeting}. Recover profit after checkout today.</h2>
           <div className="hero-insight__value">{money(criticalValue + highValue)}</div>
           <p>You have <strong>{criticalActions.length} critical</strong> and <strong>{highActions.length} high</strong> actions worth {money(criticalValue + highValue)} in recoverable leakage. {ndrBreachingSoon > 0 ? `${ndrBreachingSoon} NDR${ndrBreachingSoon > 1 ? "s" : ""} will breach SLA within 2 hours.` : "NDR queue is within SLA."}</p>
           <div className="toolbar tight">
-            <button className="button" onClick={() => setView("actions")}>Start with critical actions</button>
+            <button className="button" onClick={() => setView("missions")}>Start Profit Mission</button>
+            <button className="button secondary" onClick={() => setView("atlas")}>Open Leakage Atlas</button>
             <button className="button secondary" onClick={() => setView("ndr")}>Review NDR rescue</button>
           </div>
         </div>
@@ -1224,7 +1269,7 @@ function MorningBriefing({ orders, ndrCases, actionGroups, brand, savingsEvents,
           {nextAction ? (
             <>
               <p><strong>{recommendedProfitAction(nextAction)}</strong> · {nextAction.orderId}</p>
-              <p className="muted">{nextAction.recommendedActionReason}</p>
+              <p className="muted">{nextMission?.why || nextAction.recommendedActionReason}</p>
               <p>{money(estimatedLeakageForOrder(nextAction, brand))} estimated impact</p>
               <div className="toolbar tight">
                 <button className="button" onClick={() => queueMessage(nextAction, defaultTemplateForOrder(nextAction))}>Queue WhatsApp</button>
@@ -1232,8 +1277,13 @@ function MorningBriefing({ orders, ndrCases, actionGroups, brand, savingsEvents,
               </div>
             </>
           ) : (
-            <p className="muted">All critical and high actions are complete. Great work.</p>
+            <p className="muted">All critical and high actions are complete.</p>
           )}
+          <div className="mission-mini">
+            <span>{missionProgress.percent}% mission progress</span>
+            <div className="bar-track"><span className="bar-fill success" style={{ width: `${missionProgress.percent}%` }} /></div>
+          </div>
+          {topDriver && <p className="muted">Top leakage driver: {topDriver.title} · {money(topDriver.estimatedLeakage)}</p>}
         </div>
       </section>
 
@@ -1295,6 +1345,184 @@ function MorningBriefing({ orders, ndrCases, actionGroups, brand, savingsEvents,
             {urgentNdrs.length === 0 && <EmptyState title="No urgent NDRs" description="All NDR cases are within SLA." />}
           </div>
         </div>
+      </div>
+    </div>
+  );
+}
+
+function MissionModeView({ orders, ndrCases, role, brand, savingsEvents, queueMessage, completeAction, setView }: {
+  orders: Order[];
+  ndrCases: NdrCase[];
+  role: Role;
+  brand: BrandSettings;
+  savingsEvents: SavingsEvent[];
+  queueMessage: (order: Order, template: TemplateType) => void;
+  completeAction: (order: Order, actionType: RecommendedAction, note?: string) => void;
+  setView: (view: View) => void;
+}) {
+  const [missionIndex, setMissionIndex] = useState(0);
+  const missions = useMemo(() => buildProfitMissions(orders, brand, ndrCases), [orders, brand, ndrCases]);
+  const progress = getMissionProgress(orders);
+  const activeMission = missions[Math.min(missionIndex, Math.max(0, missions.length - 1))];
+  const activeOrder = activeMission?.order;
+  const todaySavings = savingsEvents.filter((event) => new Date(event.createdAt).toDateString() === new Date().toDateString()).reduce((sum, event) => sum + event.estimatedSaving, 0);
+  const protectedValue = orders.filter((order) => order.actionStatus === "done").reduce((sum, order) => sum + estimatedLeakageForOrder(order, brand), 0);
+
+  function moveMission(delta: number) {
+    setMissionIndex((current) => Math.max(0, Math.min(missions.length - 1, current + delta)));
+  }
+
+  function completeMission() {
+    if (!activeOrder) return;
+    completeAction(activeOrder, activeOrder.recommendedAction, "Completed from Profit Mission Mode");
+    setMissionIndex((current) => Math.min(current, Math.max(0, missions.length - 2)));
+  }
+
+  return (
+    <div className="grid mission-layout">
+      <section className="mission-hero">
+        <div>
+          <span className="eyebrow">Profit Mission Mode</span>
+          <h2>One action at a time. Highest leakage first.</h2>
+          <p>Mission Mode turns the seller&apos;s messy COD, NDR, courier, address, SKU, and campaign signals into a focused operating queue.</p>
+          <div className="mission-progress">
+            <div className="split">
+              <strong>{progress.completed} of {progress.total} actions completed</strong>
+              <span>{progress.percent}%</span>
+            </div>
+            <div className="bar-track"><span className="bar-fill success" style={{ width: `${progress.percent}%` }} /></div>
+          </div>
+        </div>
+        <div className="mission-hero__stats">
+          <MetricCard title="Remaining missions" value={progress.remaining} tone={progress.remaining ? "warning" : "success"} />
+          <MetricCard title="Protected value" value={money(protectedValue)} tone="success" />
+          <MetricCard title="Today savings proof" value={money(todaySavings)} tone="success" />
+        </div>
+      </section>
+
+      {progress.complete || !activeMission || !activeOrder ? (
+        <section className="mission-complete">
+          <h2>All critical work is done for now.</h2>
+          <p>Your team has cleared the actionable queue. Keep NDR rescue monitored and verify savings events so the founder can trust the proof.</p>
+          <div className="toolbar tight">
+            <button className="button" onClick={() => setView("savings")}>Review savings proof</button>
+            <button className="button secondary" onClick={() => setView("atlas")}>Review Leakage Atlas</button>
+          </div>
+        </section>
+      ) : (
+        <div className="grid mission-board">
+          <article className="mission-card">
+            <div className="split">
+              <div>
+                <span className="eyebrow">Current mission</span>
+                <h2>{recommendedProfitAction(activeOrder)}</h2>
+                <p className="muted">{activeOrder.orderId} · {activeOrder.courier} · {activeOrder.pincode}</p>
+              </div>
+              <div className="badge-stack">
+                <PriorityBadge value={activeMission.priority} />
+                <span className="badge neutral">{activeMission.urgencyLabel}</span>
+              </div>
+            </div>
+            <div className="mission-value">{money(activeMission.estimatedLeakage)}</div>
+            <p className="mission-copy">Estimated leakage this action can influence.</p>
+            {activeMission.slaHoursLeft !== undefined && (
+              <div className="mission-sla">
+                <div className="split">
+                  <strong>NDR rescue window</strong>
+                  <span>{activeMission.slaHoursLeft}h left</span>
+                </div>
+                <div className="urgency-track">
+                  <span className="urgency-fill" style={{ width: `${Math.max(8, Math.min(100, ((12 - activeMission.slaHoursLeft) / 12) * 100))}%` }} />
+                </div>
+              </div>
+            )}
+            <div className="recommendation-strip">
+              <strong>Why this is next</strong>
+              <span>{activeMission.why}</span>
+            </div>
+            <div className="mission-meta-grid">
+              <div><span>Customer</span><strong>{activeOrder.customerName || "Customer"}</strong><small>{maskPhone(activeOrder.phone, role)}</small></div>
+              <div><span>Order value</span><strong>{money(activeOrder.orderValue)}</strong><small>{activeOrder.paymentMode}</small></div>
+              <div><span>Risk score</span><strong>{activeOrder.riskScore}/100</strong><small>{activeOrder.riskBucket}</small></div>
+              <div><span>Address</span><strong>{activeOrder.addressQualityScore}/100</strong><small>{activeOrder.addressIssues[0] || "No major issue"}</small></div>
+            </div>
+            <details className="mission-details">
+              <summary>Show signal trail</summary>
+              <p className="muted">{activeOrder.riskReasons.join(", ")}</p>
+              <p className="muted">Recommended action: {recommendedActionLabel(activeOrder.recommendedAction)}</p>
+            </details>
+            <div className="toolbar tight">
+              <button className="button" onClick={() => queueMessage(activeOrder, defaultTemplateForOrder(activeOrder))}>Queue message</button>
+              <button className="button secondary" onClick={completeMission}>Mark mission done</button>
+              <button className="button secondary" onClick={() => setView(isNdrOrder(activeOrder) ? "ndr" : "orders")}>Open details</button>
+            </div>
+            <div className="mission-nav">
+              <button className="button secondary" onClick={() => moveMission(-1)} disabled={missionIndex === 0}>Previous</button>
+              <span>{Math.min(missionIndex + 1, missions.length)} / {missions.length}</span>
+              <button className="button secondary" onClick={() => moveMission(1)} disabled={missionIndex >= missions.length - 1}>Next</button>
+            </div>
+          </article>
+
+          <aside className="panel mission-stack">
+            <h2>Mission Stack</h2>
+            <div className="action-group">
+              {missions.slice(0, 8).map((mission, index) => (
+                <button className={`mission-stack-item ${index === missionIndex ? "active" : ""}`} key={mission.order.id} onClick={() => setMissionIndex(index)}>
+                  <span>{index + 1}</span>
+                  <div>
+                    <strong>{mission.order.orderId}</strong>
+                    <small>{recommendedProfitAction(mission.order)} · {money(mission.estimatedLeakage)}</small>
+                  </div>
+                  <PriorityBadge value={mission.priority} />
+                </button>
+              ))}
+            </div>
+          </aside>
+        </div>
+      )}
+    </div>
+  );
+}
+
+function LeakageAtlasView({ drivers, openDriver }: { drivers: LeakageAtlasDriver[]; openDriver: (driver: LeakageAtlasDriver) => void }) {
+  const topDriver = getTopLeakageDriver(drivers);
+  const totalLeakage = drivers.reduce((sum, driver) => sum + Math.max(0, driver.estimatedLeakage), 0);
+  const maxLeakage = Math.max(1, ...drivers.map((driver) => driver.estimatedLeakage));
+
+  return (
+    <div className="grid">
+      <PageHeader
+        title="Leakage Atlas"
+        subtitle="A seller-friendly map of where profit leaks after checkout. Click any driver to open the workflow behind it."
+      />
+      <section className="atlas-hero">
+        <div>
+          <span className="eyebrow">Top leakage driver</span>
+          <h2>{topDriver?.title || "No leakage visible yet"}</h2>
+          <p>{topDriver?.recommendation || "Load demo data or upload a seller CSV to build the atlas."}</p>
+          <div className="toolbar tight">
+            {topDriver ? <button className="button" onClick={() => openDriver(topDriver)}>Open recommended workflow</button> : null}
+          </div>
+        </div>
+        <div className="atlas-total">
+          <span>Mapped estimated leakage</span>
+          <strong>{money(totalLeakage)}</strong>
+          <small>Directional, not guaranteed</small>
+        </div>
+      </section>
+      <div className="atlas-grid">
+        {drivers.map((driver) => (
+          <button className={`atlas-card tone-${driver.tone}`} key={driver.id} onClick={() => openDriver(driver)}>
+            <div className="split">
+              <span className="eyebrow">{driver.sellerQuestion}</span>
+              <span className="badge neutral">{driver.count}</span>
+            </div>
+            <h2>{driver.title}</h2>
+            <div className="atlas-card__value">{money(driver.estimatedLeakage)}</div>
+            <div className="atlas-bar"><span style={{ width: `${Math.max(6, (driver.estimatedLeakage / maxLeakage) * 100)}%` }} /></div>
+            <p>{driver.recommendation}</p>
+          </button>
+        ))}
       </div>
     </div>
   );
@@ -2468,16 +2696,29 @@ function ProView({ view, brand, orders, stores, messages, savingsEvents, role }:
     );
   }
   if (view === "weekly") {
+    const weeklyDrivers = buildLeakageAtlas(orders, [], brand);
+    const topDriver = getTopLeakageDriver(weeklyDrivers);
+    const decision = policies[0]?.recommendation || topDriver?.recommendation || "Keep working the daily mission queue before changing policy.";
     return (
       <div className="grid">
-        <PageHeader title="Weekly Founder Report" subtitle="Founder-ready weekly summary with clear action focus and estimated savings." actions={<PrintButton label="Print report" />} />
-        <div className="grid metrics">
-          <MetricCard title="Orders processed" value={weekly.metrics.ordersProcessed || 0} />
-          <MetricCard title="COD exposure" value={weekly.metrics.codExposure || 0} tone="warning" />
+        <PageHeader title="Founder Profit Intelligence" subtitle="A one-page weekly business story: three numbers, one driver, one decision, one policy test, and savings proof." actions={<PrintButton label="Print report" />} />
+        <div className="founder-story-grid">
+          <MetricCard title="Recoverable leakage" value={money(estimatedRecoverableLeakage(orders, brand))} tone="warning" />
           <MetricCard title="RTO orders" value={weekly.metrics.rtoOrders || 0} tone="danger" />
           <MetricCard title="Estimated savings" value={money(weekly.metrics.estimatedSavings || 0)} tone="success" />
         </div>
-        <InsightCard title="This Week" insight={String(weekly.sections.executiveSummary)} recommendation={(weekly.sections.nextWeekFocus as string[])[0] || "Keep working the daily queue."} confidence={orders.length >= 500 ? "High" : "Medium"} />
+        <div className="grid two-col">
+          <InsightCard title="This Week" insight={String(weekly.sections.executiveSummary)} recommendation={decision} confidence={orders.length >= 500 ? "High" : "Medium"} impact={money(weekly.metrics.estimatedSavings || 0)} />
+          <section className="panel founder-decision">
+            <span className="eyebrow">Founder decision</span>
+            <h2>{topDriver?.title || "Keep monitoring leakage"}</h2>
+            <p>{topDriver?.recommendation || "Upload more orders before changing seller policy."}</p>
+            <div className="recommendation-strip">
+              <strong>Policy test</strong>
+              <span>Test high-risk COD verification with {simulation.affectedOrders} affected orders. Estimated net benefit: {money(simulation.netEstimatedBenefit)}.</span>
+            </div>
+          </section>
+        </div>
         <ReportBulletList title="Next Week Focus" items={weekly.sections.nextWeekFocus as string[]} />
         <ReportBulletList title="Open Risks" items={weekly.sections.openRisks as string[]} />
       </div>
@@ -2557,37 +2798,61 @@ function PrivacyView({ role, orders, messages, responses, imports, audits, delet
 }
 
 function BillingView({ currentPlan, orderCount }: { currentPlan: PlanId; orderCount: number }) {
-  const plan = currentProPlan;
+  const plan = getPlanConfig(currentPlan);
+  const planOrder: PlanId[] = ["free", "audit", "pilot", "starter", "growth", "pro"];
+  const plans = planOrder.map((id) => planConfigs[id]);
+  const hasOrderLimit = plan.limits.monthly_order_limit > 0;
   return (
-    <div className="grid two-col">
+    <div className="grid">
       <div className="panel">
-        <h2>Plan & Billing</h2>
+        <PageHeader title="Plan & Value" subtitle="Plans are organized by seller outcome: awareness, diagnosis, pilot execution, daily recovery, and founder intelligence." />
         <div className="metrics grid">
           <Metric label="Current plan" value={plan.name} />
           <Metric label="Price" value={money(plan.priceMonthlyInr) + "/month"} />
-          <Metric label="Order limit" value={`${orderCount}/${plan.limits.monthly_order_limit}`} />
-          <Metric label="Billing status" value="Placeholder" />
+          <Metric label="Order limit" value={hasOrderLimit ? `${orderCount}/${plan.limits.monthly_order_limit}` : "Not applicable"} />
+          <Metric label="Primary outcome" value={plan.primaryOutcome || plan.bestFor} />
         </div>
-        {currentPlan !== "pro" && <div className="notice">This workspace is configured as {currentPlan}, while Pro behavior is the implemented operating tier in this build.</div>}
-        {getProLimitWarning(orderCount, plan) && <div className="notice">{getProLimitWarning(orderCount, plan)}</div>}
-        <div className="toolbar">
-          <button className="button secondary" disabled>Scale automation placeholder</button>
-          <button className="button secondary" disabled>Enterprise RBAC placeholder</button>
-        </div>
-        <p className="muted">{getScaleEnterprisePlaceholder("Pro plan gates")}</p>
+        <InsightCard
+          title={plan.name}
+          insight={plan.valuePromise || plan.bestFor}
+          recommendation={plan.upgradeCopy || "Keep using the current plan while the workflow proves measurable profit recovery."}
+          confidence="High"
+        />
+        {currentPlan === "pro" && getProLimitWarning(orderCount, currentProPlan) && <div className="notice">{getProLimitWarning(orderCount, currentProPlan)}</div>}
       </div>
-      <div className="panel">
-        <h2>Included In Pro</h2>
-        <div className="chips">
-          {["5,000 orders/month", "10,000 rows/import", "Multi-store up to 3", "Custom rules", "Policy recommendations", "Founder reports", "Provider-ready messaging"].map((item) => (
-            <span className="chip" key={item}>{item}</span>
-          ))}
+      <div className="plan-grid">
+        {plans.map((item) => (
+          <article className={`plan-card ${item.id === currentPlan ? "active" : ""}`} key={item.id}>
+            <div className="split">
+              <h2>{item.name}</h2>
+              <span className="badge neutral">{item.priceMonthlyInr ? `${money(item.priceMonthlyInr)}/mo` : "Free"}</span>
+            </div>
+            <p>{item.primaryOutcome}</p>
+            <strong>{item.valuePromise}</strong>
+            <div className="chips">
+              {(item.unlockedModules || []).slice(0, 5).map((module) => <span className="chip" key={module}>{module}</span>)}
+            </div>
+            {item.gatedModules?.length ? <small className="muted">Next unlock: {item.gatedModules[0]}</small> : null}
+          </article>
+        ))}
+      </div>
+      <div className="grid two-col">
+        <div className="panel">
+          <h2>Included Now</h2>
+          <div className="chips">
+            {(plan.unlockedModules || []).map((item) => (
+              <span className="chip" key={item}>{item}</span>
+            ))}
+          </div>
         </div>
-        <h2>Scale/Enterprise Placeholders</h2>
-        <div className="chips">
-          {scaleEnterprisePlaceholders.map((item) => (
-            <span className="chip" key={item}>{item}</span>
-          ))}
+        <div className="panel">
+          <h2>Gated For Later</h2>
+          <div className="chips">
+            {(plan.gatedModules || scaleEnterprisePlaceholders).map((item) => (
+              <span className="chip" key={item}>{item}</span>
+            ))}
+          </div>
+          <p className="muted">{currentPlan === "pro" ? getScaleEnterprisePlaceholder("Pro plan gates") : plan.upgradeCopy}</p>
         </div>
       </div>
     </div>

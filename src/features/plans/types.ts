@@ -5,6 +5,11 @@ export interface PlanConfig {
   name: string;
   priceMonthlyInr: number;
   bestFor: string;
+  valuePromise?: string;
+  primaryOutcome?: string;
+  unlockedModules?: string[];
+  gatedModules?: string[];
+  upgradeCopy?: string;
   limits: {
     monthly_order_limit: number;
     csv_upload: boolean;
