@@ -20,3 +20,21 @@
  ✓ Compiled /demo in 715ms (832 modules)
  GET /demo 200 in 1222ms
  ✓ Compiled in 2.6s (358 modules)
+ ○ Compiling /sample-report ...
+ ✓ Compiled /sample-report in 947ms (707 modules)
+ GET /sample-report 200 in 1508ms
+ ○ Compiling /audit ...
+ ✓ Compiled /audit in 682ms (723 modules)
+ GET /audit 200 in 1052ms
+ ○ Compiling /pilot ...
+ ✓ Compiled /pilot in 521ms (732 modules)
+ GET /pilot 200 in 763ms
+ ○ Compiling / ...
+ ✓ Compiled / in 1961ms (495 modules)
+ GET / 200 in 205ms
+ GET / 200 in 2165ms
+ GET / 200 in 585ms
+ ✓ Compiled in 2s (840 modules)
+ GET / 200 in 333ms
+ ✓ Compiled in 1657ms (840 modules)
+ GET / 200 in 264ms
