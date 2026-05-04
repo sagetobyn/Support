@@ -1,0 +1,22 @@
+
+> rtoshield-control-room@0.1.0 dev
+> next dev
+
+   ▲ Next.js 15.5.15
+   - Local:        http://localhost:3000
+   - Network:      http://192.168.1.34:3000
+   - Experiments (use with caution):
+     · cpus: 1
+     ⨯ webpackBuildWorker
+     · staticGenerationMinPagesPerWorker: 1000
+
+ ✓ Starting...
+ ✓ Ready in 2.6s
+ ○ Compiling / ...
+ ✓ Compiled / in 2.3s (825 modules)
+ GET / 200 in 3818ms
+ GET /calculator 200 in 3829ms
+ ○ Compiling /demo ...
+ ✓ Compiled /demo in 715ms (832 modules)
+ GET /demo 200 in 1222ms
+ ✓ Compiled in 2.6s (358 modules)
