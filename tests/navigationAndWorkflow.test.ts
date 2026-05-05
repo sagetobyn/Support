@@ -8,6 +8,7 @@ import { defaultBrand, seedOrders } from "@/data/seed";
 import { updateSavingEvent } from "@/features/savings-ledger";
 import { generateAuditReport } from "@/lib/auditReport";
 import { simulatePolicy } from "@/features/policy-simulator";
+import { personaPages, recoverySteps, serviceModules, trustSignals } from "@/features/marketing";
 
 describe("Navigation and workflow smoke coverage", () => {
   it("keeps key local routes present", () => {
@@ -17,6 +18,18 @@ describe("Navigation and workflow smoke coverage", () => {
     expect(existsSync("src/app/sample-report/page.tsx")).toBe(true);
     expect(existsSync("src/app/audit/page.tsx")).toBe(true);
     expect(existsSync("src/app/pilot/page.tsx")).toBe(true);
+    expect(existsSync("src/app/dashboard/page.tsx")).toBe(true);
+    expect(existsSync("src/app/product/page.tsx")).toBe(true);
+    expect(existsSync("src/app/pricing/page.tsx")).toBe(true);
+    expect(existsSync("src/app/personas/founder/page.tsx")).toBe(true);
+    expect(existsSync("public/media/dashboard-control-room.png")).toBe(true);
+  });
+
+  it("defines the SaaS website journey around product, personas, trust, and conversion", () => {
+    expect(recoverySteps.map((step) => step.title)).toEqual(["Measure the leak", "Choose the mission", "Act with context", "Prove the value"]);
+    expect(serviceModules.map((module) => module.name)).toEqual(expect.arrayContaining(["Leakage Check", "Profit Audit", "Daily Control Room", "Founder Intelligence"]));
+    expect(personaPages.map((persona) => persona.slug)).toEqual(["founder", "operations", "growth-lead"]);
+    expect(trustSignals.join(" ")).toContain("Transparent formulas");
   });
 
   it("derives cockpit metrics and recoverable leakage from actionable orders", () => {

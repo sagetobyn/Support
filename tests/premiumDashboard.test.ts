@@ -4,15 +4,16 @@ import { buildNdrCases } from "@/lib/ndrCases";
 import { planConfigs } from "@/features/plans";
 import { buildLeakageAtlas } from "@/features/leakage-atlas";
 import { buildProfitMissions, getMissionProgress, getNextProfitMission } from "@/features/missions";
+import { dashboardLearningTracks, dataReadinessChecklist, formulaCards, glossaryTerms, operatingMethodology } from "@/features/learning";
 
 describe("premium profit recovery dashboard", () => {
   it("maps each pricing tier to seller outcomes and visible modules", () => {
     expect(planConfigs.free.primaryOutcome).toContain("awareness");
     expect(planConfigs.audit.unlockedModules).toContain("Top leakage drivers");
-    expect(planConfigs.pilot.unlockedModules).toContain("Daily Profit Missions");
-    expect(planConfigs.starter.gatedModules).toContain("Full Profit Mission Mode");
-    expect(planConfigs.growth.unlockedModules).toContain("Full Profit Mission Mode");
-    expect(planConfigs.pro.unlockedModules).toContain("Founder Profit Intelligence");
+    expect(planConfigs.pilot.unlockedModules).toContain("Daily priority queue");
+    expect(planConfigs.starter.gatedModules).toContain("Full priority work queue");
+    expect(planConfigs.growth.unlockedModules).toContain("Full priority work queue");
+    expect(planConfigs.pro.unlockedModules).toContain("Executive reporting");
     expect(planConfigs.pro.gatedModules).toContain("Real automated courier action push");
   });
 
@@ -42,5 +43,14 @@ describe("premium profit recovery dashboard", () => {
     expect(drivers.find((driver) => driver.id === "cod_risk")?.route.view).toBe("missions");
     expect(drivers.find((driver) => driver.id === "ndr_sla")?.route.view).toBe("ndr");
     expect(drivers.some((driver) => driver.estimatedLeakage > 0)).toBe(true);
+  });
+
+  it("defines seller learning content for formulas, terms, methodology, and data readiness", () => {
+    expect(formulaCards.map((card) => card.title)).toContain("Estimated RTO loss per order");
+    expect(formulaCards.find((card) => card.id === "cod-rto-rate")?.formula).toContain("COD orders marked RTO");
+    expect(glossaryTerms.map((term) => term.term)).toEqual(expect.arrayContaining(["COD", "RTO", "NDR", "SLA", "Recoverable leakage"]));
+    expect(operatingMethodology.map((step) => step.title)).toEqual(["Diagnose leakage", "Prioritize work", "Act within SLA", "Record outcome", "Review policy"]);
+    expect(dataReadinessChecklist.some((item) => item.field === "NDR reason and NDR time")).toBe(true);
+    expect(dashboardLearningTracks.find((track) => track.module === "Priority Work Queue")?.targetView).toBe("missions");
   });
 });

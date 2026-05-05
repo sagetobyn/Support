@@ -75,7 +75,7 @@ export const planConfigs: Record<PlanId, PlanConfig> = {
     valuePromise: "Show the seller the top leakage drivers and the cost of doing nothing.",
     primaryOutcome: "Leakage diagnosis",
     unlockedModules: ["Summary-number audit", "Anonymized CSV analysis", "Top leakage drivers", "Pilot recommendation"],
-    gatedModules: ["Daily mission execution", "Mock WhatsApp outbox", "Savings proof loop", "Founder weekly report"],
+    gatedModules: ["Daily priority execution", "Mock WhatsApp outbox", "Savings ledger", "Weekly executive report"],
     upgradeCopy: "Move to Pilot when the seller wants a 14-day operating workflow instead of a one-time diagnosis.",
     limits: { monthly_order_limit: 0, csv_upload: true, max_import_rows_per_file: 1000, risk_scoring: "basic_rules", address_check: "basic", ndr_dashboard: "basic", daily_action_queue: "disabled", whatsapp_outbox: "disabled", manual_response_capture: "disabled", reports: "basic", roi_dashboard: "basic", ...disabledIntegrations }
   },
@@ -86,7 +86,7 @@ export const planConfigs: Record<PlanId, PlanConfig> = {
     bestFor: "14-day manual RTO/NDR rescue pilot",
     valuePromise: "Turn diagnosis into a daily rescue habit and prove estimated savings over 14 days.",
     primaryOutcome: "Guided profit recovery execution",
-    unlockedModules: ["14-day pilot workflow", "Daily Profit Missions", "NDR urgency", "Mock WhatsApp queue", "Savings ledger", "Final pilot review"],
+    unlockedModules: ["14-day pilot workflow", "Daily priority queue", "NDR urgency", "Mock WhatsApp queue", "Savings ledger", "Final pilot review"],
     gatedModules: ["Advanced pincode/courier/SKU intelligence", "Campaign leakage", "Custom rules", "Monthly strategy"],
     upgradeCopy: "Move to Starter or Growth when the seller wants the operating workflow every month.",
     limits: { monthly_order_limit: 1000, csv_upload: true, max_import_rows_per_file: 1000, risk_scoring: "basic_rules", address_check: "basic", ndr_dashboard: "basic", daily_action_queue: "limited", whatsapp_outbox: "mock_only", manual_response_capture: "limited", reports: "basic", roi_dashboard: "basic", ...disabledIntegrations }
@@ -99,7 +99,7 @@ export const planConfigs: Record<PlanId, PlanConfig> = {
     valuePromise: "Give a small seller a clean monthly system for CSV-first RTO visibility and basic action execution.",
     primaryOutcome: "Basic monthly leakage control",
     unlockedModules: ["CSV upload", "Basic order risk", "Basic NDR dashboard", "Limited action queue", "Mock WhatsApp outbox", "Basic ROI report", "Privacy controls"],
-    gatedModules: ["Full Profit Mission Mode", "Prepaid strategy", "Pincode/courier/SKU intelligence", "Weekly founder story", "Custom rules"],
+    gatedModules: ["Full priority work queue", "Prepaid strategy", "Pincode/courier/SKU analysis", "Weekly executive report", "Custom rules"],
     upgradeCopy: "Upgrade to Growth when action volume, NDR urgency, and leakage intelligence need a full daily workflow.",
     limits: { monthly_order_limit: 500, csv_upload: true, max_import_rows_per_file: 1000, risk_scoring: "basic_rules", address_check: "basic", ndr_dashboard: "basic", daily_action_queue: "limited", whatsapp_outbox: "mock_only", manual_response_capture: "limited", reports: "basic", roi_dashboard: "basic", ...disabledIntegrations }
   },
@@ -110,7 +110,7 @@ export const planConfigs: Record<PlanId, PlanConfig> = {
     bestFor: "D2C sellers up to 2,000 orders/month who need a full daily recovery workflow",
     valuePromise: "Run a full daily recovery system for COD risk, NDR urgency, prepaid conversion, and weekly savings.",
     primaryOutcome: "Full daily profit recovery",
-    unlockedModules: ["Full Profit Mission Mode", "Advanced action queue", "NDR rescue", "Prepaid opportunities", "Pincode/courier/SKU reports", "Weekly savings report"],
+    unlockedModules: ["Full priority work queue", "Advanced action queue", "NDR management", "Prepaid opportunities", "Pincode/courier/SKU reports", "Weekly savings report"],
     gatedModules: ["Campaign leakage", "Custom rule engine", "Policy simulator", "Monthly strategy", "Multi-store roles"],
     upgradeCopy: "Upgrade to Pro when founders need strategy, campaign quality, custom rules, and exportable intelligence.",
     limits: { monthly_order_limit: 2000, csv_upload: true, multiple_imports: "enabled", max_import_rows_per_file: 5000, risk_scoring: "advanced_rules", address_check: "advanced_rules", ndr_dashboard: "advanced", daily_action_queue: "advanced", whatsapp_outbox: "mock_manual_provider_ready", manual_response_capture: "enabled", reports: "advanced", roi_dashboard: "advanced", prepaid_opportunities: "advanced", weekly_savings_report: "enabled", pincode_reports: "advanced", courier_reports: "advanced", sku_reports: "advanced", ...disabledIntegrations }
@@ -122,7 +122,7 @@ export const planConfigs: Record<PlanId, PlanConfig> = {
     bestFor: "Indian D2C sellers doing roughly 2,000-5,000 orders/month",
     valuePromise: "Give founders a premium profit recovery operating room: daily execution plus decision intelligence.",
     primaryOutcome: "Founder-grade profit intelligence",
-    unlockedModules: ["Founder Profit Intelligence", "Campaign leakage", "Custom rules", "Policy simulator", "Monthly strategy", "Multi-store support", "Roles", "Exportable reports", "Integration readiness"],
+    unlockedModules: ["Executive reporting", "Campaign leakage", "Custom rules", "Policy simulator", "Monthly strategy", "Multi-store support", "Roles", "Exportable reports", "Integration readiness"],
     gatedModules: scaleEnterprisePlaceholders,
     upgradeCopy: "Scale/Enterprise is reserved for real automation, APIs, ML, multi-brand portfolios, and managed operations after the workflow is proven.",
     limits: {

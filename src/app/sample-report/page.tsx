@@ -78,7 +78,7 @@ export default function SampleReportPage() {
           <Link href="/sample-report">Sample Report</Link>
           <Link href="/audit">Profit Audit</Link>
           <Link href="/pilot">Rescue Pilot</Link>
-          <Link href="/">Control Room</Link>
+          <Link href="/dashboard">Control Room</Link>
         </nav>
       </header>
 

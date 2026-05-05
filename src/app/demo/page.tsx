@@ -54,7 +54,7 @@ export default function DemoPage() {
     <main className="public-page">
       <header className="public-header">
         <Link className="brand-link" href="/">SupportWaala</Link>
-        <nav className="public-nav"><Link href="/">Open control room</Link><Link href="/calculator">Free Leakage Check</Link></nav>
+        <nav className="public-nav"><Link href="/dashboard">Open control room</Link><Link href="/calculator">Free Leakage Check</Link></nav>
       </header>
       <section className="report-hero">
         <p className="eyebrow">Demo / Client Test Mode</p>
@@ -75,7 +75,7 @@ export default function DemoPage() {
           </div>
           <div className="toolbar">
             <button className="button" onClick={loadDemo}>Load demo workspace</button>
-            <Link className="button secondary" href="/">Open control room</Link>
+            <Link className="button secondary" href="/dashboard">Open control room</Link>
           </div>
           {status ? <div className="success">{status}</div> : null}
         </div>

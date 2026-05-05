@@ -97,7 +97,7 @@ export default function PilotPage() {
           <Link href="/sample-report">Sample Report</Link>
           <Link href="/audit">Profit Audit</Link>
           <Link href="/pilot">Rescue Pilot</Link>
-          <Link href="/">Control Room</Link>
+          <Link href="/dashboard">Control Room</Link>
         </nav>
       </header>
 
@@ -131,7 +131,7 @@ export default function PilotPage() {
             <strong>Morning</strong>
             <p className="muted">Upload new orders, review risky COD queue, queue confirmations and address corrections.</p>
             <div className="toolbar tight">
-              <Link className="button secondary" href="/">Open Control Room</Link>
+              <Link className="button secondary" href="/dashboard">Open Control Room</Link>
             </div>
           </div>
           <div className="panel" style={{ background: "#fff8ec" }}>
@@ -142,7 +142,7 @@ export default function PilotPage() {
             <strong>Evening — NDR Rescue</strong>
             <p className="muted">Review NDR cases, queue rescue messages, mark reattempt / call / cancel / RTO.</p>
             <div className="toolbar tight">
-              <Link className="button secondary" href="/">Open NDR War Room</Link>
+              <Link className="button secondary" href="/dashboard">Open NDR War Room</Link>
             </div>
           </div>
         </div>
