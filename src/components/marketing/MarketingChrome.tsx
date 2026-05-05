@@ -1,22 +1,46 @@
 import Link from "next/link";
 import type { ReactNode } from "react";
-import { navLinks } from "@/features/marketing";
-
 export function MarketingHeader({ variant = "light" }: { variant?: "light" | "dark" }) {
   return (
     <header className={`saas-header ${variant === "dark" ? "saas-header--dark" : ""}`}>
       <Link className="saas-brand" href="/" aria-label="SupportWaala home">
         <span>SW</span>
-        <strong>SupportWaala</strong>
+        <strong>
+          SupportWaala
+          <small>RTOShield by SupportWaala</small>
+        </strong>
       </Link>
       <nav className="saas-nav" aria-label="Main navigation">
-        {navLinks.map((item) => (
-          <Link href={item.href} key={item.href}>{item.label}</Link>
-        ))}
+        <div className="saas-nav-menu">
+          <Link href="/product">Product <span>v</span></Link>
+          <div className="saas-nav-popover">
+            <Link href="/product">Product overview</Link>
+            <Link href="/dashboard">Dashboard preview</Link>
+            <Link href="/pilot">Pilot workflow</Link>
+          </div>
+        </div>
+        <div className="saas-nav-menu">
+          <Link href="/personas/founder">Solutions <span>v</span></Link>
+          <div className="saas-nav-popover">
+            <Link href="/personas/founder">For founders</Link>
+            <Link href="/personas/operations">For operations</Link>
+            <Link href="/personas/growth-lead">For growth teams</Link>
+          </div>
+        </div>
+        <div className="saas-nav-menu">
+          <Link href="/audit">Resources <span>v</span></Link>
+          <div className="saas-nav-popover">
+            <Link href="/calculator">Leakage calculator</Link>
+            <Link href="/audit">Profit audit</Link>
+            <Link href="/sample-report">Sample report</Link>
+          </div>
+        </div>
+        <Link href="/pricing">Pricing</Link>
+        <Link href="/calculator">Calculator</Link>
       </nav>
       <div className="saas-header__actions">
         <Link className="button secondary" href="/dashboard">Open dashboard</Link>
-        <Link className="button" href="/calculator">Check leakage</Link>
+        <Link className="button" href="/calculator">Check leakage <span aria-hidden>-&gt;</span></Link>
       </div>
     </header>
   );

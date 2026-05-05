@@ -15,6 +15,20 @@ export interface RecoveryStep {
   description: string;
 }
 
+export interface BenefitCard {
+  title: string;
+  description: string;
+  metric: string;
+  accent: "green" | "gold" | "copper" | "violet";
+}
+
+export interface FeatureCard {
+  title: string;
+  description: string;
+  bullets: string[];
+  accent: "green" | "gold" | "blue" | "violet" | "teal";
+}
+
 export interface PersonaContent {
   slug: "founder" | "operations" | "growth-lead";
   name: string;
@@ -109,6 +123,66 @@ export const recoverySteps: RecoveryStep[] = [
     label: "04",
     title: "Prove the value",
     description: "Track estimated and verified savings so founders can see whether the workflow paid for itself."
+  }
+];
+
+export const benefitCards: BenefitCard[] = [
+  {
+    title: "Reduce RTO",
+    description: "Identify at-risk COD orders and act before avoidable returns become real cost.",
+    metric: "Risk before dispatch",
+    accent: "green"
+  },
+  {
+    title: "Improve NDR",
+    description: "Rescue more failed deliveries with SLA-aware action and reason-specific response rules.",
+    metric: "SLA rescue window",
+    accent: "gold"
+  },
+  {
+    title: "Increase profit",
+    description: "Recover leaking margin and improve contribution with every verified intervention.",
+    metric: "Savings proof",
+    accent: "copper"
+  },
+  {
+    title: "Actionable insights",
+    description: "See the customer, courier, pincode, SKU, or campaign driver behind each loss pattern.",
+    metric: "Decision clarity",
+    accent: "violet"
+  }
+];
+
+export const featureCards: FeatureCard[] = [
+  {
+    title: "Daily Briefing",
+    description: "The first screen shows today’s leakage, urgent NDRs, critical COD risk, and the next action.",
+    bullets: ["Executive summary", "Next best action", "KPI scorecard"],
+    accent: "green"
+  },
+  {
+    title: "Priority Work Queue",
+    description: "Actionable tasks sorted by estimated impact, urgency, and risk reason.",
+    bullets: ["Critical and high actions", "Smart prioritization", "One-click workflows"],
+    accent: "gold"
+  },
+  {
+    title: "Leakage Analysis",
+    description: "A driver map for COD, NDR, address, courier, SKU, campaign, and proof gaps.",
+    bullets: ["Leakage drivers", "Impact estimation", "Root-cause trend"],
+    accent: "violet"
+  },
+  {
+    title: "NDR Management",
+    description: "Rescue failed deliveries before SLA breach and prevent avoidable RTO.",
+    bullets: ["NDR tracking", "SLA breach alerts", "Rescue playbooks"],
+    accent: "blue"
+  },
+  {
+    title: "Savings Ledger",
+    description: "Separate estimated savings from verified proof so sellers can trust the numbers.",
+    bullets: ["Savings tracker", "Team performance", "Export and reports"],
+    accent: "teal"
   }
 ];
 
