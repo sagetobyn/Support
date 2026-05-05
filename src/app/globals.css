@@ -4481,11 +4481,51 @@ tbody tr:hover td {
 
   .saas-header {
     background: rgba(4, 10, 8, 0.94);
+    display: grid;
+    gap: 10px;
+    grid-template-columns: minmax(0, 1fr) auto;
     margin: 10px 12px;
+    padding: 10px 12px;
+    top: 8px;
+  }
+
+  .saas-brand {
+    min-width: 0;
+  }
+
+  .saas-brand span {
+    flex: 0 0 auto;
+    height: 32px;
+    width: 32px;
+  }
+
+  .saas-brand strong {
+    font-size: 15px;
+  }
+
+  .saas-brand small {
+    display: none;
   }
 
   .saas-nav {
-    width: 100%;
+    display: none;
+  }
+
+  .saas-header__actions {
+    gap: 0;
+    justify-content: flex-end;
+    min-width: 0;
+  }
+
+  .saas-header__actions .button.secondary {
+    display: none;
+  }
+
+  .saas-header__actions .button {
+    font-size: 13px;
+    min-height: 38px;
+    padding: 8px 10px;
+    white-space: nowrap;
   }
 
   .saas-nav-menu {
