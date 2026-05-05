@@ -14,6 +14,7 @@ import type {
   Message,
   NdrCase,
   NdrCaseState,
+  NormalizedNdrReason,
   Order,
   RecommendedAction,
   Role,
@@ -1506,7 +1507,7 @@ function NdrUrgencyCard({ ndrCases, orders, brand, setView }: { ndrCases: NdrCas
                 if (!order) return null;
                 return (
                   <tr key={ndr.id}>
-                    <td>{normalizeNdrReason(ndr.ndrReasonRaw)}</td>
+                    <td>{friendlyNdrReason(normalizeNdrReason(ndr.ndrReasonRaw).normalizedReason)}</td>
                     <td>{order.orderId}</td>
                     <td>{money(estimatedLeakageForOrder(order, brand))}</td>
                     <td>{Math.round(ndr.hoursSinceNdr || 0)}h</td>
@@ -1593,6 +1594,24 @@ function CardTitle({ title, action, onAction }: { title: string; action: string;
       <button className="link-button" onClick={onAction}>{action} -&gt;</button>
     </div>
   );
+}
+
+function friendlyNdrReason(reason: NormalizedNdrReason) {
+  const labels: Record<NormalizedNdrReason, string> = {
+    customer_unavailable: "Customer unavailable",
+    customer_refused: "Customer refused",
+    wrong_address: "Wrong address",
+    phone_unreachable: "Phone unreachable",
+    payment_issue: "Payment issue",
+    delayed_delivery: "Delayed delivery",
+    out_of_delivery_area: "Out of delivery area",
+    courier_fake_attempt: "Courier fake attempt",
+    customer_requested_future_delivery: "Future delivery requested",
+    customer_shifted: "Customer shifted",
+    door_locked: "Door locked",
+    other: "Other"
+  };
+  return labels[reason];
 }
 
 function friendlySavingEventType(type: SavingsEvent["eventType"]) {
