@@ -128,70 +128,59 @@ const allNavGroups: Array<{
   {
     title: "Command Center",
     links: [
-      { id: "briefing", label: "Daily Briefing" },
-      { id: "missions", label: "Priority Work Queue" },
-      { id: "atlas", label: "Leakage Analysis" },
-      { id: "ndr", label: "NDR Management" },
-      { id: "savings", label: "Savings Ledger" }
+      { id: "briefing", label: "Overview" },
+      { id: "missions", label: "Action Queue" },
+      { id: "atlas", label: "Leakage Drivers" },
+      { id: "ndr", label: "NDR Rescue" },
+      { id: "savings", label: "Savings Tracker" },
+      { id: "courier", label: "Courier Performance" }
     ]
   },
   {
-    title: "Management Reports",
+    title: "Analytics & Reports",
     links: [
-      { id: "weekly", label: "Weekly Executive Report" },
       { id: "dashboard", label: "Profit Overview" },
-      { id: "reports", label: "Loss Analysis Report" },
+      { id: "weekly", label: "Founder Briefing" },
+      { id: "reports", label: "Reports" },
       { id: "simulator", label: "Policy Simulator" },
-      { id: "monthly", label: "Monthly Strategy" }
+      { id: "monthly", label: "Strategy Review" },
+      { id: "pincode", label: "Risky Zones" },
+      { id: "sku", label: "SKU Leakage" },
+      { id: "campaigns", label: "Campaign Leakage" }
     ]
   },
   {
-    title: "Plans And Validation",
+    title: "Configuration",
     links: [
-      { href: "/calculator", label: "Leakage Calculator" },
-      { href: "/sample-report", label: "Sample Audit Report" },
-      { href: "/audit", label: "Profit Audit" },
-      { href: "/pilot", label: "Pilot Workflow" },
-      { id: "billing", label: "Plans & Billing" }
-    ]
-  },
-  {
-    title: "Operations",
-    links: [
-      { id: "upload", label: "Data Import" },
-      { id: "orders", label: "Order Risk Analysis" },
-      { id: "prepaid", label: "Prepaid Conversion" },
-      { id: "templates", label: "Message Queue" },
-      { id: "actions", label: "Action Groups" }
-    ]
-  },
-  {
-    title: "Advanced Analysis",
-    links: [
-      { id: "pincode", label: "Pincode Analysis" },
-      { id: "courier", label: "Courier Analysis" },
-      { id: "sku", label: "SKU Analysis" },
-      { id: "campaigns", label: "Campaign Analysis" }
+      { id: "brand", label: "Settings" },
+      { id: "stores", label: "Team & Stores" },
+      { id: "rules", label: "Risk Rules" },
+      { id: "templates", label: "Notifications & Messages" },
+      { id: "integrations", label: "Integrations", badge: "Gated" }
     ]
   },
   {
     title: "Enablement",
     links: [
-      { id: "learning", label: "Methodology & Help" },
-      { id: "sops", label: "Operating Procedures" },
-      { id: "onboarding", label: "Onboarding" }
+      { id: "learning", label: "Help & Methodology" },
+      { id: "sops", label: "Operating Playbooks" },
+      { id: "onboarding", label: "Onboarding" },
+      { id: "upload", label: "Data Import" },
+      { id: "demo", label: "Demo Workspace", badge: "Local" },
+      { id: "billing", label: "Plans & Billing" },
+      { id: "privacy", label: "Privacy & Audit" },
+      { href: "/calculator", label: "Leakage Calculator" },
+      { href: "/sample-report", label: "Sample Report" },
+      { href: "/audit", label: "Profit Audit" },
+      { href: "/pilot", label: "Pilot Workflow" }
     ]
   },
   {
-    title: "Administration",
+    title: "Detailed Operations",
     links: [
-      { id: "demo", label: "Demo Workspace", badge: "Local" },
-      { id: "brand", label: "Brand Settings" },
-      { id: "stores", label: "Store Setup" },
-      { id: "rules", label: "Risk Rules" },
-      { id: "ndrPlaybooks", label: "NDR Response Rules" },
-      { id: "integrations", label: "Integration Readiness", badge: "Gated" },
-      { id: "privacy", label: "Privacy & Audit" }
+      { id: "orders", label: "Order Risk Analysis" },
+      { id: "prepaid", label: "Prepaid Conversion" },
+      { id: "actions", label: "Action Groups" }
     ]
   }
 ];
@@ -200,7 +189,7 @@ function roleNavGroups(role: Role): typeof allNavGroups {
   if (role === "admin") return allNavGroups;
   const allowed = (ids: View[]) => (link: { id?: View; label: string; href?: string; badge?: string }) => !link.id || ids.includes(link.id);
   if (role === "ops") {
-    const ids: View[] = ["briefing", "missions", "atlas", "dashboard", "demo", "actions", "upload", "orders", "ndr", "templates", "savings", "reports", "brand", "learning", "privacy", "billing"];
+    const ids: View[] = ["briefing", "missions", "atlas", "dashboard", "demo", "actions", "upload", "orders", "ndr", "templates", "savings", "reports", "courier", "brand", "learning", "privacy", "billing"];
     return allNavGroups.map((group) => ({ ...group, links: group.links.filter(allowed(ids)) })).filter((g) => g.links.length);
   }
   if (role === "analyst") {
@@ -404,7 +393,7 @@ export default function Home() {
   const [hydrated, setHydrated] = useState(false);
   const [selectedOrderId, setSelectedOrderId] = useState(seedOrders[0]?.id || "");
   const [filters, setFilters] = useState<OrderFilters>({ payment: "all", risk: "all", courier: "all", query: "", quick: "all" });
-  const [toast, setToast] = useState("Demo data loaded.");
+  const [toast, setToast] = useState("");
   const [upload, setUpload] = useState<{ filename: string; csv: string; analysis?: ReturnType<typeof analyzeCsvImport> }>({ filename: "", csv: "" });
   const [templateType, setTemplateType] = useState<TemplateType>("cod_confirmation");
   const [dateRange, setDateRange] = useState("30d");
@@ -415,7 +404,7 @@ export default function Home() {
     const loaded = loadWorkspaceState(initialState());
     setState({ ...initialState(), ...loaded, storageVersion, ndrCases: buildNdrCases(loaded.orders || [], loaded.ndrCases || []) });
     setSelectedOrderId(loaded.orders?.[0]?.id || "");
-    setToast(loaded.migrationWarning || "Starter workspace loaded.");
+    setToast(loaded.migrationWarning || "");
     setHydrated(true);
   }, []);
 
@@ -470,6 +459,14 @@ export default function Home() {
 
   const actionGroups = useMemo(() => buildActionGroups(orders, ndrCases), [orders, ndrCases]);
   const proLimitWarning = getProLimitWarning(orders.length, currentProPlan);
+  const openActionCount = Object.values(actionGroups).flat().length;
+  const urgentNdrCount = ndrCases.filter((ndr) => (ndr.hoursSinceNdr || 0) >= 8 && !["delivered_after_ndr", "rto"].includes(ndr.state)).length;
+
+  function navBadge(id?: View, staticBadge?: string) {
+    if (id === "missions" && openActionCount) return String(Math.min(openActionCount, 99));
+    if (id === "ndr" && urgentNdrCount) return String(Math.min(urgentNdrCount, 99));
+    return staticBadge;
+  }
 
   function openAtlasDriver(driver: LeakageAtlasDriver) {
     if (driver.route.quickFilter) setFilters((current) => ({ ...current, quick: driver.route.quickFilter || current.quick }));
@@ -884,26 +881,35 @@ export default function Home() {
           {roleNavGroups(role).map((group) => (
             <div className="nav-section" key={group.title}>
               <div className="nav-section-title">{group.title}</div>
-              {group.links.map((item) =>
-                item.href ? (
+              {group.links.map((item) => {
+                const badge = navBadge(item.id, item.badge);
+                return item.href ? (
                   <Link className="nav-link" href={item.href} key={item.href}>{item.label}</Link>
                 ) : (
                   <button className={view === item.id ? "active" : ""} key={item.id} onClick={() => item.id && setView(item.id)}>
                     <span>{item.label}</span>
-                    {item.badge ? <span className="badge neutral">{item.badge}</span> : null}
+                    {badge ? <span className="badge neutral">{badge}</span> : null}
                   </button>
-                )
-              )}
+                );
+              })}
             </div>
           ))}
+        </div>
+        <div className="sidebar-help-card">
+          <strong>Need help?</strong>
+          <p>Use the methodology guide or talk to the recovery team before changing policy.</p>
+          <div className="sidebar-help-card__actions">
+            <button className="button secondary" onClick={() => setView("learning")}>View help docs</button>
+            <button className="button secondary" onClick={() => setToast("Recovery expert callback requested in demo mode.")}>Book a call</button>
+          </div>
         </div>
         <button className="button secondary full dev-reset" onClick={resetDemoData}>Reset demo data</button>
       </aside>
       <main className="main">
         <div className="topbar">
-          <div>
-            <h1>{viewLabels[view] || "SupportWaala"}</h1>
-            <div className="muted">{brand.name} · {activePlan.name} plan · {orders.length.toLocaleString("en-IN")} orders · {dateRange === "30d" ? "Last 30 days" : dateRange}</div>
+          <div className="workspace-picker">
+            <strong>{brand.name}</strong>
+            <span>{activePlan.name} plan · {orders.length.toLocaleString("en-IN")} orders · {dateRange === "30d" ? "Last 30 days" : dateRange}</span>
           </div>
           <div className="toolbar tight">
             <DataQualityBadge score={dataQualityScore} />
@@ -921,12 +927,14 @@ export default function Home() {
             </select>
             <button className="button secondary" onClick={() => setView("upload")}>Upload CSV</button>
             <button className="button" onClick={() => setView("demo")}>Run demo</button>
+            <button className="topbar-icon" aria-label="Notifications" onClick={() => setView("templates")}>!</button>
+            <button className="user-avatar" aria-label="Current user role" onClick={() => setRole(role === "admin" ? "ops" : "admin")}>{role.slice(0, 2).toUpperCase()}</button>
           </div>
         </div>
         {toast && <div className="toast">{toast}</div>}
         {lastImport?.filename.startsWith("generated-") && <DemoModeBanner>{lastImport.filename} is active in this browser workspace.</DemoModeBanner>}
         {proLimitWarning && <div className="notice">{proLimitWarning}</div>}
-        <WorkspaceSummary orders={orders} roi={roi} lastImport={lastImport} />
+        {view !== "briefing" && <WorkspaceSummary orders={orders} roi={roi} lastImport={lastImport} />}
 
         {view === "briefing" && (
           <MorningBriefing
@@ -1255,118 +1263,352 @@ function MorningBriefing({ orders, ndrCases, actionGroups, brand, savingsEvents,
   const highActions = allActions.filter((order) => order.riskBucket === "High");
   const criticalValue = criticalActions.reduce((sum, order) => sum + estimatedLeakageForOrder(order, brand), 0);
   const highValue = highActions.reduce((sum, order) => sum + estimatedLeakageForOrder(order, brand), 0);
+  const atRiskRevenue = criticalValue + highValue;
   const urgentNdrs = ndrCases.filter((ndr) => (ndr.hoursSinceNdr || 0) >= 8 && !["delivered_after_ndr", "rto"].includes(ndr.state));
   const ndrBreachingSoon = urgentNdrs.filter((ndr) => (ndr.hoursSinceNdr || 0) >= 10).length;
   const completedToday = orders.filter((order) => order.actionStatus === "done").length;
   const missionProgress = getMissionProgress(orders);
-  const topDriver = getTopLeakageDriver(buildLeakageAtlas(orders, ndrCases, brand));
+  const roi = calculateRoi(orders, savingsEvents, brand);
+  const atlasDrivers = buildLeakageAtlas(orders, ndrCases, brand);
+  const topDriver = getTopLeakageDriver(atlasDrivers);
+  const topActionRows = [...allActions]
+    .sort((a, b) => estimatedLeakageForOrder(b, brand) - estimatedLeakageForOrder(a, brand))
+    .slice(0, 4);
+  const positiveSavings = savingsEvents.filter((event) => event.estimatedSaving > 0 && event.status !== "rejected");
+  const recoveredThisMonth = positiveSavings.filter((event) => {
+    const created = new Date(event.createdAt);
+    const now = new Date();
+    return created.getMonth() === now.getMonth() && created.getFullYear() === now.getFullYear();
+  }).reduce((sum, event) => sum + event.estimatedSaving, 0);
+  const recoveryRate = roi.estimatedRtoLoss ? recoveredThisMonth / roi.estimatedRtoLoss : 0;
+  const codRiskScore = Math.min(100, Math.max(0, Math.round(roi.codRtoRate * 400)));
+  const codRiskLabel = codRiskScore >= 70 ? "High risk" : codRiskScore >= 45 ? "Medium risk" : "Controlled";
   const todaySavings = savingsEvents.filter((event) => {
     const created = new Date(event.createdAt);
     const now = new Date();
     return created.toDateString() === now.toDateString();
   }).reduce((sum, event) => sum + event.estimatedSaving, 0);
-  const hour = new Date().getHours();
-  const greeting = hour < 12 ? "Good morning" : hour < 17 ? "Good afternoon" : "Good evening";
   const nextMission = getNextProfitMission(orders, brand, ndrCases);
   const nextAction = nextMission?.order || criticalActions[0] || highActions[0] || allActions[0];
 
   return (
-    <div className="grid">
-      <section className="hero-insight">
-        <div>
-          <h2>{greeting}. Recover profit after checkout today.</h2>
-          <div className="hero-insight__value">{money(criticalValue + highValue)}</div>
-          <p>You have <strong>{criticalActions.length} critical</strong> and <strong>{highActions.length} high</strong> actions worth {money(criticalValue + highValue)} in recoverable leakage. {ndrBreachingSoon > 0 ? `${ndrBreachingSoon} NDR${ndrBreachingSoon > 1 ? "s" : ""} will breach SLA within 2 hours.` : "NDR queue is within SLA."}</p>
-          <div className="toolbar tight">
-            <button className="button" onClick={() => setView("missions")}>Open priority queue</button>
-            <button className="button secondary" onClick={() => setView("atlas")}>Open leakage analysis</button>
-            <button className="button secondary" onClick={() => setView("ndr")}>Review NDR rescue</button>
-          </div>
-        </div>
-        <div>
-          <h3>Next action</h3>
-          {nextAction ? (
-            <>
-              <p><strong>{recommendedProfitAction(nextAction)}</strong> · {nextAction.orderId}</p>
-              <p className="muted">{nextMission?.why || nextAction.recommendedActionReason}</p>
-              <p>{money(estimatedLeakageForOrder(nextAction, brand))} estimated impact</p>
-              <div className="toolbar tight">
-                <button className="button" onClick={() => queueMessage(nextAction, defaultTemplateForOrder(nextAction))}>Queue WhatsApp</button>
-                <button className="button secondary" onClick={() => completeAction(nextAction, nextAction.recommendedAction, "Done from morning briefing")}>Mark done</button>
-              </div>
-            </>
-          ) : (
-            <p className="muted">All critical and high actions are complete.</p>
-          )}
-          <div className="mission-mini">
-            <span>{missionProgress.percent}% mission progress</span>
-            <div className="bar-track"><span className="bar-fill success" style={{ width: `${missionProgress.percent}%` }} /></div>
-          </div>
-          {topDriver && <p className="muted">Top leakage driver: {topDriver.title} · {money(topDriver.estimatedLeakage)}</p>}
-        </div>
-      </section>
+    <div className="dashboard-board">
+      <PageHeader
+        title="Profit Recovery Briefing"
+        subtitle="Your daily cockpit to stop leakage, recover revenue, and grow profit."
+        actions={<button className="button secondary" onClick={() => setView("weekly")}>Share briefing</button>}
+      />
 
-      <div className="grid metrics">
-        <MetricCard title="Critical actions" value={criticalActions.length} tone="danger" onClick={() => setView("actions")} />
-        <MetricCard title="High actions" value={highActions.length} tone="warning" onClick={() => setView("actions")} />
-        <MetricCard title="NDRs near SLA breach" value={ndrBreachingSoon} tone="danger" onClick={() => setView("ndr")} />
-        <MetricCard title="Completed today" value={completedToday} tone="success" />
+      <div className="briefing-hero-grid">
+        <section className="recovery-brief-card">
+        <div>
+            <span className="eyebrow">At-risk revenue (recoverable leakage)</span>
+            <div className="recovery-brief-card__value">{money(atRiskRevenue)}</div>
+            <p><strong>{criticalActions.length}</strong> critical and <strong>{highActions.length}</strong> high-priority actions can recover this revenue. {ndrBreachingSoon > 0 ? `${ndrBreachingSoon} NDR${ndrBreachingSoon > 1 ? "s" : ""} may breach SLA soon.` : "NDR queue is within SLA."}</p>
+            <div className="toolbar tight">
+              <button className="button" onClick={() => setView("missions")}>View action queue</button>
+              <button className="button secondary" onClick={() => setView("atlas")}>Analyze leakage</button>
+            </div>
+        </div>
+          <div className="brief-driver-panel">
+            <h3>What's impacting you most</h3>
+            <DriverBarList drivers={atlasDrivers.slice(0, 4)} />
+            <button className="link-button" onClick={() => setView("atlas")}>Leakage drivers -&gt;</button>
+          </div>
+        </section>
+
+        <section className="next-actions-card">
+          <div className="split">
+            <div>
+              <h2>Next Best Actions</h2>
+              <p>Focus on the highest-impact actions today.</p>
+            </div>
+            <span className="badge priority-critical">{allActions.length}</span>
+          </div>
+          <div className="next-action-list">
+            {topActionRows.length ? topActionRows.map((order, index) => (
+              <article className="next-action-row" key={order.id}>
+                <span>{index + 1}</span>
+                <div>
+                  <strong>{recommendedProfitAction(order)}</strong>
+                  <small>{order.orderId} · {money(estimatedLeakageForOrder(order, brand))} impact</small>
+                </div>
+                <span className={`badge ${riskClass(order.riskBucket)}`}>{order.riskBucket}</span>
+                <button className="button secondary" onClick={() => setView("missions")}>Take action</button>
+              </article>
+            )) : <EmptyState title="No action backlog" description="All critical recovery work is complete." />}
+          </div>
+          <button className="link-button" onClick={() => setView("missions")}>View all actions -&gt;</button>
+        </section>
+      </div>
+
+      <div className="recovery-metrics">
+        <RecoveryMetricCard title="At-risk revenue" value={money(atRiskRevenue)} detail="Recoverable leakage" tone="success" icon="₹" />
+        <RecoveryMetricCard title="Critical actions" value={criticalActions.length} detail="Needs attention" tone="danger" icon="!" />
+        <RecoveryMetricCard title="NDRs nearing SLA" value={ndrBreachingSoon} detail={ndrBreachingSoon ? "Act within 2h" : "Within SLA"} tone="warning" icon="⏱" />
+        <RecoveryMetricCard title="Recovered this month" value={money(recoveredThisMonth)} detail="Savings ledger" tone="success" icon="✓" />
+        <RecoveryMetricCard title="Recovery rate" value={percent(recoveryRate)} detail="Savings / RTO loss" tone="neutral" icon="↗" />
+        <RecoveryMetricCard title="COD risk score" value={`${codRiskScore} / 100`} detail={codRiskLabel} tone={codRiskScore >= 70 ? "danger" : codRiskScore >= 45 ? "warning" : "success"} icon="◇" />
       </div>
 
       {criticalActions.length === 0 && highActions.length === 0 && (
-        <div className="success" style={{ borderRadius: 8, padding: 16 }}>
+        <div className="success briefing-success">
           <strong>All critical actions done for today.</strong> You protected an estimated {money(todaySavings)} in recoverable leakage. {todaySavings > 0 ? "This is the daily proof that the workflow is working." : ""}
         </div>
       )}
 
-      <div className="grid two-col">
-        <div className="panel">
-          <h2>Quick Actions</h2>
-          <div className="action-group">
-            {allActions.slice(0, 5).map((order) => (
-              <div className="action-row" key={order.id}>
-                <div className="split">
-                  <strong>{recommendedProfitAction(order)}</strong>
-                  <span className={`badge ${riskClass(order.riskBucket)}`}>{order.riskBucket}</span>
-                </div>
-                <div className="muted">{order.orderId} · {order.pincode} · {order.courier}</div>
-                <div>{money(estimatedLeakageForOrder(order, brand))} estimated impact</div>
-                <div className="toolbar tight">
-                  <button className="button secondary" onClick={() => queueMessage(order, defaultTemplateForOrder(order))}>Queue message</button>
-                  <button className="button secondary" onClick={() => completeAction(order, order.recommendedAction, "Done from briefing")}>Mark done</button>
-                </div>
-              </div>
-            ))}
-            {allActions.length === 0 && <EmptyState title="No open actions" description="All actionable work is complete." />}
-          </div>
-        </div>
-        <div className="panel">
-          <h2>NDR Urgency</h2>
-          <div className="action-group">
-            {urgentNdrs.slice(0, 5).map((ndr) => {
-              const order = orders.find((o) => o.id === ndr.orderId);
-              if (!order) return null;
-              const hoursLeft = Math.max(0, 12 - Math.round(ndr.hoursSinceNdr || 0));
-              return (
-                <div className="action-row" key={ndr.id}>
-                  <div className="split">
-                    <strong>{order.orderId}</strong>
-                    <span className="badge priority-critical">{hoursLeft}h left</span>
-                  </div>
-                  <div className="muted">{ndr.ndrReasonRaw} · {order.pincode} · {ndr.courier}</div>
-                  <div>{money(estimatedLeakageForOrder(order, brand))} at risk</div>
-                  <div className="toolbar tight">
-                    <button className="button secondary" onClick={() => setView("ndr")}>Open NDR</button>
-                  </div>
-                </div>
-              );
-            })}
-            {urgentNdrs.length === 0 && <EmptyState title="No urgent NDRs" description="All NDR cases are within SLA." />}
-          </div>
-        </div>
+      <div className="briefing-insight-grid">
+        <MiniTrendCard atRiskRevenue={atRiskRevenue} recoveredValue={recoveredThisMonth} setView={setView} />
+        <DriverAnalysisCard drivers={atlasDrivers.slice(0, 5)} setView={setView} />
+        <CourierPerformanceCard rows={analyzeCourierPolicies(orders, brand).league.slice(0, 5)} setView={setView} />
+        <RiskyZonesCard policies={analyzePincodePolicies(orders, brand).slice(0, 5)} setView={setView} />
+        <NdrUrgencyCard ndrCases={urgentNdrs.slice(0, 5)} orders={orders} brand={brand} setView={setView} />
+        <SavingsTrackerCard savingsEvents={positiveSavings} totalRecovered={recoveredThisMonth} setView={setView} />
       </div>
+
+      <QuickActionsDock
+        nextAction={nextAction}
+        missionProgress={missionProgress.percent}
+        queueMessage={queueMessage}
+        completeAction={completeAction}
+        setView={setView}
+      />
     </div>
   );
+}
+
+function RecoveryMetricCard({ title, value, detail, icon, tone = "neutral" }: {
+  title: string;
+  value: ReactNode;
+  detail: string;
+  icon: string;
+  tone?: "neutral" | "success" | "warning" | "danger";
+}) {
+  return (
+    <article className={`recovery-metric tone-${tone}`}>
+      <span className="recovery-metric__icon">{icon}</span>
+      <div>
+        <small>{title}</small>
+        <strong>{value}</strong>
+        <span>{detail}</span>
+      </div>
+    </article>
+  );
+}
+
+function DriverBarList({ drivers }: { drivers: LeakageAtlasDriver[] }) {
+  const max = Math.max(1, ...drivers.map((driver) => driver.estimatedLeakage));
+  return (
+    <div className="driver-bar-list">
+      {drivers.map((driver) => (
+        <div className="driver-bar-row" key={driver.id}>
+          <span>{driver.title}</span>
+          <div><b style={{ width: `${Math.max(7, (driver.estimatedLeakage / max) * 100)}%` }} /></div>
+          <strong>{money(driver.estimatedLeakage)}</strong>
+        </div>
+      ))}
+    </div>
+  );
+}
+
+function MiniTrendCard({ atRiskRevenue, recoveredValue, setView }: { atRiskRevenue: number; recoveredValue: number; setView: (view: View) => void }) {
+  const current = [0.38, 0.46, 0.49, 0.58, 0.54, 0.62, 0.68, 0.64, 0.73, 0.79, 0.76, 0.86].map((multiplier) => Math.max(1, atRiskRevenue * multiplier));
+  const previous = current.map((value, index) => Math.max(1, value * (0.68 + index * 0.018)));
+  const max = Math.max(...current, ...previous, 1);
+  const points = (values: number[]) => values.map((value, index) => `${index * 24},${86 - (value / max) * 72}`).join(" ");
+  return (
+    <section className="dashboard-card trend-card">
+      <CardTitle title="Leakage trend" action="View full trend" onAction={() => setView("reports")} />
+      <strong className="card-value">{money(atRiskRevenue)}</strong>
+      <div className="trend-legend"><span>This period</span><span>Previous period</span></div>
+      <svg className="trend-chart" viewBox="0 0 264 96" aria-hidden>
+        <polyline className="trend-line trend-line--previous" points={points(previous)} />
+        <polyline className="trend-line" points={points(current)} />
+      </svg>
+      <p>{money(recoveredValue)} recovered this month is reflected in the savings tracker.</p>
+    </section>
+  );
+}
+
+function DriverAnalysisCard({ drivers, setView }: { drivers: LeakageAtlasDriver[]; setView: (view: View) => void }) {
+  return (
+    <section className="dashboard-card">
+      <CardTitle title="Top leakage drivers" action="View all drivers" onAction={() => setView("atlas")} />
+      <DriverBarList drivers={drivers} />
+    </section>
+  );
+}
+
+function CourierPerformanceCard({ rows, setView }: { rows: ReturnType<typeof analyzeCourierPolicies>["league"]; setView: (view: View) => void }) {
+  return (
+    <section className="dashboard-card">
+      <CardTitle title="Courier performance" action="View full report" onAction={() => setView("courier")} />
+      <div className="table-wrap compact-table">
+        <table>
+          <thead>
+            <tr><th>Courier</th><th>RTO %</th><th>NDR %</th><th>Delivered %</th><th>At-risk</th></tr>
+          </thead>
+          <tbody>
+            {rows.map((row) => (
+              <tr key={row.courier}>
+                <td>{row.courier}</td>
+                <td>{percent(row.rtoRate)}</td>
+                <td>{percent(row.total ? row.ndr / row.total : 0)}</td>
+                <td>{percent(row.total ? row.delivered / row.total : 0)}</td>
+                <td>{money(row.estimatedLeakage)}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    </section>
+  );
+}
+
+function RiskyZonesCard({ policies, setView }: { policies: ReturnType<typeof analyzePincodePolicies>; setView: (view: View) => void }) {
+  return (
+    <section className="dashboard-card">
+      <CardTitle title="Top risky pincodes / zones" action="View all zones" onAction={() => setView("pincode")} />
+      <div className="table-wrap compact-table">
+        <table>
+          <thead>
+            <tr><th>Pincode / Zone</th><th>At-risk</th><th>Orders</th><th>Risk</th></tr>
+          </thead>
+          <tbody>
+            {policies.map((policy) => (
+              <tr key={policy.id}>
+                <td>{policy.title.split(":")[0]}</td>
+                <td>{money(policy.estimatedLeakage)}</td>
+                <td>{policy.affectedOrdersCount}</td>
+                <td><span className={`badge ${policy.risk}`}>{policy.risk}</span></td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    </section>
+  );
+}
+
+function NdrUrgencyCard({ ndrCases, orders, brand, setView }: { ndrCases: NdrCase[]; orders: Order[]; brand: BrandSettings; setView: (view: View) => void }) {
+  return (
+    <section className="dashboard-card">
+      <CardTitle title="NDR urgency" action="Open NDR rescue" onAction={() => setView("ndr")} />
+      {ndrCases.length ? (
+        <div className="table-wrap compact-table">
+          <table>
+            <thead>
+              <tr><th>Reason</th><th>Order</th><th>At-risk</th><th>Oldest</th></tr>
+            </thead>
+            <tbody>
+              {ndrCases.map((ndr) => {
+                const order = orders.find((item) => item.id === ndr.orderId);
+                if (!order) return null;
+                return (
+                  <tr key={ndr.id}>
+                    <td>{normalizeNdrReason(ndr.ndrReasonRaw)}</td>
+                    <td>{order.orderId}</td>
+                    <td>{money(estimatedLeakageForOrder(order, brand))}</td>
+                    <td>{Math.round(ndr.hoursSinceNdr || 0)}h</td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
+        </div>
+      ) : <EmptyState title="No urgent NDRs" description="All NDR cases are within SLA." />}
+    </section>
+  );
+}
+
+function SavingsTrackerCard({ savingsEvents, totalRecovered, setView }: { savingsEvents: SavingsEvent[]; totalRecovered: number; setView: (view: View) => void }) {
+  const byType = savingsEvents.reduce<Record<string, number>>((acc, event) => {
+    const key = friendlySavingEventType(event.eventType);
+    acc[key] = (acc[key] || 0) + event.estimatedSaving;
+    return acc;
+  }, {});
+  const rows = Object.entries(byType).sort((a, b) => b[1] - a[1]).slice(0, 4);
+  const total = rows.reduce((sum, [, value]) => sum + value, 0) || 1;
+  const first = (rows[0]?.[1] || 0) / total * 100;
+  const second = first + (rows[1]?.[1] || 0) / total * 100;
+  const third = second + (rows[2]?.[1] || 0) / total * 100;
+  return (
+    <section className="dashboard-card savings-card">
+      <CardTitle title="Savings / Profit tracker" action="View savings tracker" onAction={() => setView("savings")} />
+      <div className="savings-card__body">
+        <div className="savings-donut" style={{ "--s1": `${first}%`, "--s2": `${second}%`, "--s3": `${third}%` } as CSSProperties & Record<string, string>}>
+          <strong>{money(totalRecovered)}</strong>
+          <span>Total savings</span>
+        </div>
+        <div className="savings-breakdown">
+          {rows.length ? rows.map(([label, value], index) => (
+            <div key={label}>
+              <span className={`saving-dot saving-dot-${index}`} />
+              <strong>{label}</strong>
+              <small>{money(value)} ({Math.round((value / total) * 100)}%)</small>
+            </div>
+          )) : <p className="muted">Savings events will appear after actions are marked done.</p>}
+        </div>
+      </div>
+    </section>
+  );
+}
+
+function QuickActionsDock({ nextAction, missionProgress, queueMessage, completeAction, setView }: {
+  nextAction?: Order;
+  missionProgress: number;
+  queueMessage: (order: Order, template: TemplateType) => void;
+  completeAction: (order: Order, actionType: RecommendedAction, note?: string) => void;
+  setView: (view: View) => void;
+}) {
+  return (
+    <section className="quick-actions-dock">
+      <div>
+        <h2>Quick actions</h2>
+        <small>{missionProgress}% mission progress</small>
+      </div>
+      <button className="quick-action-button" disabled={!nextAction} onClick={() => nextAction && setView("missions")}>
+        <span>☎</span><strong>Call customer</strong><small>Open mission</small>
+      </button>
+      <button className="quick-action-button" disabled={!nextAction} onClick={() => nextAction && queueMessage(nextAction, defaultTemplateForOrder(nextAction))}>
+        <span>↗</span><strong>Queue WhatsApp</strong><small>Mock outbox</small>
+      </button>
+      <button className="quick-action-button" disabled={!nextAction} onClick={() => nextAction && queueMessage(nextAction, "cod_confirmation")}>
+        <span>□</span><strong>Offer prepaid</strong><small>Reduce COD risk</small>
+      </button>
+      <button className="quick-action-button" disabled={!nextAction} onClick={() => nextAction && completeAction(nextAction, nextAction.recommendedAction, "Resolved from quick actions")}>
+        <span>✓</span><strong>Mark resolved</strong><small>Update status</small>
+      </button>
+      <button className="quick-action-button" onClick={() => setView("actions")}>
+        <span>...</span><strong>More actions</strong><small>View all tools</small>
+      </button>
+    </section>
+  );
+}
+
+function CardTitle({ title, action, onAction }: { title: string; action: string; onAction: () => void }) {
+  return (
+    <div className="card-title-row">
+      <h2>{title}</h2>
+      <button className="link-button" onClick={onAction}>{action} -&gt;</button>
+    </div>
+  );
+}
+
+function friendlySavingEventType(type: SavingsEvent["eventType"]) {
+  const labels: Record<SavingsEvent["eventType"], string> = {
+    cancelled_before_shipping: "COD risk prevented",
+    address_corrected: "Address corrected",
+    address_corrected_delivered: "Address rescue delivered",
+    ndr_rescued_delivered: "NDR rescued",
+    cod_converted_prepaid: "Prepaid conversions",
+    rto_loss_recorded: "RTO loss recorded",
+    courier_policy_recommendation: "Courier policy",
+    pincode_policy_recommendation: "Pincode policy",
+    sku_policy_recommendation: "SKU policy",
+    campaign_policy_recommendation: "Campaign policy"
+  };
+  return labels[type];
 }
 
 function MissionModeView({ orders, ndrCases, role, brand, savingsEvents, queueMessage, completeAction, setView }: {
