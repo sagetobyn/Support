@@ -53,6 +53,8 @@ export async function updateSession(request: NextRequest) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   }
 
+  // Temporarily disabled frontend redirect until /login page is built
+  /*
   if (
     !user &&
     !request.nextUrl.pathname.startsWith('/login') &&
@@ -63,6 +65,7 @@ export async function updateSession(request: NextRequest) {
     url.pathname = '/login'
     return NextResponse.redirect(url)
   }
+  */
 
   return supabaseResponse
 }
