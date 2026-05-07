@@ -7,3 +7,5 @@ node_modules/
 # local QA/dev artifacts
 .codex-next-*.log
 qa-*.png
+
+/src/generated/prisma

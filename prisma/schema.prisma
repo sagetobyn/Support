@@ -1,0 +1,128 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+
+model Brand {
+  id        String   @id @default(uuid())
+  name      String
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  users         User[]
+  orders        Order[]
+  ndrCases      NDRCase[]
+  actions       Action[]
+  savingsEvents SavingsEvent[]
+  auditLogs     AuditLog[]
+
+  @@map("brands")
+}
+
+model User {
+  id        String   @id // matches auth.users.id from Supabase Auth
+  brandId   String   @map("brand_id")
+  email     String
+  role      String   @default("member")
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  brand     Brand      @relation(fields: [brandId], references: [id], onDelete: Cascade)
+  auditLogs AuditLog[]
+
+  @@index([brandId])
+  @@map("users")
+}
+
+model Order {
+  id             String   @id @default(uuid())
+  brandId        String   @map("brand_id")
+  orderId        String   @map("order_id") // Seller's order ID (e.g. Shopify ID)
+  awb            String?
+  customerPhone  String?  @map("customer_phone")
+  status         String
+  riskScore      Int?     @map("risk_score")
+  riskLevel      String?  @map("risk_level")
+  codAmount      Float?   @map("cod_amount")
+  paymentMode    String?  @map("payment_mode")
+  createdAt      DateTime @default(now()) @map("created_at")
+  updatedAt      DateTime @updatedAt @map("updated_at")
+
+  brand          Brand     @relation(fields: [brandId], references: [id], onDelete: Cascade)
+  ndrCase        NDRCase?
+  actions        Action[]
+
+  @@unique([brandId, orderId])
+  @@index([brandId, awb])
+  @@map("orders")
+}
+
+model NDRCase {
+  id          String   @id @default(uuid())
+  brandId     String   @map("brand_id")
+  orderId     String   @unique @map("order_id")
+  reason      String
+  status      String
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  brand       Brand    @relation(fields: [brandId], references: [id], onDelete: Cascade)
+  order       Order    @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  actions     Action[]
+
+  @@index([brandId])
+  @@map("ndr_cases")
+}
+
+model Action {
+  id          String   @id @default(uuid())
+  brandId     String   @map("brand_id")
+  orderId     String?  @map("order_id")
+  ndrCaseId   String?  @map("ndr_case_id")
+  type        String
+  status      String
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  brand       Brand    @relation(fields: [brandId], references: [id], onDelete: Cascade)
+  order       Order?   @relation(fields: [orderId], references: [id], onDelete: SetNull)
+  ndrCase     NDRCase? @relation(fields: [ndrCaseId], references: [id], onDelete: SetNull)
+
+  @@index([brandId])
+  @@map("actions")
+}
+
+model SavingsEvent {
+  id          String   @id @default(uuid())
+  brandId     String   @map("brand_id")
+  type        String
+  amount      Float
+  status      String   @default("estimated")
+  createdAt   DateTime @default(now()) @map("created_at")
+
+  brand       Brand    @relation(fields: [brandId], references: [id], onDelete: Cascade)
+
+  @@index([brandId])
+  @@map("savings_events")
+}
+
+model AuditLog {
+  id          String   @id @default(uuid())
+  brandId     String   @map("brand_id")
+  userId      String?  @map("user_id")
+  action      String
+  targetId    String?  @map("target_id")
+  details     Json?
+  createdAt   DateTime @default(now()) @map("created_at")
+
+  brand       Brand    @relation(fields: [brandId], references: [id], onDelete: Cascade)
+  user        User?    @relation(fields: [userId], references: [id], onDelete: SetNull)
+
+  @@index([brandId])
+  @@map("audit_logs")
+}
