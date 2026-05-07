@@ -22,6 +22,16 @@ export class BrandRepository {
   }
 
   /**
+   * Update a brand's name.
+   */
+  async update(id: string, name: string) {
+    return await prisma.brand.update({
+      where: { id },
+      data: { name },
+    })
+  }
+
+  /**
    * Delete a brand and all associated records (handled by DB cascade).
    */
   async delete(id: string) {

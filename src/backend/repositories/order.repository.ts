@@ -37,6 +37,24 @@ export class OrderRepository {
   }
 
   /**
+   * Update a single order (scoped to brand).
+   */
+  async update(brandId: string, id: string, data: Partial<{
+    status: string
+    awb: string | null
+    customerPhone: string | null
+    riskScore: number | null
+    riskLevel: string | null
+    codAmount: number | null
+    paymentMode: string | null
+  }>) {
+    return await prisma.order.update({
+      where: { id, brandId },
+      data,
+    })
+  }
+
+  /**
    * Batch upsert orders (useful for CSV imports).
    */
   async batchUpsert(brandId: string, orders: Array<Omit<Prisma.OrderCreateInput, 'brand' | 'id' | 'createdAt' | 'updatedAt'>>) {

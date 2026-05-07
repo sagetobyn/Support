@@ -53,19 +53,17 @@ export async function updateSession(request: NextRequest) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   }
 
-  // Temporarily disabled frontend redirect until /login page is built
-  /*
   if (
     !user &&
     !request.nextUrl.pathname.startsWith('/login') &&
-    !request.nextUrl.pathname.startsWith('/auth')
+    !request.nextUrl.pathname.startsWith('/auth') &&
+    !request.nextUrl.pathname.startsWith('/api')
   ) {
-    // Redirect to login for protected pages
+    // Redirect unauthenticated users to login
     const url = request.nextUrl.clone()
     url.pathname = '/login'
     return NextResponse.redirect(url)
   }
-  */
 
   return supabaseResponse
 }
