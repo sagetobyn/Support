@@ -16,6 +16,16 @@ export class NDRCaseRepository {
   }
 
   /**
+   * Get a single NDR case scoped to a brand.
+   */
+  async getById(brandId: string, id: string) {
+    return await prisma.nDRCase.findUnique({
+      where: { id, brandId },
+      include: { order: true },
+    })
+  }
+
+  /**
    * Create an NDR case for an existing order.
    */
   async create(brandId: string, orderId: string, reason: string, status: string = 'open') {

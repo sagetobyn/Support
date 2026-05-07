@@ -1,5 +1,10 @@
 # Learn more https://docs.github.com/en/get-started/getting-started-with-git/ignoring-files
 
+# environment variables — never commit secrets
+.env
+.env.local
+.env*.local
+
 # dependencies
 node_modules/
 .next/
@@ -9,3 +14,6 @@ node_modules/
 qa-*.png
 
 /src/generated/prisma
+
+# Claude Code worktree metadata
+.claude/

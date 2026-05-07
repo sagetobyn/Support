@@ -2,20 +2,25 @@ export const dynamic = 'force-dynamic'
 
 import { NextResponse } from 'next/server'
 import { getAuthContext } from '@/lib/auth/get-auth-context'
-import { NDRCaseRepository } from '@/backend/repositories/ndr.repository'
-import { ndrCaseCreateSchema } from '@/backend/schemas/api.schema'
+import { SavingsEventRepository } from '@/backend/repositories/savings-event.repository'
+import { savingsEventCreateSchema } from '@/backend/schemas/api.schema'
 
-const ndrRepo = new NDRCaseRepository()
+const savingsRepo = new SavingsEventRepository()
 
 export async function GET() {
   try {
     const ctx = await getAuthContext()
     if ('error' in ctx) return ctx.error
 
-    const cases = await ndrRepo.getByBrandId(ctx.brandId)
-    return NextResponse.json({ cases })
+    const [events, total, breakdown] = await Promise.all([
+      savingsRepo.getByBrandId(ctx.brandId),
+      savingsRepo.getTotalByBrandId(ctx.brandId),
+      savingsRepo.getBreakdownByBrandId(ctx.brandId),
+    ])
+
+    return NextResponse.json({ events, total, breakdown })
   } catch (error) {
-    console.error('Failed to fetch NDR cases:', error)
+    console.error('Failed to fetch savings events:', error)
     return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 })
   }
 }
@@ -26,16 +31,15 @@ export async function POST(request: Request) {
     if ('error' in ctx) return ctx.error
 
     const body = await request.json()
-    const parsed = ndrCaseCreateSchema.safeParse(body)
+    const parsed = savingsEventCreateSchema.safeParse(body)
     if (!parsed.success) {
       return NextResponse.json({ error: 'Validation failed', details: parsed.error.flatten() }, { status: 422 })
     }
 
-    const { orderId, reason, status } = parsed.data
-    const ndrCase = await ndrRepo.create(ctx.brandId, orderId, reason, status)
-    return NextResponse.json({ case: ndrCase }, { status: 201 })
+    const event = await savingsRepo.create(ctx.brandId, parsed.data)
+    return NextResponse.json({ event }, { status: 201 })
   } catch (error) {
-    console.error('Failed to create NDR case:', error)
+    console.error('Failed to record savings event:', error)
     return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 })
   }
 }

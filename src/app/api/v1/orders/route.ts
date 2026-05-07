@@ -1,28 +1,18 @@
+export const dynamic = 'force-dynamic'
+
 import { NextResponse } from 'next/server'
-import { createClient } from '@/lib/auth/server'
+import { getAuthContext } from '@/lib/auth/get-auth-context'
 import { OrderRepository } from '@/backend/repositories/order.repository'
+import { orderImportSchema } from '@/backend/schemas/api.schema'
 
 const orderRepo = new OrderRepository()
 
-export async function GET(request: Request) {
+export async function GET() {
   try {
-    const supabase = await createClient()
-    const { data: { user } } = await supabase.auth.getUser()
+    const ctx = await getAuthContext()
+    if ('error' in ctx) return ctx.error
 
-    if (!user) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
-    }
-
-    // In a real app, user metadata or a separate DB call would resolve the user's active brandId.
-    // For MVP, we assume the brandId is attached to the user metadata.
-    const brandId = user.user_metadata?.brandId
-
-    if (!brandId) {
-      return NextResponse.json({ error: 'Brand context missing' }, { status: 400 })
-    }
-
-    const orders = await orderRepo.getByBrandId(brandId)
-
+    const orders = await orderRepo.getByBrandId(ctx.brandId)
     return NextResponse.json({ orders })
   } catch (error) {
     console.error('Failed to fetch orders:', error)

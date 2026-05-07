@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
+import { ordersApi, ndrApi, savingsApi, auditApi } from "@/lib/api/client";
 import type { CSSProperties, ReactNode } from "react";
 import Link from "next/link";
 import { defaultBrand, seedOrders, seedSavingsEvents } from "@/data/seed";
@@ -552,6 +553,28 @@ export default function Home() {
     }));
     setToast(`${summary.limitWarning ? `${summary.limitWarning} ` : ""}Last import: ${summary.successCount} rows imported, ${summary.created} created, ${summary.updated} updated, ${summary.errorCount} invalid.`);
     addAudit({ action: "csv_imported", entityType: "import", entityId: importId, metadata: { ...record } });
+
+    // Sync to database (fire-and-forget — won't block UI or lose local data on failure)
+    ordersApi.import(nextOrders.map(o => ({
+      orderId: o.orderId,
+      awb: o.awb ?? null,
+      customerPhone: o.customerName ?? null,
+      status: o.finalStatus || o.shipmentStatus || o.confirmationStatus || "unknown",
+      riskScore: o.riskScore ?? null,
+      riskLevel: o.riskBucket ?? null,
+      codAmount: o.paymentMode === "COD" ? (o.orderValue ?? null) : null,
+      paymentMode: o.paymentMode ?? null,
+    }))).catch(err => console.warn("[DB sync] import failed:", err));
+
+    // Sync NDR cases to database
+    Promise.all(
+      nextNdrCases
+        .filter(nc => nc.state === "new")
+        .map(nc =>
+          ndrApi.create({ orderId: nc.orderId, reason: nc.ndrReasonRaw, status: nc.state })
+            .catch(err => console.warn("[DB sync] NDR case failed:", err))
+        )
+    );
   }
 
   function queueMessage(order: Order, selectedTemplate: TemplateType) {
@@ -648,6 +671,11 @@ export default function Home() {
         entityId: saving.id,
         payload: { eventType: saving.eventType, estimatedSaving: saving.estimatedSaving, orderId: saving.orderId }
       });
+    }
+
+    if (saving) {
+      savingsApi.record({ type: saving.eventType, amount: saving.estimatedSaving })
+        .catch(err => console.warn("[DB sync] savings event failed:", err));
     }
 
     setState((current) => ({
