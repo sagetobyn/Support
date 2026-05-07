@@ -3,11 +3,11 @@ import type { ReactNode } from "react";
 export function MarketingHeader({ variant = "light" }: { variant?: "light" | "dark" }) {
   return (
     <header className={`saas-header ${variant === "dark" ? "saas-header--dark" : ""}`}>
-      <Link className="saas-brand" href="/" aria-label="SupportWaala home">
-        <span>SW</span>
+      <Link className="saas-brand" href="/" aria-label="Wembro home">
+        <span>W</span>
         <strong>
-          SupportWaala
-          <small>RTOShield by SupportWaala</small>
+          Wembro
+          <small>RTOShield Profit Recovery</small>
         </strong>
       </Link>
       <nav className="saas-nav" aria-label="Main navigation">
@@ -39,8 +39,8 @@ export function MarketingHeader({ variant = "light" }: { variant?: "light" | "da
         <Link href="/calculator">Calculator</Link>
       </nav>
       <div className="saas-header__actions">
-        <Link className="button secondary" href="/dashboard">Open dashboard</Link>
-        <Link className="button" href="/calculator">Check leakage <span aria-hidden>-&gt;</span></Link>
+        <Link className="button secondary" href="/login">Sign in</Link>
+        <Link className="button" href="/calculator">Check leakage <span aria-hidden>→</span></Link>
       </div>
     </header>
   );
@@ -51,10 +51,10 @@ export function MarketingFooter() {
     <footer className="saas-footer">
       <div>
         <Link className="saas-brand" href="/">
-          <span>SW</span>
-          <strong>SupportWaala</strong>
+          <span>W</span>
+          <strong>Wembro</strong>
         </Link>
-        <p>RTOShield helps ecommerce sellers recover profit after checkout by focusing on COD, NDR, RTO, and savings proof.</p>
+        <p>Wembro helps ecommerce sellers recover profit after checkout by focusing on COD, NDR, RTO, and savings proof.</p>
       </div>
       <div className="saas-footer__links">
         <Link href="/product">Product</Link>
