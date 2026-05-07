@@ -27,14 +27,17 @@ export async function updateSession(request: NextRequest) {
     }
   )
 
-  // Do not require auth for public API routes or auth callbacks
-  if (
-    request.nextUrl.pathname.startsWith('/api/public') ||
-    request.nextUrl.pathname.startsWith('/auth') ||
-    request.nextUrl.pathname === '/login'
-  ) {
-    return supabaseResponse
-  }
+  const pathname = request.nextUrl.pathname
+
+  // Public marketing pages — no auth required
+  const PUBLIC_EXACT = ['/', '/product', '/pricing', '/calculator', '/audit', '/sample-report', '/demo', '/pilot', '/login']
+  const PUBLIC_PREFIX = ['/personas/', '/auth/', '/api/public']
+
+  const isPublic =
+    PUBLIC_EXACT.includes(pathname) ||
+    PUBLIC_PREFIX.some((p) => pathname.startsWith(p))
+
+  if (isPublic) return supabaseResponse
 
   // IMPORTANT: Avoid writing any logic between createServerClient and
   // supabase.auth.getUser(). A simple mistake could make it very hard to debug
@@ -44,22 +47,13 @@ export async function updateSession(request: NextRequest) {
     data: { user },
   } = await supabase.auth.getUser()
 
-  if (
-    !user &&
-    !request.nextUrl.pathname.startsWith('/login') &&
-    request.nextUrl.pathname.startsWith('/api')
-  ) {
+  if (!user && pathname.startsWith('/api')) {
     // Return 401 for unauthorized API requests
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   }
 
-  if (
-    !user &&
-    !request.nextUrl.pathname.startsWith('/login') &&
-    !request.nextUrl.pathname.startsWith('/auth') &&
-    !request.nextUrl.pathname.startsWith('/api')
-  ) {
-    // Redirect unauthenticated users to login
+  if (!user) {
+    // Redirect unauthenticated users trying to access protected pages (e.g. /dashboard)
     const url = request.nextUrl.clone()
     url.pathname = '/login'
     return NextResponse.redirect(url)

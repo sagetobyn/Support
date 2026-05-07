@@ -5433,3 +5433,136 @@ tbody tr:hover td {
     grid-template-columns: 34px minmax(0, 1fr);
   }
 }
+
+/* ─── Login page ─────────────────────────────────────────── */
+.login-section {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 64px 16px;
+}
+
+.login-card {
+  width: 100%;
+  max-width: 420px;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 16px;
+  padding: 40px 36px;
+  backdrop-filter: blur(12px);
+}
+
+.login-card__logo {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  margin-bottom: 24px;
+}
+
+.login-card__logomark {
+  width: 38px;
+  height: 38px;
+  background: var(--blue);
+  border-radius: 9px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #fff;
+  font-weight: 800;
+  font-size: 20px;
+}
+
+.login-card__logoname {
+  font-weight: 800;
+  font-size: 22px;
+  color: #fff;
+}
+
+.login-card__title {
+  text-align: center;
+  font-size: 20px;
+  font-weight: 700;
+  color: #fff;
+  margin-bottom: 6px;
+}
+
+.login-card__sub {
+  text-align: center;
+  font-size: 13px;
+  color: rgba(255, 255, 255, 0.55);
+  margin: 0 0 28px;
+}
+
+.login-card__toggle {
+  background: none;
+  border: none;
+  color: #93c5fd;
+  font-weight: 600;
+  cursor: pointer;
+  font-size: 13px;
+  padding: 0;
+  text-decoration: underline;
+}
+
+.login-card__form {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.login-field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  font-size: 13px;
+  font-weight: 500;
+  color: rgba(255, 255, 255, 0.75);
+}
+
+.login-field .input {
+  background: rgba(255, 255, 255, 0.08);
+  border-color: rgba(255, 255, 255, 0.15);
+  color: #fff;
+}
+
+.login-field .input::placeholder {
+  color: rgba(255, 255, 255, 0.3);
+}
+
+.login-field .input:focus {
+  outline: 2px solid var(--blue);
+  outline-offset: 2px;
+  border-color: var(--blue);
+}
+
+.login-card__alert {
+  font-size: 13px;
+  border-radius: 8px;
+  padding: 10px 12px;
+}
+
+.login-card__alert--error {
+  color: #fca5a5;
+  background: rgba(239, 68, 68, 0.15);
+  border-color: rgba(239, 68, 68, 0.3);
+}
+
+.login-card__alert--success {
+  color: #86efac;
+  background: rgba(34, 197, 94, 0.12);
+  border-color: rgba(34, 197, 94, 0.25);
+}
+
+.login-card .button.full {
+  margin-top: 4px;
+  padding: 12px 16px;
+  font-size: 15px;
+}
+
+@media (max-width: 480px) {
+  .login-card {
+    padding: 28px 20px;
+  }
+}
