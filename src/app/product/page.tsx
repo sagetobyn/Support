@@ -7,23 +7,23 @@ export default function ProductPage() {
   return (
     <MarketingPage>
       <section className="product-hero">
-        <img className="product-hero__bg" src="/media/dashboard-control-room.png" alt="RTOShield dashboard interface" />
+        <img className="product-hero__bg" src="/media/dashboard-control-room.png" alt="Wembro dashboard interface" />
         <div>
-          <span className="eyebrow">Product overview</span>
-          <h1>The operating system for post-checkout profit recovery.</h1>
-          <p>RTOShield helps ecommerce sellers understand, prioritize, act, and prove value across COD risk, NDR rescue, address quality, courier lanes, SKUs, campaigns, and savings proof.</p>
+          <span className="eyebrow">Product</span>
+          <h1>One workspace for everything that happens after checkout.</h1>
+          <p>Wembro turns scattered courier exports and spreadsheets into one calm operating room — with a clear next action and a savings ledger.</p>
           <div className="saas-actions">
-            <Link className="button" href="/dashboard">Explore dashboard</Link>
-            <Link className="button secondary" href="/audit">Start profit audit</Link>
+            <Link className="button" href="/dashboard">See the dashboard</Link>
+            <Link className="button secondary" href="/audit">Start a free audit</Link>
           </div>
         </div>
       </section>
 
       <section className="saas-section">
         <div className="saas-section-heading">
-          <span className="eyebrow">System map</span>
-          <h2>Everything is organized by seller outcome.</h2>
-          <p>The product is modular, but the experience stays coherent because every module answers a business question.</p>
+          <span className="eyebrow">Built around outcomes</span>
+          <h2>Every module answers one question.</h2>
+          <p>Modular by design — but the experience stays coherent because each piece exists for a reason.</p>
         </div>
         <div className="product-module-grid">
           {serviceModules.map((module) => (
@@ -32,7 +32,7 @@ export default function ProductPage() {
               <h3>{module.outcome}</h3>
               <p>{module.problem}</p>
               <small>{module.proof}</small>
-              <Link href={module.route}>Open module</Link>
+              <Link href={module.route}>Open module →</Link>
             </article>
           ))}
         </div>
@@ -40,7 +40,7 @@ export default function ProductPage() {
 
       <section className="saas-section">
         <div className="saas-section-heading">
-          <span className="eyebrow">Workflow</span>
+          <span className="eyebrow">The flow</span>
           <h2>From first estimate to founder decision.</h2>
         </div>
         <div className="product-timeline">

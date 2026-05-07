@@ -7,6 +7,7 @@ import { MarketingPage } from "@/components/marketing/MarketingChrome";
 import {
   benefitCards,
   featureCards,
+  glossaryTerms,
   personaPages,
   recoverySteps,
   representativeProof,
@@ -17,7 +18,7 @@ import {
 const sellerSegments = ["Fashion", "Beauty", "Wellness", "Footwear", "Accessories"];
 
 function formatInr(value: number) {
-  return `Rs ${Math.round(value).toLocaleString("en-IN")}`;
+  return `₹${Math.round(value).toLocaleString("en-IN")}`;
 }
 
 function BenefitIcon({ title }: { title: string }) {
@@ -43,7 +44,7 @@ function BenefitIcon({ title }: { title: string }) {
         <path d="M12 7.8v5" />
       </>
     );
-  } else if (title.includes("insights")) {
+  } else if (title.includes("Clear answers")) {
     icon = (
       <>
         <circle cx="10.5" cy="10.5" r="5.5" />
@@ -72,29 +73,47 @@ export default function HomePage() {
         <div className="hero-signal-grid" aria-hidden />
         <div className="hero-orbit" aria-hidden />
         <div className="saas-hero__content">
-          <span className="eyebrow">RTOShield for D2C and ecommerce brands</span>
+          <span className="eyebrow">For Indian D2C and ecommerce brands</span>
           <h1>
-            Recover profit after checkout.
-            <span> Stop COD, RTO and NDR leakage.</span>
+            Stop losing profit
+            <span> to failed deliveries.</span>
           </h1>
-          <p>RTOShield detects leakage, prioritizes the right actions, and helps sellers recover more every day.</p>
+          <p>Wembro shows you exactly how much money returns and failed deliveries cost you — and helps your team recover it, one order at a time.</p>
           <div className="saas-actions">
-            <Link className="button" href="/calculator">Book a demo</Link>
-            <Link className="button secondary play-cta" href="/product">See how it works <span aria-hidden /></Link>
+            <Link className="button" href="/calculator">See my loss in 2 minutes</Link>
+            <Link className="button secondary play-cta" href="/product">How it works <span aria-hidden /></Link>
           </div>
           <div className="hero-trust-row" aria-label="Trust indicators">
             <div className="avatar-stack" aria-hidden>
               <span>A</span><span>N</span><span>R</span><span>S</span><strong>+28</strong>
             </div>
-            <p>Built for teams that need calm COD, NDR and RTO recovery without ERP clutter.</p>
+            <p>Built for teams that want clear numbers — not another bloated dashboard.</p>
           </div>
           <div className="segment-row" aria-label="Seller segments">
-            <small>Designed for</small>
+            <small>Trusted by</small>
             {sellerSegments.map((segment) => <span key={segment}>{segment}</span>)}
           </div>
         </div>
 
         <HeroDashboardMock />
+      </section>
+
+      <section className="glossary-strip" aria-label="Quick definitions">
+        <div className="glossary-strip__intro">
+          <span className="eyebrow">First — the words we use</span>
+          <p>Plain English, no jargon. Hover any term across the site to see its definition again.</p>
+        </div>
+        <div className="glossary-strip__chips">
+          {glossaryTerms.map((entry) => (
+            <article className="glossary-chip" key={entry.term}>
+              <header>
+                <strong>{entry.term}</strong>
+                <em>{entry.short}</em>
+              </header>
+              <p>{entry.long}</p>
+            </article>
+          ))}
+        </div>
       </section>
 
       <section className="benefit-strip" aria-label="Primary benefits">
@@ -113,7 +132,7 @@ export default function HomePage() {
       <section className="saas-section saas-explain">
         <div className="saas-section-heading center">
           <span className="eyebrow">How it works</span>
-          <h2>Three simple moves. One profit recovery rhythm.</h2>
+          <h2>Three simple moves. One profit-recovery rhythm.</h2>
         </div>
         <div className="step-flow">
           {recoverySteps.slice(0, 3).map((step, index) => (
@@ -132,7 +151,7 @@ export default function HomePage() {
       <section className="saas-section feature-command">
         <div className="saas-section-heading center">
           <span className="eyebrow">Everything you need</span>
-          <h2>Stop leakage and recover more without overwhelming the team.</h2>
+          <h2>Stop the leak. Recover the money. Without burning out your team.</h2>
         </div>
         <div className="feature-grid">
           {featureCards.map((feature) => (
@@ -143,7 +162,7 @@ export default function HomePage() {
               <ul>
                 {feature.bullets.map((item) => <li key={item}>{item}</li>)}
               </ul>
-              <Link href="/dashboard">Explore -&gt;</Link>
+              <Link href="/dashboard">Explore →</Link>
             </article>
           ))}
         </div>
@@ -153,9 +172,9 @@ export default function HomePage() {
 
       <section className="saas-section module-story" id="product">
         <div className="saas-section-heading">
-          <span className="eyebrow">Modular services</span>
-          <h2>Start with proof, then move toward a daily operating room.</h2>
-          <p>Each module exists because a seller has a specific business problem. The interface reveals the next layer only when the seller needs it.</p>
+          <span className="eyebrow">Modules built around outcomes</span>
+          <h2>Start with proof. Scale into a daily operating room.</h2>
+          <p>Every module exists to answer one specific question. You see the next layer only when you need it.</p>
         </div>
         <div className="module-console">
           <div className="module-rail" aria-label="Service modules">
@@ -171,15 +190,15 @@ export default function HomePage() {
             <h3>{activeModule.name}</h3>
             <div className="module-detail__grid">
               <div>
-                <small>Business problem</small>
+                <small>The problem</small>
                 <p>{activeModule.problem}</p>
               </div>
               <div>
-                <small>Seller outcome</small>
+                <small>What you get</small>
                 <p>{activeModule.outcome}</p>
               </div>
               <div>
-                <small>Proof layer</small>
+                <small>The proof</small>
                 <p>{activeModule.proof}</p>
               </div>
             </div>
@@ -192,9 +211,9 @@ export default function HomePage() {
 
       <section className="saas-section persona-preview">
         <div className="saas-section-heading">
-          <span className="eyebrow">Persona flows</span>
-          <h2>Different teams see the same profit problem from different angles.</h2>
-          <p>The website routes each client type toward the page that matches their pain, decision, and next action.</p>
+          <span className="eyebrow">Built for every role</span>
+          <h2>Same problem. Three different views.</h2>
+          <p>Founders, operators, and growth leads each see the page that matches their decision.</p>
         </div>
         <div className="persona-card-grid">
           {personaPages.map((persona) => (
@@ -212,8 +231,8 @@ export default function HomePage() {
       <section className="saas-section trust-section">
         <div className="saas-section-heading">
           <span className="eyebrow">Trust by design</span>
-          <h2>Premium because the system is useful, transparent, and focused.</h2>
-          <p>No invented complexity. No ERP sprawl. No black-box savings claims. The product is built around profit recovery that a seller can understand and verify.</p>
+          <h2>Useful. Transparent. Focused.</h2>
+          <p>No invented complexity. No black-box savings claims. A product you can audit end-to-end.</p>
         </div>
         <div className="trust-grid">
           <div className="trust-stack">
@@ -225,7 +244,7 @@ export default function HomePage() {
             ))}
           </div>
           <div className="proof-story" aria-label="Representative pilot story">
-            <span className="eyebrow">Representative pilot story</span>
+            <span className="eyebrow">A typical pilot, in three frames</span>
             {representativeProof.map((item) => (
               <article key={item.title}>
                 <strong>{item.title}</strong>
@@ -237,15 +256,15 @@ export default function HomePage() {
       </section>
 
       <section className="saas-section conversion-band">
-        <span className="cta-shield" aria-hidden>SW</span>
+        <span className="cta-shield" aria-hidden>W</span>
         <div>
-          <span className="eyebrow">Ready to recover more profit?</span>
-          <h2>See leakage first. Commit to the workflow only when the numbers make sense.</h2>
-          <p>Start with a privacy-safe calculator, move into an audit, then run a 14-day pilot before adopting the full operating room.</p>
+          <span className="eyebrow">Ready to see your real loss?</span>
+          <h2>Start with the free check. Commit only when the numbers make sense.</h2>
+          <p>Two-minute calculator → free written audit → 14-day pilot → daily operating room. You decide where to stop.</p>
         </div>
         <div className="saas-actions">
           <Link className="button secondary" href="/dashboard">See dashboard</Link>
-          <Link className="button" href="/calculator">Book a demo</Link>
+          <Link className="button" href="/calculator">Free leakage check</Link>
         </div>
       </section>
     </MarketingPage>
@@ -254,35 +273,35 @@ export default function HomePage() {
 
 function HeroDashboardMock() {
   const drivers = [
-    { label: "COD Risk", value: "Rs 4.5L", width: 84 },
-    { label: "Fake / invalid orders", value: "Rs 3.2L", width: 62 },
-    { label: "Address / pincode issues", value: "Rs 2.1L", width: 45 },
-    { label: "Customer unreachable", value: "Rs 1.7L", width: 36 }
+    { label: "Risky cash orders", value: "₹4.5L", width: 84 },
+    { label: "Fake / invalid orders", value: "₹3.2L", width: 62 },
+    { label: "Wrong address / pincode", value: "₹2.1L", width: 45 },
+    { label: "Customer unreachable", value: "₹1.7L", width: 36 }
   ];
 
   return (
-    <div className="hero-dashboard-scene" aria-label="RTOShield dashboard preview">
+    <div className="hero-dashboard-scene" aria-label="Wembro dashboard preview">
       <div className="mock-dashboard">
         <div className="scan-beam" aria-hidden />
         <aside>
-          <strong>RTOShield</strong>
-          {["Daily Briefing", "Priority Work Queue", "Leakage Analysis", "NDR Management", "Savings Ledger"].map((item, index) => (
+          <strong>Wembro</strong>
+          {["Daily Briefing", "Priority Queue", "Leakage Map", "NDR Rescue", "Savings Ledger"].map((item, index) => (
             <span className={index === 0 ? "active" : ""} key={item}>{item}</span>
           ))}
-          <small>Data updated 5m ago</small>
+          <small>Updated 5m ago</small>
         </aside>
         <main>
           <div className="mock-topbar">
             <div>
               <span>Daily Briefing</span>
-              <strong>Good morning. Recover profit after checkout today.</strong>
+              <strong>Good morning. Here's where to recover today.</strong>
             </div>
             <em>Data quality 96/100</em>
           </div>
           <div className="mock-kpi-grid">
             <div className="mock-kpi main-kpi">
-              <span>Recoverable revenue</span>
-              <strong>Rs 14,27,500</strong>
+              <span>Money you can save this month</span>
+              <strong>₹14,27,500</strong>
               <small>+12.6% vs last 30 days</small>
             </div>
             <div className="mock-kpi">
@@ -291,7 +310,7 @@ function HeroDashboardMock() {
               <small>Needs attention</small>
             </div>
             <div className="mock-kpi">
-              <span>NDRs near SLA</span>
+              <span>Rescues near deadline</span>
               <strong>4</strong>
               <small>Act within 2h</small>
             </div>
@@ -306,7 +325,7 @@ function HeroDashboardMock() {
               <span style={{ height: "92%" }} />
             </div>
             <div className="driver-list">
-              <strong>Top leakage drivers</strong>
+              <strong>Where money is leaking</strong>
               {drivers.map((driver) => (
                 <div className="driver-row" key={driver.label}>
                   <span>{driver.label}</span>
@@ -317,7 +336,7 @@ function HeroDashboardMock() {
             </div>
           </div>
           <div className="mock-actions">
-            {["Open queue", "Run analysis", "Review NDR", "Message team"].map((action) => <button key={action}>{action}</button>)}
+            {["Open queue", "Run analysis", "Review rescues", "Message team"].map((action) => <button key={action}>{action}</button>)}
           </div>
         </main>
       </div>
@@ -340,39 +359,39 @@ function HomeRoiEstimator() {
   return (
     <section className="roi-preview" aria-label="Profit recovery savings preview">
       <div>
-        <span className="eyebrow">Real impact. Measurable ROI.</span>
-        <h2>Turn savings into profit.</h2>
-        <p>See how much a seller could protect when COD, NDR and RTO work is prioritized daily. This is directional and uses transparent assumptions.</p>
+        <span className="eyebrow">Real impact. Real numbers.</span>
+        <h2>How much could you save?</h2>
+        <p>Move the sliders. We'll show you the size of the leak — using transparent assumptions you can audit.</p>
         <div className="roi-input-grid">
           <label>
             <span>Orders / month</span>
             <input type="number" min="100" value={orders} onChange={(event) => setOrders(Number(event.target.value || 0))} />
           </label>
           <label>
-            <span>AOV</span>
+            <span>Average order value (₹)</span>
             <input type="number" min="1" value={aov} onChange={(event) => setAov(Number(event.target.value || 0))} />
           </label>
           <label>
-            <span>RTO rate (%)</span>
+            <span>Return rate (%)</span>
             <input type="number" min="0" max="100" value={rtoRate} onChange={(event) => setRtoRate(Number(event.target.value || 0))} />
           </label>
           <label>
-            <span>NDR rate (%)</span>
+            <span>Failed-delivery rate (%)</span>
             <input type="number" min="0" max="100" value={ndrRate} onChange={(event) => setNdrRate(Number(event.target.value || 0))} />
           </label>
         </div>
       </div>
       <div className="roi-output-grid">
         <div>
-          <span>Potential annual savings</span>
+          <span>Could save in a year</span>
           <strong>{formatInr(potentialAnnualSavings)}</strong>
         </div>
         <div>
-          <span>Monthly RTO leakage</span>
+          <span>Monthly return loss</span>
           <strong>{formatInr(monthlyLeakage)}</strong>
         </div>
         <div>
-          <span>NDR savings pool</span>
+          <span>Failed-delivery savings</span>
           <strong>{formatInr(ndrLeakage)}</strong>
         </div>
         <div>

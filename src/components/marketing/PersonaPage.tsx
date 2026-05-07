@@ -26,15 +26,15 @@ export function PersonaPage({ persona }: { persona: PersonaContent }) {
 
       <section className="persona-grid">
         <div className="saas-panel">
-          <span className="eyebrow">Pain points</span>
-          <h2>What this role needs to stop guessing</h2>
+          <span className="eyebrow">Where it hurts today</span>
+          <h2>The problems we hear most</h2>
           <div className="saas-list">
             {persona.pains.map((pain) => <p key={pain}>{pain}</p>)}
           </div>
         </div>
         <div className="saas-panel">
-          <span className="eyebrow">Use cases</span>
-          <h2>How RTOShield helps</h2>
+          <span className="eyebrow">How Wembro helps</span>
+          <h2>What you&apos;ll actually do</h2>
           <div className="saas-list">
             {persona.useCases.map((useCase) => <p key={useCase}>{useCase}</p>)}
           </div>

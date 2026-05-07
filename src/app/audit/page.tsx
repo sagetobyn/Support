@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { FormEvent, useEffect, useMemo, useState } from "react";
+import { MarketingPage } from "@/components/marketing/MarketingChrome";
 import { defaultCalculatorInputs, sellerCategories, shippingPlatforms, type SellerCategory, type ShippingPlatform } from "@/lib/calculator";
 import {
   exportAuditSessionsCsv,
@@ -110,29 +111,18 @@ export default function AuditPage() {
   const actionPreview = useMemo(() => activeSession ? generateActionPreview(activeSession.recommendations) : [], [activeSession]);
 
   return (
-    <main className="public-page">
-      <header className="public-header">
-        <Link className="brand-link" href="/">SupportWaala</Link>
-        <nav className="public-nav">
-          <Link href="/calculator">Free Leakage Check</Link>
-          <Link href="/sample-report">Sample Report</Link>
-          <Link href="/audit">Profit Audit</Link>
-          <Link href="/pilot">Rescue Pilot</Link>
-          <Link href="/dashboard">Control Room</Link>
-        </nav>
-      </header>
-
+    <MarketingPage>
       <section className="report-hero">
-        <p className="eyebrow">RTO Profit Audit</p>
-        <h1>Find where profit is leaking before the 14-day rescue pilot</h1>
-        <p className="hero-copy">Begin with summary numbers. If the estimate is useful, upload anonymized CSV without customer names, phones, emails, or full addresses.</p>
-        <p className="muted">Customer-level communication should only be used for delivery/RTO operations, not unrelated marketing.</p>
+        <p className="eyebrow">Profit Audit</p>
+        <h1>Find exactly where money is leaking — before you commit to a pilot.</h1>
+        <p className="hero-copy">Start with summary numbers. If the estimate is useful, upload an anonymized CSV — no customer names, phones, emails, or full addresses required.</p>
+        <p className="muted">We use customer-level data only to operate the rescue, never for marketing.</p>
       </section>
 
       <section className="mode-tabs">
-        <button className={mode === "summary" ? "button" : "button secondary"} onClick={() => setMode("summary")}>Summary-only audit</button>
-        <button className={mode === "csv" ? "button" : "button secondary"} onClick={() => setMode("csv")}>Anonymized CSV audit</button>
-        <button className={mode === "pilot" ? "button" : "button secondary"} onClick={() => setMode("pilot")}>Full pilot preparation</button>
+        <button className={mode === "summary" ? "button" : "button secondary"} onClick={() => setMode("summary")}>Summary audit</button>
+        <button className={mode === "csv" ? "button" : "button secondary"} onClick={() => setMode("csv")}>Upload anonymized CSV</button>
+        <button className={mode === "pilot" ? "button" : "button secondary"} onClick={() => setMode("pilot")}>Plan a 14-day pilot</button>
       </section>
 
       {message && <section className="calculator-layout single"><div className={message.includes("saved") || message.includes("parsed") ? "success" : "notice"}>{message}</div></section>}
@@ -214,50 +204,49 @@ export default function AuditPage() {
 
       <section className="lead-layout">
         <div className="panel">
-          <h2>Local Audit Sessions</h2>
-          <p className="muted">MVP storage key: audit_sessions in browser localStorage. These records are not sent to a server.</p>
+          <h2>Your saved audits</h2>
+          <p className="muted">Saved on this browser only. Nothing is sent to our servers until you choose to share it.</p>
           <div className="toolbar">
-            <a className="button secondary" href={exportJson} download="audit-sessions.json">Export JSON</a>
-            <a className="button secondary" href={exportCsv} download="audit-sessions.csv">Export CSV</a>
-            <button className="button secondary" onClick={() => alert("Control Room handoff placeholder. For now, use the main CSV import separately.")}>Send to control room</button>
+            <a className="button secondary" href={exportJson} download="audit-sessions.json">Download as JSON</a>
+            <a className="button secondary" href={exportCsv} download="audit-sessions.csv">Download as CSV</a>
           </div>
           <div className="lead-list">
             {sessions.length ? sessions.map((session) => (
               <button className="action-row text-left" key={session.id} onClick={() => setActiveSession(session)}>
                 <strong>{session.brand_name}</strong>
                 <div className="muted">{session.mode} · {session.status} · {new Date(session.created_at).toLocaleString()}</div>
-                <div>{formatCurrency(session.calculated_metrics.monthlyLeakage)} leakage · {formatCurrency(session.calculated_metrics.savings20)} at 20%</div>
+                <div>{formatCurrency(session.calculated_metrics.monthlyLeakage)} loss · {formatCurrency(session.calculated_metrics.savings20)} saved at 20%</div>
               </button>
-            )) : <p className="empty">No audit sessions saved yet.</p>}
+            )) : <p className="empty">No saved audits yet — run one above.</p>}
           </div>
         </div>
         <div className="panel">
-          <h2>Next Step</h2>
-          <p>Use the audit output to decide whether an anonymized CSV or 14-day pilot is worth the seller's time.</p>
+          <h2>What's next?</h2>
+          <p>Use this audit to decide if a deeper review (anonymized CSV) or a 14-day pilot is worth your time.</p>
           <div className="hero-actions">
             <Link className="button secondary" href="/sample-report">View sample report</Link>
-            <Link className="button" href="/pilot">Create 14-day pilot plan</Link>
+            <Link className="button" href="/pilot">Plan a 14-day pilot</Link>
           </div>
         </div>
       </section>
-    </main>
+    </MarketingPage>
   );
 }
 
 function SummaryForm({ summary, setSummary }: { summary: SummaryAuditInputs; setSummary: React.Dispatch<React.SetStateAction<SummaryAuditInputs>> }) {
   const numeric: Array<[keyof SummaryAuditInputs, string]> = [
     ["monthlyOrders", "Monthly orders"],
-    ["codPercentage", "COD %"],
-    ["overallRtoPercentage", "Overall RTO %"],
-    ["codRtoPercentage", "Optional COD RTO %"],
-    ["averageOrderValue", "Average order value"],
-    ["forwardShippingCost", "Forward shipping cost"],
-    ["returnShippingCost", "Return shipping cost"],
-    ["packagingCost", "Packaging cost"],
-    ["estimatedCac", "Estimated CAC"],
-    ["codFee", "COD fee"],
-    ["supportOpsCost", "Support / ops cost"],
-    ["pilotSoftwareCost", "Pilot / software cost"]
+    ["codPercentage", "Cash-on-delivery share (%)"],
+    ["overallRtoPercentage", "Return rate (%)"],
+    ["codRtoPercentage", "Cash-order return rate (%) — optional"],
+    ["averageOrderValue", "Average order value (₹)"],
+    ["forwardShippingCost", "Forward shipping cost (₹)"],
+    ["returnShippingCost", "Return shipping cost (₹)"],
+    ["packagingCost", "Packaging cost (₹)"],
+    ["estimatedCac", "Customer acquisition cost / order (₹)"],
+    ["codFee", "Cash-on-delivery fee (₹)"],
+    ["supportOpsCost", "Support cost per return (₹)"],
+    ["pilotSoftwareCost", "Software / pilot cost (₹)"]
   ];
   return (
     <div className="lead-grid">
@@ -266,9 +255,9 @@ function SummaryForm({ summary, setSummary }: { summary: SummaryAuditInputs; set
       <label><span>Category</span><select className="select" value={summary.category} onChange={(event) => setSummary((current) => ({ ...current, category: event.target.value as SellerCategory }))}>{sellerCategories.map((item) => <option key={item}>{item}</option>)}</select></label>
       <label><span>Main courier/shipping platform</span><select className="select" value={summary.shippingPlatform} onChange={(event) => setSummary((current) => ({ ...current, shippingPlatform: event.target.value as ShippingPlatform }))}>{shippingPlatforms.map((item) => <option key={item}>{item}</option>)}</select></label>
       {numeric.map(([key, label]) => <Field key={key} label={label} type="number" value={String(summary[key] ?? "")} onChange={(value) => setSummary((current) => ({ ...current, [key]: value === "" ? null : Number(value) }))} />)}
-      <Field label="Top 3 known RTO reasons" value={summary.knownRtoReasons?.join(", ") || ""} onChange={(value) => setSummary((current) => ({ ...current, knownRtoReasons: value.split(",").map((item) => item.trim()).filter(Boolean) }))} />
-      <Field label="Top 3 problem pincodes" value={summary.problemPincodes?.join(", ") || ""} onChange={(value) => setSummary((current) => ({ ...current, problemPincodes: value.split(",").map((item) => item.trim()).filter(Boolean) }))} />
-      <Field label="Top 3 problem couriers" value={summary.problemCouriers?.join(", ") || ""} onChange={(value) => setSummary((current) => ({ ...current, problemCouriers: value.split(",").map((item) => item.trim()).filter(Boolean) }))} />
+      <Field label="Top 3 reasons for returns" value={summary.knownRtoReasons?.join(", ") || ""} onChange={(value) => setSummary((current) => ({ ...current, knownRtoReasons: value.split(",").map((item) => item.trim()).filter(Boolean) }))} />
+      <Field label="Worst 3 pincodes" value={summary.problemPincodes?.join(", ") || ""} onChange={(value) => setSummary((current) => ({ ...current, problemPincodes: value.split(",").map((item) => item.trim()).filter(Boolean) }))} />
+      <Field label="Worst 3 couriers" value={summary.problemCouriers?.join(", ") || ""} onChange={(value) => setSummary((current) => ({ ...current, problemCouriers: value.split(",").map((item) => item.trim()).filter(Boolean) }))} />
     </div>
   );
 }

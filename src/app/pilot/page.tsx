@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
+import { MarketingPage } from "@/components/marketing/MarketingChrome";
 import type { AuditSession } from "@/lib/audit";
 import {
   calculatePilotProgress,
@@ -89,23 +90,12 @@ export default function PilotPage() {
   }
 
   return (
-    <main className="public-page">
-      <header className="public-header">
-        <Link className="brand-link" href="/">SupportWaala</Link>
-        <nav className="public-nav">
-          <Link href="/calculator">Free Leakage Check</Link>
-          <Link href="/sample-report">Sample Report</Link>
-          <Link href="/audit">Profit Audit</Link>
-          <Link href="/pilot">Rescue Pilot</Link>
-          <Link href="/dashboard">Control Room</Link>
-        </nav>
-      </header>
-
+    <MarketingPage>
       <section className="report-hero">
-        <p className="eyebrow">14-Day RTO Rescue Pilot</p>
-        <h1>Turn the audit into daily COD/NDR recovery work</h1>
-        <p className="hero-copy">A guided workflow for baseline setup, daily action execution, mid-pilot review, and final savings review. No WhatsApp, Shopify, or courier API integration is added yet.</p>
-        <p className="muted">Phone/address may be needed only when running real WhatsApp and address-correction workflows.</p>
+        <p className="eyebrow">14-Day Rescue Pilot</p>
+        <h1>Turn the audit into a daily routine your team can actually run.</h1>
+        <p className="hero-copy">Two weeks of guided work — baseline, daily actions, mid-pilot check, and a final savings review.</p>
+        <p className="muted">Phone numbers and addresses are only needed when you run real customer messaging or address fixes.</p>
       </section>
 
       {message && <section className="calculator-layout single"><div className="success">{message}</div></section>}
@@ -125,24 +115,24 @@ export default function PilotPage() {
       </section>
 
       <section className="panel wide-section">
-        <h2>Today&apos;s Focus — Day {currentDay}</h2>
+        <h2>Today&apos;s focus — Day {currentDay}</h2>
         <div className="public-section-grid" style={{ marginTop: 12 }}>
           <div className="panel" style={{ background: "#fff8ec" }}>
             <strong>Morning</strong>
-            <p className="muted">Upload new orders, review risky COD queue, queue confirmations and address corrections.</p>
+            <p className="muted">Pull in new orders, review the risky cash queue, and line up confirmations and address fixes.</p>
             <div className="toolbar tight">
-              <Link className="button secondary" href="/dashboard">Open Control Room</Link>
+              <Link className="button secondary" href="/dashboard">Open dashboard</Link>
             </div>
           </div>
           <div className="panel" style={{ background: "#fff8ec" }}>
             <strong>Afternoon</strong>
-            <p className="muted">Check customer responses, mark confirmed / cancelled / updated, prepare dispatch.</p>
+            <p className="muted">Check customer responses. Mark each one confirmed, cancelled, or updated — then dispatch.</p>
           </div>
           <div className="panel" style={{ background: "#ffe4e0" }}>
-            <strong>Evening — NDR Rescue</strong>
-            <p className="muted">Review NDR cases, queue rescue messages, mark reattempt / call / cancel / RTO.</p>
+            <strong>Evening — failed-delivery rescue</strong>
+            <p className="muted">Walk through every failed delivery: send a rescue message, then mark reattempt, call, cancel, or return.</p>
             <div className="toolbar tight">
-              <Link className="button secondary" href="/dashboard">Open NDR War Room</Link>
+              <Link className="button secondary" href="/dashboard">Open rescue room</Link>
             </div>
           </div>
         </div>
@@ -190,7 +180,7 @@ export default function PilotPage() {
 
       <section className="report-section-grid">
         <div className="panel">
-          <h2>Stage 1: Baseline Setup</h2>
+          <h2>Step 1 — Baseline setup</h2>
           <div className="option-list">
             {plan.checklist.map((item) => (
               <label className="consent-row" key={item.id}>
@@ -201,7 +191,7 @@ export default function PilotPage() {
           </div>
         </div>
         <div className="panel">
-          <h2>Selected Action Rules</h2>
+          <h2>Action rules you'll use</h2>
           <div className="option-list">
             {pilotActionRules.map((rule) => (
               <label className="consent-row" key={rule}>
@@ -214,11 +204,11 @@ export default function PilotPage() {
       </section>
 
       <section className="panel wide-section">
-        <h2>Stage 2: Daily Action Execution</h2>
+        <h2>Step 2 — Daily routine</h2>
         <div className="public-section-grid">
-          <Workflow title="Morning" items={["Upload new orders / review imported orders", "Review risky COD queue", "Queue COD confirmation", "Queue address correction", "Queue prepaid offer"]} />
-          <Workflow title="Afternoon" items={["Check customer responses", "Mark confirmed / cancelled / address updated", "Prepare dispatch decision"]} />
-          <Workflow title="Evening" items={["Review NDR cases", "Queue NDR rescue message", "Mark reattempt / call / cancel / RTO", "Record savings events"]} />
+          <Workflow title="Morning" items={["Pull in new orders", "Review risky cash orders", "Queue confirmations", "Queue address fixes", "Queue prepaid offers"]} />
+          <Workflow title="Afternoon" items={["Check customer responses", "Mark confirmed / cancelled / updated", "Decide what to dispatch"]} />
+          <Workflow title="Evening" items={["Review failed deliveries", "Send rescue messages", "Mark reattempt / call / cancel / return", "Log savings"]} />
         </div>
         <div className="table-wrap">
           <table>
@@ -244,7 +234,7 @@ export default function PilotPage() {
 
       <section className="report-section-grid">
         <div className="panel">
-          <h2>Stage 3: Mid-Pilot Review</h2>
+          <h2>Step 3 — Mid-pilot review</h2>
           <Result label="Current results" value={formatCurrency(progress.estimatedSavings)} />
           <Result label="Action completion rate" value={formatPercent(progress.actionCompletionRate * 100)} />
           <Result label="NDR response rate" value={formatPercent(progress.ndrResponseRate * 100)} />
@@ -253,7 +243,7 @@ export default function PilotPage() {
           <p className="muted">Recommendations: adjust risk threshold, change message template, focus on top pincode, focus on top courier, and increase call fallback for high-value orders.</p>
         </div>
         <div className="panel">
-          <h2>Stage 4: Final Savings Review</h2>
+          <h2>Step 4 — Final savings review</h2>
           <button className="button" onClick={generateReview}>Generate final review</button>
           <Result label="Baseline RTO" value={formatPercent(finalReview.baselineRto)} />
           <Result label="Pilot-period RTO estimate" value={formatPercent(finalReview.pilotPeriodRto)} />
@@ -274,7 +264,7 @@ export default function PilotPage() {
         </div>
         <Link className="button" href="/audit">Back to audit flow</Link>
       </section>
-    </main>
+    </MarketingPage>
   );
 }
 

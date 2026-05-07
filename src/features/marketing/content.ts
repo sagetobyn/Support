@@ -45,6 +45,12 @@ export interface PersonaContent {
   proofLabel: string;
 }
 
+export interface GlossaryTerm {
+  term: string;
+  short: string;
+  long: string;
+}
+
 export const navLinks: Array<{ label: string; href: MarketingRoute }> = [
   { label: "Product", href: "/product" },
   { label: "Personas", href: "/personas/founder" },
@@ -52,53 +58,76 @@ export const navLinks: Array<{ label: string; href: MarketingRoute }> = [
   { label: "Calculator", href: "/calculator" }
 ];
 
+export const glossaryTerms: GlossaryTerm[] = [
+  {
+    term: "COD",
+    short: "Cash on Delivery",
+    long: "Customer pays in cash when the order arrives. Higher chance of refusal at the door."
+  },
+  {
+    term: "RTO",
+    short: "Return to Origin",
+    long: "Order shipped, but came back undelivered. You pay for shipping both ways and lose the sale."
+  },
+  {
+    term: "NDR",
+    short: "Non-Delivery Report",
+    long: "Courier tried to deliver but couldn't — wrong address, customer not reachable, etc. You have a short window to rescue it."
+  },
+  {
+    term: "AOV",
+    short: "Average Order Value",
+    long: "What a typical order is worth on your store."
+  }
+];
+
 export const serviceModules: ServiceModule[] = [
   {
     id: "leakage-check",
-    name: "Leakage Check",
-    problem: "The seller does not know whether RTO is a small nuisance or a material profit leak.",
-    outcome: "Estimate monthly COD/RTO loss in minutes without uploading customer data.",
-    proof: "Privacy-safe awareness before any sales call.",
+    name: "Free Leakage Check",
+    problem: "You don't know if returned orders are a small problem or eating your profit.",
+    outcome: "Get a money figure for what failed deliveries cost you each month — in under 2 minutes.",
+    proof: "No customer data needed. Just three numbers from your store.",
     route: "/calculator"
   },
   {
     id: "profit-audit",
     name: "Profit Audit",
-    problem: "RTO loss is scattered across courier, pincode, SKU, campaign, and NDR reasons.",
-    outcome: "Identify the top leakage drivers and the cost of doing nothing.",
-    proof: "Summary or anonymized CSV audit with pilot recommendation.",
+    problem: "Failed-delivery losses hide across couriers, pincodes, products, and ad campaigns.",
+    outcome: "See exactly where the money leaks — and what it costs you to do nothing.",
+    proof: "A clear written report with the top fixes, ranked by what they save you.",
     route: "/audit"
   },
   {
     id: "rescue-pilot",
     name: "14-Day Rescue Pilot",
-    problem: "Diagnosis alone does not change order outcomes.",
-    outcome: "Turn leakage drivers into a daily COD/NDR rescue workflow.",
-    proof: "Day-by-day action plan, savings ledger, and final review.",
+    problem: "Knowing the problem isn't the same as fixing it.",
+    outcome: "Two weeks of guided daily fixes — we work the highest-loss orders with your team.",
+    proof: "Daily action log, savings tracker, and a final report you can show your founder.",
     route: "/pilot"
   },
   {
     id: "daily-control-room",
     name: "Daily Control Room",
-    problem: "Ops teams drown in order tables and miss the highest-value intervention.",
-    outcome: "Show urgent NDRs, COD risk, recoverable leakage, and the next action first.",
-    proof: "Priority work queue, Leakage Analysis, NDR Management, and Savings Ledger.",
+    problem: "Your ops team scrolls through endless order tables and misses the ones that matter.",
+    outcome: "One screen shows urgent failed deliveries, risky cash orders, and the next action — in priority order.",
+    proof: "Work queue, leakage map, NDR rescue, and a savings ledger you can audit.",
     route: "/dashboard"
   },
   {
     id: "founder-intelligence",
-    name: "Founder Intelligence",
-    problem: "Founders need decisions, not screenshots and raw exports.",
-    outcome: "Convert weekly operations into one driver, one decision, one policy test, and savings proof.",
-    proof: "Weekly executive report, policy simulator, and monthly strategy.",
+    name: "Founder Reports",
+    problem: "Founders get screenshots and exports, not decisions.",
+    outcome: "One weekly report: one driver, one decision, one experiment, and what it saved.",
+    proof: "Executive summary, policy simulator, monthly strategy review.",
     route: "/dashboard"
   },
   {
     id: "methodology-help",
-    name: "Methodology & Help",
-    problem: "Teams cannot maximize value if formulas and operating rules are unclear.",
-    outcome: "Teach formulas, terms, data requirements, and the correct operating rhythm inside the product.",
-    proof: "A built-in enablement section for sellers and operators.",
+    name: "Built-in Help",
+    problem: "Teams can't act on numbers they don't understand.",
+    outcome: "Every metric has a plain-English explanation, formula, and operating playbook inside the app.",
+    proof: "In-product glossary, training tracks, and worked examples.",
     route: "/dashboard"
   }
 ];
@@ -107,47 +136,47 @@ export const recoverySteps: RecoveryStep[] = [
   {
     label: "01",
     title: "Measure the leak",
-    description: "Use summary numbers or anonymized CSV to estimate where COD/RTO/NDR loss is concentrated."
+    description: "Type in three numbers from your store. See your monthly loss in rupees, no upload required."
   },
   {
     label: "02",
-    title: "Choose the mission",
-    description: "Prioritize urgent NDRs, risky COD orders, address corrections, courier lanes, and prepaid opportunities."
+    title: "Pick the priority",
+    description: "We rank what to fix first — risky cash orders, failed deliveries, bad addresses, or weak couriers."
   },
   {
     label: "03",
     title: "Act with context",
-    description: "Give ops teams one recommended action at a time with reason, urgency, and estimated leakage."
+    description: "Your team gets one clear action at a time, with the reason, urgency, and rupees at stake."
   },
   {
     label: "04",
-    title: "Prove the value",
-    description: "Track estimated and verified savings so founders can see whether the workflow paid for itself."
+    title: "Prove the savings",
+    description: "Track every save, separating estimated value from money you've actually kept."
   }
 ];
 
 export const benefitCards: BenefitCard[] = [
   {
-    title: "Reduce RTO",
-    description: "Identify at-risk COD orders and act before avoidable returns become real cost.",
-    metric: "Risk before dispatch",
+    title: "Fewer RTO returns",
+    description: "Catch risky cash-on-delivery orders before dispatch — not after they come back unpaid.",
+    metric: "Risk flagged before dispatch",
     accent: "green"
   },
   {
-    title: "Improve NDR",
-    description: "Rescue more failed deliveries with SLA-aware action and reason-specific response rules.",
-    metric: "SLA rescue window",
+    title: "Better NDR rescue",
+    description: "When a delivery fails, we surface it within the rescue window so your team can save the order.",
+    metric: "Acted before SLA breach",
     accent: "gold"
   },
   {
-    title: "Increase profit",
-    description: "Recover leaking margin and improve contribution with every verified intervention.",
-    metric: "Savings proof",
+    title: "More profit kept",
+    description: "Stop bleeding margin to shipping both ways. Every saved order shows up on your ledger.",
+    metric: "Verified savings",
     accent: "copper"
   },
   {
-    title: "Actionable insights",
-    description: "See the customer, courier, pincode, SKU, or campaign driver behind each loss pattern.",
+    title: "Clear answers",
+    description: "See the exact courier, pincode, product, or campaign behind each lost rupee.",
     metric: "Decision clarity",
     accent: "violet"
   }
@@ -156,42 +185,42 @@ export const benefitCards: BenefitCard[] = [
 export const featureCards: FeatureCard[] = [
   {
     title: "Daily Briefing",
-    description: "The first screen shows today’s leakage, urgent NDRs, critical COD risk, and the next action.",
-    bullets: ["Executive summary", "Next best action", "KPI scorecard"],
+    description: "Open the app and see today's leakage, urgent rescues, risky orders, and the next action — in one screen.",
+    bullets: ["Today's headline number", "Next best action", "Quick KPI scorecard"],
     accent: "green"
   },
   {
     title: "Priority Work Queue",
-    description: "Actionable tasks sorted by estimated impact, urgency, and risk reason.",
-    bullets: ["Critical and high actions", "Smart prioritization", "One-click workflows"],
+    description: "Tasks ranked by what they save, not by what came in last. Highest-impact orders are first.",
+    bullets: ["Critical and high actions on top", "Smart prioritization", "One-click outcomes"],
     accent: "gold"
   },
   {
-    title: "Leakage Analysis",
-    description: "A driver map for COD, NDR, address, courier, SKU, campaign, and proof gaps.",
-    bullets: ["Leakage drivers", "Impact estimation", "Root-cause trend"],
+    title: "Leakage Map",
+    description: "See where money leaks — by courier, pincode, product, campaign, address, or proof gaps.",
+    bullets: ["Top loss drivers", "Rupees-at-stake estimate", "Root-cause trend over time"],
     accent: "violet"
   },
   {
-    title: "NDR Management",
-    description: "Rescue failed deliveries before SLA breach and prevent avoidable RTO.",
-    bullets: ["NDR tracking", "SLA breach alerts", "Rescue playbooks"],
+    title: "NDR Rescue",
+    description: "Catch failed deliveries during the rescue window — before they convert to returns.",
+    bullets: ["Live rescue tracker", "SLA breach alerts", "Reason-specific playbooks"],
     accent: "blue"
   },
   {
     title: "Savings Ledger",
-    description: "Separate estimated savings from verified proof so sellers can trust the numbers.",
-    bullets: ["Savings tracker", "Team performance", "Export and reports"],
+    description: "An honest ledger that separates estimates from what you've actually saved. No marketing math.",
+    bullets: ["Daily savings tracker", "Per-team performance", "Audit-ready exports"],
     accent: "teal"
   }
 ];
 
 export const dashboardHighlights = [
-  "Daily Profit Briefing instead of a generic dashboard",
-  "Priority Work Queue for one-action-at-a-time recovery",
-  "Leakage Analysis that opens the exact workflow behind each driver",
-  "Savings Ledger that separates estimated value from verified proof",
-  "Founder reports that summarize decisions, not just metrics"
+  "Daily Profit Briefing — not another generic dashboard",
+  "Priority Work Queue — one action at a time",
+  "Leakage Map — opens the exact workflow behind each driver",
+  "Savings Ledger — verified saves, not vanity numbers",
+  "Founder Reports — decisions, not screenshots"
 ];
 
 export const personaPages: PersonaContent[] = [
@@ -199,21 +228,21 @@ export const personaPages: PersonaContent[] = [
     slug: "founder",
     name: "Founder",
     eyebrow: "For owners and ecommerce heads",
-    headline: "Know if COD is growing revenue or quietly burning profit.",
-    subhead: "RTOShield gives founders a calm weekly story: leakage, driver, recommended decision, policy test, and savings proof.",
+    headline: "Find out if cash-on-delivery is growing revenue or quietly burning profit.",
+    subhead: "A calm weekly story for founders: where you lost money, why, what to do about it, and what it saved.",
     pains: [
-      "RTO looks like a courier issue until the monthly margin leak becomes obvious.",
-      "Teams report activity, but not protected profit.",
-      "COD, prepaid incentives, courier switches, and campaign quality are reviewed in separate places."
+      "RTO looks like a courier issue — until you see the monthly margin leak.",
+      "Your team reports activity, not protected profit.",
+      "Cash orders, prepaid offers, courier choices, and ad quality live in different reports."
     ],
     useCases: [
-      "Run a privacy-safe leakage check before sharing customer data.",
-      "Review weekly executive reports with one clear policy decision.",
-      "Use the simulator before changing COD rules or courier allocation."
+      "Run a privacy-safe leakage check before you share any customer data.",
+      "Read one weekly report with one clear policy decision.",
+      "Test a rule in the simulator before changing cash policy or courier mix."
     ],
     primaryCta: "View pricing",
     primaryHref: "/pricing",
-    secondaryCta: "Open dashboard",
+    secondaryCta: "See dashboard",
     secondaryHref: "/dashboard",
     proofMetric: "1 decision",
     proofLabel: "per weekly report"
@@ -222,44 +251,44 @@ export const personaPages: PersonaContent[] = [
     slug: "operations",
     name: "Operations Team",
     eyebrow: "For support, logistics, and fulfilment teams",
-    headline: "Stop scanning order tables. Work the order that protects the most profit now.",
-    subhead: "The dashboard turns COD risk and NDR urgency into a focused action queue with recommended steps, SLA context, and outcome tracking.",
+    headline: "Stop scrolling order tables. Work the order that protects the most profit right now.",
+    subhead: "We turn risky orders and urgent failed deliveries into a focused queue — with the action, the reason, and the deadline.",
     pains: [
-      "NDR cases get noticed after the rescue window has almost closed.",
-      "Operators jump between courier exports, WhatsApp notes, and spreadsheets.",
-      "Everyone is busy, but nobody can prove which actions protected money."
+      "Failed deliveries get noticed after the rescue window has closed.",
+      "Operators jump between courier exports, WhatsApp threads, and spreadsheets.",
+      "Everyone is busy, but no one can prove which work protected money."
     ],
     useCases: [
       "Start each shift with the Daily Briefing.",
-      "Use Priority Work Queue to clear high-value actions first.",
-      "Record customer response, reattempt, delivery, cancellation, or RTO outcome."
+      "Clear the Priority Work Queue from top to bottom.",
+      "Log every outcome — answered, rescheduled, delivered, cancelled, or returned."
     ],
     primaryCta: "Open work queue",
     primaryHref: "/dashboard",
-    secondaryCta: "Create pilot plan",
+    secondaryCta: "Plan a pilot",
     secondaryHref: "/pilot",
     proofMetric: "SLA first",
-    proofLabel: "NDR rescue rhythm"
+    proofLabel: "rescue rhythm"
   },
   {
     slug: "growth-lead",
     name: "Growth Lead",
     eyebrow: "For performance marketing and revenue teams",
-    headline: "See which campaigns create orders that survive delivery.",
-    subhead: "Connect low-intent COD demand, campaign leakage, prepaid conversion, SKU issues, and courier performance before scaling spend.",
+    headline: "See which campaigns bring orders that actually get delivered.",
+    subhead: "Connect ad spend to delivery reality — so you scale what survives and pause what leaks.",
     pains: [
-      "Campaign ROAS looks fine before RTO and failed delivery costs are included.",
-      "Prepaid incentives are applied broadly instead of to high-risk COD moments.",
-      "SKU and promise mismatch remain hidden inside returns and NDR data."
+      "Campaign returns look fine — until you subtract failed deliveries.",
+      "Prepaid offers go to everyone, not the high-risk cash orders that need them most.",
+      "Product-promise mismatches stay hidden inside returns and rescue notes."
     ],
     useCases: [
-      "Compare campaign leakage when UTM data exists.",
-      "Identify prepaid opportunities on high-value risky COD orders.",
-      "Run controlled policy tests before scaling or pausing campaigns."
+      "Compare leakage across campaigns when you have UTM data.",
+      "Switch high-value cash orders to prepaid with a targeted incentive.",
+      "Run a controlled test before you scale or pause a campaign."
     ],
-    primaryCta: "Explore product",
+    primaryCta: "See product",
     primaryHref: "/product",
-    secondaryCta: "Run leakage check",
+    secondaryCta: "Free leakage check",
     secondaryHref: "/calculator",
     proofMetric: "Campaign quality",
     proofLabel: "after delivery reality"
@@ -267,24 +296,24 @@ export const personaPages: PersonaContent[] = [
 ];
 
 export const trustSignals = [
-  "Privacy-safe calculator and anonymized audit path",
-  "CSV-first workflow before any heavy integration commitment",
-  "Transparent formulas and methodology inside the product",
-  "No inventory, cashflow, or ERP clutter in the profit recovery core",
-  "Directional estimates separated from verified savings"
+  "Privacy-safe calculator — no customer data needed",
+  "Anonymized CSV before any heavy integration",
+  "Every formula is visible and explained inside the app",
+  "No inventory, cashflow, or ERP clutter — only profit recovery",
+  "Estimates and verified savings are kept separate"
 ];
 
 export const representativeProof = [
   {
     title: "Before",
-    copy: "Founder sees RTO rate, courier complaints, and support backlog, but cannot identify the highest-value action."
+    copy: "Founder sees a return rate, courier complaints, and a support backlog — but can't tell which one to fix first."
   },
   {
     title: "During",
-    copy: "Ops team works urgent NDRs and risky COD orders from one priority queue with estimated leakage attached."
+    copy: "Ops works failed deliveries and risky cash orders from one queue, with the rupees-at-stake on every row."
   },
   {
     title: "After",
-    copy: "Weekly report shows what changed, what value was protected, and which policy test should run next."
+    copy: "A weekly report shows what changed, what it saved, and which experiment to run next."
   }
 ];

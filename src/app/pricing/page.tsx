@@ -6,13 +6,13 @@ const pricingOrder: PlanId[] = ["free", "audit", "pilot", "starter", "growth", "
 
 function money(value: number) {
   if (!value) return "Free";
-  return `₹${value.toLocaleString("en-IN")}/month`;
+  return `₹${value.toLocaleString("en-IN")} / month`;
 }
 
 function planCta(id: PlanId) {
-  if (id === "free") return { label: "Run leakage check", href: "/calculator" };
+  if (id === "free") return { label: "Run free check", href: "/calculator" };
   if (id === "audit") return { label: "Start audit", href: "/audit" };
-  if (id === "pilot") return { label: "Create pilot", href: "/pilot" };
+  if (id === "pilot") return { label: "Plan a pilot", href: "/pilot" };
   return { label: "Preview dashboard", href: "/dashboard" };
 }
 
@@ -22,10 +22,10 @@ export default function PricingPage() {
   return (
     <MarketingPage>
       <section className="pricing-hero">
-        <img className="product-hero__bg" src="/media/dashboard-control-room.png" alt="RTOShield dashboard interface" />
+        <img className="product-hero__bg" src="/media/dashboard-control-room.png" alt="Wembro dashboard interface" />
         <span className="eyebrow">Pricing</span>
-        <h1>Pick the level of profit recovery you are ready to operate.</h1>
-        <p>Pricing is organized by seller outcome: awareness, diagnosis, pilot execution, daily recovery, and founder-grade intelligence.</p>
+        <h1>Pay for the level of help you actually need.</h1>
+        <p>Start free. Move up only when the numbers prove it.</p>
       </section>
 
       <section className="pricing-grid">
@@ -55,13 +55,13 @@ export default function PricingPage() {
       <section className="saas-section pricing-guidance">
         <div className="saas-panel">
           <span className="eyebrow">How to choose</span>
-          <h2>Do not buy the biggest plan first.</h2>
-          <p>Start where the seller has evidence. If leakage is unclear, use Free or Audit. If the problem is clear but the operating habit is not proven, run Pilot. Use Growth or Pro when recovery work becomes a daily management system.</p>
+          <h2>Don't buy the biggest plan first.</h2>
+          <p>If you don't know your loss, start Free. If the loss is clear but the team habit isn't, run a Pilot. Pick Growth or Pro only when daily recovery is a real workflow.</p>
         </div>
         <div className="saas-panel">
-          <span className="eyebrow">Premium value</span>
-          <h2>What makes it worth paying for?</h2>
-          <p>Speed, clarity, and proof. The product protects operator focus, shows founder-level decisions, and keeps savings transparent instead of hiding behind a generic automation promise.</p>
+          <span className="eyebrow">What you're paying for</span>
+          <h2>Speed, clarity, and proof.</h2>
+          <p>You're buying focus for your operators, decisions for your founder, and a savings ledger you can audit. No black boxes.</p>
         </div>
       </section>
     </MarketingPage>
