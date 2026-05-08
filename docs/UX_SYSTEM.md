@@ -1,6 +1,6 @@
-# SupportWaala UX System
+# Wembro UX System
 
-SupportWaala should feel like a premium, calm, operational B2B SaaS control room for Indian D2C sellers. RTOShield by SupportWaala is the first service-product: RTO/NDR Profit Recovery.
+Wembro should feel like a premium, calm, operational B2B SaaS control room for Indian D2C sellers. Wembro Revenue Leakage Control Center is the first service-product: RTO/NDR Profit Recovery.
 
 ## Product Principles
 
@@ -16,7 +16,7 @@ SupportWaala should feel like a premium, calm, operational B2B SaaS control room
 ## Navigation Structure
 
 - Start Here: Profit Cockpit, Demo / Client Test Mode.
-- Service Products: Free RTO Leakage Check, Sample Audit Report, RTO Profit Audit, 14-Day RTO Rescue Pilot, Daily Ops Control Room, Founder Profit Intelligence.
+- Service Products: Free RTO Leakage Check, Sample Audit Report, RTO Profit Audit, 14-Day RTO Rescue Pilot, Daily Execution Queue, Founder Profit Intelligence.
 - Core Workflow: CSV Upload, Order Risk, NDR Rescue, Prepaid Opportunities, Messaging Outbox, Savings Ledger, Leakage Report.
 - Advanced / Pro: Pincode Intelligence, Courier Intelligence, SKU Intelligence, Campaign Intelligence, Policy Simulator, Monthly Strategy Report.
 - Setup & Admin: Brand Settings, Stores, Custom Rules, NDR Playbooks, Integration Readiness, SOPs, Onboarding, Privacy & Audit, Plan & Billing.

@@ -53,13 +53,13 @@ export default function DemoPage() {
   return (
     <main className="public-page">
       <header className="public-header">
-        <Link className="brand-link" href="/">SupportWaala</Link>
+        <Link className="brand-link" href="/">Wembro</Link>
         <nav className="public-nav"><Link href="/dashboard">Open control room</Link><Link href="/calculator">Free Leakage Check</Link></nav>
       </header>
       <section className="report-hero">
         <p className="eyebrow">Demo / Client Test Mode</p>
-        <h1>Load a fictional RTOShield workspace</h1>
-        <p className="hero-copy">Choose a D2C profile, generate local demo orders, then open SupportWaala as a client story: leakage check, audit, rescue pilot, daily control room, and founder intelligence. No external integrations or real WhatsApp sending are used.</p>
+        <h1>Load a fictional Wembro leakage-control workspace</h1>
+        <p className="hero-copy">Choose a D2C profile, generate local demo orders, then open Wembro as a client story: leakage check, audit, rescue pilot, daily execution queue, and founder intelligence. No external integrations or real WhatsApp sending are used.</p>
       </section>
       <section className="calculator-layout">
         <div className="panel">

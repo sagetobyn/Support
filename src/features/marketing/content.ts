@@ -84,7 +84,7 @@ export const glossaryTerms: GlossaryTerm[] = [
 export const serviceModules: ServiceModule[] = [
   {
     id: "leakage-check",
-    name: "Free Leakage Check",
+    name: "Leakage Check",
     problem: "You don't know if returned orders are a small problem or eating your profit.",
     outcome: "Get a money figure for what failed deliveries cost you each month — in under 2 minutes.",
     proof: "No customer data needed. Just three numbers from your store.",
@@ -116,7 +116,7 @@ export const serviceModules: ServiceModule[] = [
   },
   {
     id: "founder-intelligence",
-    name: "Founder Reports",
+    name: "Founder Intelligence",
     problem: "Founders get screenshots and exports, not decisions.",
     outcome: "One weekly report: one driver, one decision, one experiment, and what it saved.",
     proof: "Executive summary, policy simulator, monthly strategy review.",
@@ -140,7 +140,7 @@ export const recoverySteps: RecoveryStep[] = [
   },
   {
     label: "02",
-    title: "Pick the priority",
+    title: "Choose the mission",
     description: "We rank what to fix first — risky cash orders, failed deliveries, bad addresses, or weak couriers."
   },
   {
@@ -150,7 +150,7 @@ export const recoverySteps: RecoveryStep[] = [
   },
   {
     label: "04",
-    title: "Prove the savings",
+    title: "Prove the value",
     description: "Track every save, separating estimated value from money you've actually kept."
   }
 ];
@@ -298,7 +298,7 @@ export const personaPages: PersonaContent[] = [
 export const trustSignals = [
   "Privacy-safe calculator — no customer data needed",
   "Anonymized CSV before any heavy integration",
-  "Every formula is visible and explained inside the app",
+  "Transparent formulas — every calculation is visible and explained inside the app",
   "No inventory, cashflow, or ERP clutter — only profit recovery",
   "Estimates and verified savings are kept separate"
 ];

@@ -1,8 +1,10 @@
 # Roadmap
 
-CommerceOps AI is the long-term company direction: a profit-maximizing e-commerce operations control room for Indian sellers. RTOShield by CommerceOps AI remains the first wedge.
+Wembro is the long-term company direction: a profit-maximizing ecommerce operations decision system for Indian sellers. Wembro Revenue Leakage Control Center remains the first wedge.
 
 RTO/NDR is the first wedge because it is painful, measurable, and action-oriented. The long-term product is a profit-maximizing e-commerce operations control room.
+
+The roadmap follows `docs/WEMBRO_OPERATING_SYSTEM.md`: Data -> Insight -> Decision -> Action -> Learning. Do not expand into broad modules until the Revenue Leakage Control Center has pilot proof.
 
 ## Phase 0A: Trust-Building Tools
 
@@ -169,7 +171,7 @@ Success:
 
 Do not add ML in the current MVP; keep the rules explainable and auditable.
 
-## Phase 7: Broader CommerceOps AI
+## Phase 7: Broader Wembro Operations OS
 
 Goal:
 

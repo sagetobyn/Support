@@ -435,6 +435,14 @@ export function generateDemoWorkspace(options: DemoGeneratorOptions = {}) {
       created: orders.length,
       updated: 0,
       missingFields: [],
+      dataQualityScore: 100,
+      analysisReadiness: [
+        { area: "RTO/NDR leakage", status: "ready", reason: "Generated demo data includes order, payment, value, and delivery outcome fields." },
+        { area: "Pincode and courier analysis", status: "ready", reason: "Generated demo data includes pincode and courier fields." },
+        { area: "SKU leakage", status: "ready", reason: "Generated demo data includes SKU and product fields." },
+        { area: "Campaign leakage", status: "ready", reason: "Generated demo data includes campaign fields." },
+        { area: "Margin-aware profit", status: "limited", reason: "Generated demo data includes gross margin but not every actual fee field." }
+      ],
       createdAt: new Date().toISOString()
     }
   ];

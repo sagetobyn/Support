@@ -353,6 +353,10 @@ th {
   grid-template-columns: minmax(0, 1fr) minmax(320px, 0.45fr);
 }
 
+.span-all {
+  grid-column: 1 / -1;
+}
+
 .action-group {
   display: grid;
   gap: 8px;

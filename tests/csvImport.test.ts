@@ -13,6 +13,9 @@ T-2,Sneha,9123456721,"Flat 12 Tower B Koramangala Bengaluru",560095,Bengaluru,79
     expect(summary.errorCount).toBe(0);
     expect(summary.orders[0].paymentMode).toBe("COD");
     expect(summary.orders[0].riskScore).toBeGreaterThan(0);
+    expect(summary.fieldsPresent).toContain("pincode");
+    expect(summary.analysisReadiness?.find((item) => item.area === "RTO/NDR leakage")?.status).toBe("ready");
+    expect(summary.analysisReadiness?.find((item) => item.area === "Pincode and courier analysis")?.status).toBe("ready");
   });
 
   it("reports malformed rows", () => {
@@ -42,5 +45,20 @@ T-11,AWB11,"House 9 Block A, Pune Residency, Baner Road",411045,999,COD`;
     expect(summary.errorCount).toBe(0);
     expect(summary.orders[0].customerName).toBe("");
     expect(summary.orders[0].rawData.data_quality_warnings).toContain("Missing phone");
+  });
+
+  it("carries analysis readiness and missing-field unlock hints through import summaries", () => {
+    const csv = `order_id,order_value,payment_mode
+T-12,1299,COD`;
+    const summary = importOrdersFromCsv({ csv, brandId: defaultBrand.id, settings: defaultBrand });
+
+    expect(summary.fieldsPresent).toEqual(expect.arrayContaining(["order_id", "order_value", "payment_mode"]));
+    expect(summary.analysisUnlockedByAddingMissingFields).toEqual(expect.arrayContaining([
+      "Campaign leakage analysis is limited because campaign_name/utm fields are missing.",
+      "SKU/product leakage analysis improves when sku and product_name are uploaded."
+    ]));
+    expect(summary.analysisReadiness?.find((item) => item.area === "RTO/NDR leakage")?.status).toBe("limited");
+    expect(summary.analysisReadiness?.find((item) => item.area === "Pincode and courier analysis")?.status).toBe("blocked");
+    expect(summary.analysisReadiness?.find((item) => item.area === "Margin-aware profit")?.status).toBe("blocked");
   });
 });

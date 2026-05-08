@@ -2,13 +2,15 @@
 
 ## Startup Idea
 
-CommerceOps AI is an AI operations control room for Indian e-commerce sellers. The product should help sellers reduce operational leakage and improve profit per order. RTOShield by CommerceOps AI is the first wedge: a CSV-first RTO/NDR profit recovery module for COD risk control, NDR rescue, courier/pincode leakage, and savings proof.
+Wembro is an ecommerce operations decision system for Indian sellers. The product should help sellers reduce operational leakage and improve profit per order. Wembro Revenue Leakage Control Center is the first wedge: a CSV-first RTO/NDR profit recovery module for COD risk control, NDR rescue, courier/pincode leakage, and savings proof.
 
 The core positioning is:
 
 > We are not just an analytics dashboard. We are a profit recovery control room for Indian e-commerce sellers. We find where operational leakage is coming from, tell your team exactly what to do every day, rescue NDRs before they become RTO, and prove money saved.
 
 RTO/NDR is the first wedge because it is painful, measurable, and action-oriented. The long-term product is a profit-maximizing e-commerce operations control room.
+
+The CEO operating model is documented in `docs/WEMBRO_OPERATING_SYSTEM.md`. All future project work should follow the sequence: Data -> Insight -> Decision -> Action -> Learning.
 
 The first commercial offer is a free or low-cost RTO audit followed by a 14-day managed rescue pilot using the seller's last 30 days of order, shipment, and NDR data.
 
@@ -160,7 +162,7 @@ Competitive interpretation:
 
 ## MVP Scope
 
-The MVP is a CSV-first operational web app for a 14-day RTO/NDR profit recovery pilot. It should reflect the broader CommerceOps AI vision in language and information architecture without building the full platform.
+The MVP is a CSV-first operational web app for a 14-day RTO/NDR profit recovery pilot. It should reflect the broader Wembro operating-system vision in language and information architecture without building the full platform.
 
 Must include:
 

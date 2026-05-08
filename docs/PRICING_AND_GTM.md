@@ -1,6 +1,6 @@
 # Pricing And GTM
 
-SupportWaala is positioned as a business-improvement product for Indian e-commerce sellers. RTOShield by SupportWaala is the first service-product: RTO/NDR profit recovery.
+Wembro is positioned as a business-improvement product for Indian e-commerce sellers. Wembro Revenue Leakage Control Center is the first service-product: RTO/NDR profit recovery.
 
 RTO/NDR is the first wedge because it is painful, measurable, and action-oriented. The long-term product is a profit-maximizing e-commerce operations control room.
 
@@ -47,7 +47,7 @@ Pilot promise:
 
 - Pilot:
   - 14-Day RTO Rescue Pilot.
-  - Daily Ops Control Room.
+  - Daily Execution Queue.
   - Savings ledger.
   - Final savings review and monthly plan recommendation.
 

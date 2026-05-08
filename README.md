@@ -1,6 +1,6 @@
-# SupportWaala — RTOShield Profit Recovery Control Room
+# Wembro — Revenue Leakage Control Center
 
-SupportWaala is a business-improvement product for Indian e-commerce sellers. The current MVP remains focused on the first service-product: RTOShield by SupportWaala, a CSV-first RTO/NDR profit recovery control room for a 14-day rescue workflow:
+Wembro is an ecommerce operations decision system for Indian sellers. The current MVP remains focused on the first wedge: **Wembro Revenue Leakage Control Center**, a CSV-first RTO/NDR profit recovery control room for a 14-day rescue workflow:
 
 Profit Recovery -> COD Risk Control -> Daily Action Queue -> NDR Rescue -> Savings Ledger.
 
@@ -8,20 +8,26 @@ It is not a COD confirmation app, chatbot, shipping aggregator, or CRM. It helps
 
 RTO/NDR is the first wedge because it is painful, measurable, and action-oriented. The long-term product is a profit-maximizing e-commerce operations control room.
 
+The operating system rule is:
+
+Data -> Insight -> Decision -> Action -> Learning.
+
+See `docs/WEMBRO_OPERATING_SYSTEM.md` for the CEO product directive and priority sequence.
+
 ## Client-First Service Products
 
-SupportWaala should be presented from the client problem outward:
+Wembro should be presented from the client problem outward:
 
 1. Core problem: money leaks after checkout through failed COD delivery, weak addresses, courier/pincode issues, and slow NDR action.
 2. Solution: identify leakage, prioritize daily actions, rescue NDRs, and show estimated savings.
-3. Product: use RTOShield tools only when they support that outcome.
+3. Product: use Revenue Leakage Control tools only when they support that outcome.
 
 Packaged offers:
 
 - Free RTO Leakage Check: calculator, sample report, and summary-only audit for founders who are not ready to share customer data.
 - RTO Profit Audit: anonymized CSV audit, leakage report, and pilot recommendation for founders, finance heads, and ecommerce heads.
 - 14-Day RTO Rescue Pilot: daily queue, NDR rescue, mock/manual messaging, and savings ledger for founders and ops managers.
-- Daily Ops Control Room: order risk, action queue, NDR rescue, prepaid opportunities, and messaging outbox for ops, support, and warehouse teams.
+- Daily Execution Queue: order risk, action queue, NDR rescue, prepaid opportunities, and messaging outbox for ops, support, and warehouse teams.
 - Founder Profit Intelligence: Profit Cockpit, Weekly Founder Report, Monthly Strategy Report, Policy Simulator, and pincode/courier/SKU/campaign intelligence for higher-plan users.
 
 ## What Changed In Version 0.2
@@ -82,7 +88,7 @@ Starter includes one brand workspace, basic rule-based risk scoring, basic addre
 ## Navigation Guide
 
 - Start Here: Profit Cockpit and Demo / Client Test Mode.
-- Service Products: Free RTO Leakage Check, Sample Audit Report, RTO Profit Audit, 14-Day RTO Rescue Pilot, Daily Ops Control Room, and Founder Profit Intelligence.
+- Service Products: Free RTO Leakage Check, Sample Audit Report, RTO Profit Audit, 14-Day RTO Rescue Pilot, Daily Execution Queue, and Founder Profit Intelligence.
 - Core Workflow: CSV Upload, Order Risk, NDR Rescue, Prepaid Opportunities, Messaging Outbox, Savings Ledger, and Leakage Report.
 - Advanced / Pro: pincode, courier, SKU, campaign, policy simulator, and monthly strategy intelligence.
 - Setup & Admin: Brand Settings, Stores, Custom Rules, NDR Playbooks, Integration Readiness, SOPs, Onboarding, Privacy & Audit, and Plan & Billing.
@@ -381,4 +387,3 @@ Use Stores to organize up to 3 stores under one brand. Use Custom Rules to revie
 5. Export/API handoff for courier reattempts, address updates, and cancellation.
 
 Do not add returns, inventory, support inbox, cashflow, real courier APIs, real WhatsApp APIs, Shopify integration, or ML until the RTO/NDR profit recovery wedge has stronger pilot proof.
-"# SupportWaala" 

@@ -1,10 +1,10 @@
 # Local Client Demo Flow
 
-Use this flow to test SupportWaala locally as if you are a D2C seller/client.
+Use this flow to test Wembro locally as if you are a D2C seller/client.
 
 The client story is:
 
-Free RTO Leakage Check -> RTO Profit Audit -> 14-Day RTO Rescue Pilot -> Daily Ops Control Room -> Founder Profit Intelligence.
+Free RTO Leakage Check -> RTO Profit Audit -> 14-Day RTO Rescue Pilot -> Daily Execution Queue -> Founder Profit Intelligence.
 
 ## Quick Start
 
@@ -30,7 +30,7 @@ Demo data is fictional and for local testing.
    - Open Leakage Report.
    - Review pincode, courier, SKU, NDR, address, and prepaid recommendations.
 
-4. **Open Daily Ops Control Room**
+4. **Open Daily Execution Queue**
    - Use Focus mode for high/critical actions.
    - Queue a WhatsApp message or mark one action done.
 

@@ -131,6 +131,7 @@ export function analyzeCsvImport(csv: string, manualMapping: Record<string, stri
     dataQualityScore: dataQualityScore(parsed.rows),
     fieldsPresent: [...presentFields],
     analysisUnlockedByAddingMissingFields: missingAnalysisHints(parsed.rows),
+    analysisReadiness: analysisReadiness(parsed.rows),
     planLimitWarnings: parsed.rows.length > proMaxImportRows ? ["Pro supports up to 10,000 rows per import. Larger imports are available in Scale."] : []
   };
 }
@@ -182,6 +183,54 @@ function missingAnalysisHints(rows: Array<Record<string, string>>) {
     !hasAny(["gross_margin"]) ? "Margin-aware prioritization improves when gross_margin is uploaded." : "",
     !hasAny(["store_id", "source_store_name"]) ? "Multi-store reporting improves when store_id or source_store_name is uploaded." : ""
   ].filter(Boolean);
+}
+
+function analysisReadiness(rows: Array<Record<string, string>>): ImportSummary["analysisReadiness"] {
+  const hasAny = (fields: string[]) => rows.some((row) => fields.some((field) => String(row[field] || "").trim()));
+  const hasAll = (fields: string[]) => fields.every((field) => rows.some((row) => String(row[field] || "").trim()));
+  const hasShipmentSignal = hasAny(["shipment_status", "final_status", "ndr_reason"]);
+  const hasOrderBase = hasAll(["order_id", "payment_mode", "order_value"]);
+  return [
+    {
+      area: "RTO/NDR leakage",
+      status: hasOrderBase && hasShipmentSignal ? "ready" : hasOrderBase ? "limited" : "blocked",
+      reason: hasOrderBase && hasShipmentSignal
+        ? "Order, payment, value, and delivery outcome fields are present."
+        : hasOrderBase
+        ? "Order economics are present, but shipment/final status or NDR reason is thin."
+        : "Requires order_id, payment_mode, order_value, and delivery outcome fields."
+    },
+    {
+      area: "Pincode and courier analysis",
+      status: hasAll(["pincode", "courier"]) ? "ready" : hasAny(["pincode", "courier"]) ? "limited" : "blocked",
+      reason: hasAll(["pincode", "courier"])
+        ? "Pincode and courier fields are present for lane-level leakage."
+        : hasAny(["pincode", "courier"])
+        ? "One of pincode or courier is missing, so lane diagnosis is partial."
+        : "Requires pincode and courier fields."
+    },
+    {
+      area: "SKU leakage",
+      status: hasAny(["sku", "product_name"]) ? "ready" : "limited",
+      reason: hasAny(["sku", "product_name"])
+        ? "SKU or product fields are present."
+        : "Add SKU or product_name to find product-level leakage."
+    },
+    {
+      area: "Campaign leakage",
+      status: hasAny(["campaign_name", "utm_source", "utm_medium", "utm_campaign", "ad_id"]) ? "ready" : "limited",
+      reason: hasAny(["campaign_name", "utm_source", "utm_medium", "utm_campaign", "ad_id"])
+        ? "Campaign or UTM fields are present."
+        : "Add campaign_name, UTM fields, or ad_id to connect leakage to acquisition."
+    },
+    {
+      area: "Margin-aware profit",
+      status: hasAny(["gross_margin", "shipping_charge", "courier_charge_actual", "cod_fee_actual", "discount_amount"]) ? "limited" : "blocked",
+      reason: hasAny(["gross_margin", "shipping_charge", "courier_charge_actual", "cod_fee_actual", "discount_amount"])
+        ? "Some cost fields are present; full true-profit analysis still improves with gross margin and actual fees."
+        : "Requires gross_margin or actual fee/cost fields for true profit."
+    }
+  ];
 }
 
 function rtoLike(status?: string) {
@@ -364,6 +413,9 @@ export function importOrdersFromCsv(params: {
     invalidRows: analysis.invalidRows,
     dataQualityWarnings: analysis.dataQualityWarnings,
     dataQualityScore: analysis.dataQualityScore,
+    fieldsPresent: analysis.fieldsPresent,
+    analysisUnlockedByAddingMissingFields: analysis.analysisUnlockedByAddingMissingFields,
+    analysisReadiness: analysis.analysisReadiness,
     planLimitWarnings: [
       ...(analysis.planLimitWarnings || []),
       existingOrders.length + orders.length > (params.settings.monthlyOrderLimit || 2000)

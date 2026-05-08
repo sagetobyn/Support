@@ -72,7 +72,7 @@ export default function SampleReportPage() {
   return (
     <main className="public-page report-page">
       <header className="public-header">
-        <Link className="brand-link" href="/">SupportWaala</Link>
+        <Link className="brand-link" href="/">Wembro</Link>
         <nav className="public-nav">
           <Link href="/calculator">Free Leakage Check</Link>
           <Link href="/sample-report">Sample Report</Link>

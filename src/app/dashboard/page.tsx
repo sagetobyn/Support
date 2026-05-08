@@ -215,7 +215,7 @@ const clientStoryStages = [
   },
   {
     label: "3. The product",
-    title: "Wembro Control Room",
+    title: "Wembro Revenue Leakage Control Center",
     description: "Calculator, audit, pilot, action queue, rescue, reports, and savings ledger — used only when they help you keep more profit."
   }
 ];
@@ -543,6 +543,8 @@ export default function Home() {
       created: summary.created,
       updated: summary.updated,
       missingFields: summary.missingFields,
+      dataQualityScore: summary.dataQualityScore,
+      analysisReadiness: summary.analysisReadiness,
       createdAt: new Date().toISOString()
     };
     setState((current) => ({
@@ -609,7 +611,8 @@ export default function Home() {
         id: importId, brandId: brand.id, filename: file.filename, sourceType: "csv",
         rowCount: summary.rowCount, successCount: summary.successCount,
         errorCount: summary.errorCount, created: summary.created, updated: summary.updated,
-        missingFields: summary.missingFields, createdAt: new Date().toISOString()
+        missingFields: summary.missingFields, dataQualityScore: summary.dataQualityScore,
+        analysisReadiness: summary.analysisReadiness, createdAt: new Date().toISOString()
       };
       currentOrders = nextOrders;
       currentNdrCases = nextNdrCases;
@@ -1260,7 +1263,7 @@ function Dashboard({ roi, actionGroups, brand, savingsEvents, orders, ndrCases, 
     <div className="grid">
       <section className="hero-insight">
         <div>
-          <h2>RTOShield by SupportWaala</h2>
+          <h2>Wembro Revenue Leakage Control Center</h2>
           <div className="hero-insight__value">{money(recoverableLeakage)}</div>
           <p>Estimated preventable leakage this month. Start with the business problem, then the daily recovery workflow: COD failures, weak addresses, courier lanes, and delayed NDR action.</p>
           <div className="toolbar tight">
@@ -2118,7 +2121,7 @@ function ServiceProductMap({ setView }: { setView: (view: View) => void }) {
     <section className="panel">
       <PageHeader
         title="Service Products For Different Client Personas"
-        subtitle="The same RTOShield workflow is packaged by what the client is trying to improve: trust, diagnosis, pilot execution, daily operations, or founder decisions."
+        subtitle="The same Wembro leakage-control workflow is packaged by what the client is trying to improve: trust, diagnosis, pilot execution, daily operations, or founder decisions."
       />
       <div className="service-grid">
         {serviceProducts.map((product) => (
@@ -2249,7 +2252,7 @@ function DemoView({
     { id: "cockpit", title: "Show the business problem", description: "Start with estimated leakage, not the feature list. Explain where money is leaking first.", done: hasGeneratedData, action: "Open cockpit", onClick: () => setView("dashboard") },
     { id: "upload", title: "Optional anonymized audit data", description: "Use anonymized seller data when you want to test RTO Profit Audit as a real client.", done: false, action: "Open CSV upload", onClick: () => setView("upload") },
     { id: "insights", title: "Present RTO Profit Audit", description: "Review pincode, courier, SKU, campaign, and NDR leakage recommendations.", done: hasGeneratedData, action: "Open leakage report", onClick: () => setView("reports") },
-    { id: "queue", title: "Open Daily Ops Control Room", description: "Work the prioritized actions that can reduce preventable leakage.", done: hasGeneratedData, action: "Open queue", onClick: () => setView("actions") },
+    { id: "queue", title: "Open Daily Execution Queue", description: "Work the prioritized actions that can reduce preventable leakage.", done: hasGeneratedData, action: "Open queue", onClick: () => setView("actions") },
     { id: "ndr", title: "Run a rescue-pilot action", description: "Simulate one delivered-after-NDR outcome and create a savings event.", done: savingsEvents.some((event) => event.eventType === "ndr_rescued_delivered"), action: "Rescue one NDR", onClick: rescueOneNdr },
     { id: "message", title: "Queue one WhatsApp message", description: "Create a mock/manual outbox item without sending a real external message.", done: messages.length > 0, action: "Queue message", onClick: queueOneMessage },
     { id: "response", title: "Record customer response", description: "Capture a manual response and update order/NDR state.", done: responses.length > 0, action: "Record response", onClick: recordOneDemoResponse },
@@ -2264,7 +2267,7 @@ function DemoView({
     <div className="grid">
       <PageHeader
         title="Demo Workspace"
-        subtitle="A guided SupportWaala client story: Leakage Check -> RTO Profit Audit -> 14-Day Rescue Pilot -> Daily Ops Control Room -> Founder Profit Intelligence."
+        subtitle="A guided Wembro client story: Leakage Check -> RTO Profit Audit -> 14-Day Rescue Pilot -> Daily Execution Queue -> Founder Profit Intelligence."
         actions={
           <>
             <button className="button" onClick={() => loadGeneratedDemoData(profileId, orderCount)}>Load selected demo</button>
@@ -2273,7 +2276,7 @@ function DemoView({
           </>
         }
       />
-      <DemoModeBanner>Choose a profile, generate a workspace, then show the client how SupportWaala moves from leakage diagnosis to daily action and estimated savings proof.</DemoModeBanner>
+      <DemoModeBanner>Choose a profile, generate a workspace, then show the client how Wembro moves from leakage diagnosis to daily action and estimated savings proof.</DemoModeBanner>
       <div className="grid two-col">
         <div className="panel">
           <h2>Business Profile</h2>
@@ -2461,6 +2464,9 @@ function UploadView({
                   )}
                   {analysis.missingFields.length ? <div className="notice">Missing mapped fields: {analysis.missingFields.join(", ")}</div> : <div className="success">Required fields are mapped.</div>}
                   {analysis.dataQualityWarnings?.length ? <div className="notice">Warnings: {analysis.dataQualityWarnings.join(", ")}</div> : null}
+                  {analysis.analysisUnlockedByAddingMissingFields?.length ? (
+                    <div className="notice">Limited analysis: {analysis.analysisUnlockedByAddingMissingFields.join(" ")}</div>
+                  ) : null}
                 </div>
                 <div>
                   <h3>Auto Mapping</h3>
@@ -2471,6 +2477,18 @@ function UploadView({
                     <strong>Better fields unlock better insights</strong>
                     <span>Campaign fields unlock campaign leakage. SKU fields unlock product leakage. NDR reason unlocks playbooks. Courier unlocks courier intelligence.</span>
                   </div>
+                </div>
+                <div className="panel span-all">
+                  <h3>Analysis Readiness</h3>
+                  {analysis.analysisReadiness?.map((item) => (
+                    <div className="action-row" key={item.area}>
+                      <strong>{item.area}</strong>
+                      <div>
+                        <span className={`badge ${item.status === "ready" ? "low" : item.status === "blocked" ? "critical" : "medium"}`}>{item.status}</span>{" "}
+                        <span className="muted">{item.reason}</span>
+                      </div>
+                    </div>
+                  ))}
                 </div>
               </div>
             )}
@@ -2506,6 +2524,14 @@ function UploadView({
           <div className="action-row" key={item.id}>
             <strong>{item.filename}</strong>
             <div className="muted">{item.successCount}/{item.rowCount} imported · {item.created} created · {item.updated} updated · {item.errorCount} invalid</div>
+            {typeof item.dataQualityScore === "number" ? <div className="muted">Data quality: {item.dataQualityScore}/100</div> : null}
+            {item.analysisReadiness?.length ? (
+              <div className="chips">
+                {item.analysisReadiness.map((readiness) => (
+                  <span className={`chip ${readiness.status}`} key={readiness.area}>{readiness.area}: {readiness.status}</span>
+                ))}
+              </div>
+            ) : null}
           </div>
         )) : <Empty text="No CSV imports yet." />}
       </div>
@@ -3149,7 +3175,7 @@ function TemplatesView({ orders, ndrCases, brand, selectedOrder, setSelectedOrde
 
 function ReportsView({ report }: { report: ReturnType<typeof generateAuditReport> }) {
   function reportText() {
-    return `SupportWaala RTOShield Profit Leakage Report\nOrders: ${report.orderVolume}\nCOD: ${percent(report.codPercentage)}\nRTO: ${percent(report.rtoRate)}\nEstimated monthly RTO loss: ${money(report.estimatedMonthlyLoss)}\nRecommended action plan:\n${report.recommendedPilotPlan.join("\n")}`;
+    return `Wembro Revenue Leakage Report\nOrders: ${report.orderVolume}\nCOD: ${percent(report.codPercentage)}\nRTO: ${percent(report.rtoRate)}\nEstimated monthly RTO loss: ${money(report.estimatedMonthlyLoss)}\nRecommended action plan:\n${report.recommendedPilotPlan.join("\n")}`;
   }
   function download(filename: string, content: string, type: string) {
     const blob = new Blob([content], { type });
@@ -3163,7 +3189,7 @@ function ReportsView({ report }: { report: ReturnType<typeof generateAuditReport
   return (
     <div className="printable grid report-grid">
       <ReportPanel title="Profit Leakage Report">
-        <p className="muted">SupportWaala starts with RTOShield: measurable leakage, daily actions, NDR rescue, and a savings ledger.</p>
+        <p className="muted">Wembro starts with Revenue Leakage Control: measurable leakage, daily actions, NDR rescue, and a savings ledger.</p>
         <div className="toolbar">
           <button className="button secondary" onClick={() => navigator.clipboard?.writeText(reportText())}>Copy report</button>
           <PrintButton label="Print report" />

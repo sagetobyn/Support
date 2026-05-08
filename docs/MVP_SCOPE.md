@@ -2,7 +2,7 @@
 
 ## Goal
 
-Build a working MVP for a 14-day RTO/NDR profit recovery pilot with real Indian e-commerce sellers. The broader company vision is CommerceOps AI: an AI operations control room that reduces operational leakage and improves profit per order. The MVP remains the RTOShield wedge.
+Build a working MVP for a 14-day RTO/NDR profit recovery pilot with real Indian e-commerce sellers. The broader company vision is Wembro: an ecommerce operations decision system that reduces operational leakage and improves profit per order. The MVP remains the Revenue Leakage Control wedge.
 
 RTO/NDR is the first wedge because it is painful, measurable, and action-oriented. The long-term product is a profit-maximizing e-commerce operations control room.
 
