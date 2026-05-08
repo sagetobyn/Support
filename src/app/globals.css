@@ -5323,22 +5323,43 @@ tbody tr:hover td {
 
 .sidebar {
   background:
-    radial-gradient(circle at 12% 0%, rgba(225, 178, 72, 0.14), transparent 32%),
-    radial-gradient(circle at 88% 22%, rgba(111, 142, 70, 0.16), transparent 34%),
     linear-gradient(180deg, #11160f 0%, #06110e 100%);
   border-right-color: rgba(225, 201, 138, 0.18);
-  padding: 26px 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  padding: 22px 16px;
+  scrollbar-color: rgba(225, 201, 138, 0.34) transparent;
 }
 
 .brandmark {
+  align-items: center;
   color: #fffefa;
+  display: flex;
   font-size: 20px;
+  gap: 10px;
   margin-bottom: 12px;
+}
+
+.brandmark span:last-child {
+  display: grid;
+  gap: 2px;
+  min-width: 0;
+}
+
+.brandmark small {
+  color: rgba(255, 254, 250, 0.62);
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  line-height: 1;
+  text-transform: uppercase;
 }
 
 .brandmark__icon {
   background: linear-gradient(135deg, #d9ad43 0%, #315d25 100%);
   border-radius: 9px;
+  flex: 0 0 auto;
 }
 
 .tagline {
@@ -5347,13 +5368,69 @@ tbody tr:hover td {
   color: #e2e9dd;
   font-size: 14px;
   line-height: 1.6;
+  margin-bottom: 0;
   padding: 16px;
+}
+
+.sidebar-status {
+  display: grid;
+  gap: 8px;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.sidebar-status button {
+  background: rgba(255, 255, 255, 0.055);
+  border: 1px solid rgba(225, 201, 138, 0.14);
+  border-radius: 8px;
+  color: #fffefa;
+  display: grid;
+  gap: 6px;
+  min-height: 68px;
+  padding: 10px 8px;
+  text-align: left;
+}
+
+.sidebar-status button:hover {
+  background: rgba(255, 255, 255, 0.09);
+  border-color: rgba(225, 201, 138, 0.28);
+}
+
+.sidebar-status span {
+  color: rgba(255, 254, 250, 0.58);
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  line-height: 1.25;
+  text-transform: uppercase;
+}
+
+.sidebar-status strong {
+  font-size: 16px;
+  line-height: 1;
+}
+
+.nav {
+  gap: 12px;
+}
+
+.nav-section {
+  background: rgba(255, 255, 255, 0.035);
+  border: 1px solid rgba(225, 201, 138, 0.1);
+  border-radius: 8px;
+  gap: 2px;
+  padding: 7px;
+}
+
+.nav-section--secondary {
+  background: transparent;
+  border-color: rgba(225, 201, 138, 0.08);
 }
 
 .nav-section-title {
   color: rgba(255, 254, 250, 0.64);
   font-size: 11px;
   letter-spacing: 0.08em;
+  padding: 4px 6px 8px;
 }
 
 .nav button,
@@ -5361,7 +5438,8 @@ tbody tr:hover td {
   border-radius: 8px;
   color: #edf2e9;
   font-size: 15px;
-  min-height: 43px;
+  line-height: 1.2;
+  min-height: 41px;
   padding: 10px 12px;
 }
 
@@ -5375,7 +5453,36 @@ tbody tr:hover td {
 .nav button.active {
   background: linear-gradient(90deg, rgba(179, 197, 113, 0.34), rgba(255, 255, 255, 0.08));
   border-color: rgba(218, 199, 143, 0.24);
+  box-shadow: inset 3px 0 0 #d9ad43;
   color: #fffefa;
+}
+
+.nav-more {
+  display: grid;
+}
+
+.nav-more__toggle {
+  align-items: center;
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px dashed rgba(225, 201, 138, 0.24);
+  border-radius: 8px;
+  color: #fffefa;
+  display: flex;
+  justify-content: space-between;
+  min-height: 42px;
+  padding: 10px 12px;
+  text-align: left;
+}
+
+.nav-more__toggle:hover {
+  background: rgba(255, 255, 255, 0.09);
+  border-style: solid;
+}
+
+.nav-more__toggle small {
+  color: rgba(255, 254, 250, 0.58);
+  font-size: 11px;
+  font-weight: 800;
 }
 
 .sidebar .badge.neutral {
@@ -5392,7 +5499,7 @@ tbody tr:hover td {
   color: #fffefa;
   display: grid;
   gap: 10px;
-  margin-top: 28px;
+  margin-top: auto;
   padding: 16px;
 }
 
@@ -6019,8 +6126,19 @@ tbody tr:hover td {
     grid-template-columns: 1fr;
   }
 
+  .sidebar-status {
+    display: none;
+  }
+
+  .nav-section {
+    background: transparent;
+    border: 0;
+    padding: 0;
+  }
+
   .nav button,
-  .nav-link {
+  .nav-link,
+  .nav-more__toggle {
     font-size: 14px;
     min-height: 36px;
     padding: 8px 10px;

@@ -140,18 +140,18 @@ const allNavGroups: Array<{
   links: Array<{ id?: View; label: string; href?: string; badge?: string }>;
 }> = [
   {
-    title: "Command Center",
+    title: "Today",
     links: [
-      { id: "briefing", label: "Overview" },
-      { id: "missions", label: "Action Queue" },
-      { id: "atlas", label: "Leakage Drivers" },
-      { id: "ndr", label: "NDR Rescue" },
-      { id: "savings", label: "Savings Tracker" },
-      { id: "courier", label: "Courier Performance" }
+      { id: "briefing", label: "Today's Priorities" },
+      { id: "missions", label: "Work Queue" },
+      { id: "atlas", label: "Where Money Leaks" },
+      { id: "ndr", label: "Delivery Rescue" },
+      { id: "savings", label: "Savings Proof" },
+      { id: "courier", label: "Courier Watch" }
     ]
   },
   {
-    title: "Analytics & Reports",
+    title: "Reports",
     links: [
       { id: "dashboard", label: "Profit Overview" },
       { id: "weekly", label: "Founder Briefing" },
@@ -164,7 +164,7 @@ const allNavGroups: Array<{
     ]
   },
   {
-    title: "Configuration",
+    title: "Setup",
     links: [
       { id: "brand", label: "Settings" },
       { id: "stores", label: "Team & Stores" },
@@ -174,7 +174,7 @@ const allNavGroups: Array<{
     ]
   },
   {
-    title: "Enablement",
+    title: "Help",
     links: [
       { id: "learning", label: "Help & Methodology" },
       { id: "sops", label: "Operating Playbooks" },
@@ -190,7 +190,7 @@ const allNavGroups: Array<{
     ]
   },
   {
-    title: "Detailed Operations",
+    title: "More Operations",
     links: [
       { id: "orders", label: "Order Risk Analysis" },
       { id: "prepaid", label: "Prepaid Conversion" },
@@ -412,6 +412,7 @@ export default function Home() {
   const [uploadQueue, setUploadQueue] = useState<Array<{ filename: string; csv: string; analysis: ReturnType<typeof analyzeCsvImport> }>>([]);
   const [templateType, setTemplateType] = useState<TemplateType>("cod_confirmation");
   const [dateRange, setDateRange] = useState("30d");
+  const [showAllTools, setShowAllTools] = useState(false);
   const [demoProfile, setDemoProfile] = useState<DemoProfileId>("fashion");
   const [demoOrderCount, setDemoOrderCount] = useState(1400);
 
@@ -513,6 +514,13 @@ export default function Home() {
     if (id === "ndr" && urgentNdrCount) return String(Math.min(urgentNdrCount, 99));
     return staticBadge;
   }
+
+  const navGroups = roleNavGroups(role);
+  const primaryNavGroups = navGroups.filter((group) => group.title === "Today");
+  const secondaryNavGroups = navGroups.filter((group) => group.title !== "Today");
+  const activeSecondaryGroup = secondaryNavGroups.find((group) => group.links.some((item) => item.id === view));
+  const visibleSecondaryNavGroups = showAllTools ? secondaryNavGroups : activeSecondaryGroup ? [activeSecondaryGroup] : [];
+  const hiddenToolCount = secondaryNavGroups.reduce((count, group) => count + group.links.length, 0);
 
   function openAtlasDriver(driver: LeakageAtlasDriver) {
     if (driver.route.quickFilter) setFilters((current) => ({ ...current, quick: driver.route.quickFilter || current.quick }));
@@ -1015,11 +1023,28 @@ export default function Home() {
       <aside className="sidebar">
         <div className="brandmark">
           <span className="brandmark__icon">W</span>
-          <span>Wembro</span>
+          <span>
+            <strong>Wembro</strong>
+            <small>Control room</small>
+          </span>
         </div>
         <div className="tagline">Find where money is leaking, work the highest-value orders first, and prove what you saved — every day.</div>
+        <div className="sidebar-status" aria-label="Workspace status">
+          <button type="button" onClick={() => setView("missions")}>
+            <span>Open work</span>
+            <strong>{openActionCount.toLocaleString("en-IN")}</strong>
+          </button>
+          <button type="button" onClick={() => setView("ndr")}>
+            <span>Rescue now</span>
+            <strong>{urgentNdrCount.toLocaleString("en-IN")}</strong>
+          </button>
+          <button type="button" onClick={() => setView("upload")}>
+            <span>Data trust</span>
+            <strong>{dataQualityScore}/100</strong>
+          </button>
+        </div>
         <div className="nav">
-          {roleNavGroups(role).map((group) => (
+          {primaryNavGroups.map((group) => (
             <div className="nav-section" key={group.title}>
               <div className="nav-section-title">{group.title}</div>
               {group.links.map((item) => {
@@ -1027,7 +1052,34 @@ export default function Home() {
                 return item.href ? (
                   <Link className="nav-link" href={item.href} key={item.href}>{item.label}</Link>
                 ) : (
-                  <button className={view === item.id ? "active" : ""} key={item.id} onClick={() => item.id && setView(item.id)}>
+                  <button aria-current={view === item.id ? "page" : undefined} className={view === item.id ? "active" : ""} key={item.id} onClick={() => item.id && setView(item.id)}>
+                    <span>{item.label}</span>
+                    {badge ? <span className="badge neutral">{badge}</span> : null}
+                  </button>
+                );
+              })}
+            </div>
+          ))}
+          <div className="nav-more">
+            <button
+              aria-expanded={showAllTools}
+              className="nav-more__toggle"
+              onClick={() => setShowAllTools((current) => !current)}
+              type="button"
+            >
+              <span>{showAllTools ? "Show less" : "Show all tools"}</span>
+              <small>{hiddenToolCount} tools</small>
+            </button>
+          </div>
+          {visibleSecondaryNavGroups.map((group) => (
+            <div className="nav-section nav-section--secondary" key={group.title}>
+              <div className="nav-section-title">{group.title}</div>
+              {group.links.map((item) => {
+                const badge = navBadge(item.id, item.badge);
+                return item.href ? (
+                  <Link className="nav-link" href={item.href} key={item.href}>{item.label}</Link>
+                ) : (
+                  <button aria-current={view === item.id ? "page" : undefined} className={view === item.id ? "active" : ""} key={item.id} onClick={() => item.id && setView(item.id)}>
                     <span>{item.label}</span>
                     {badge ? <span className="badge neutral">{badge}</span> : null}
                   </button>
@@ -1066,6 +1118,7 @@ export default function Home() {
               <option value="analyst">Analyst</option>
               <option value="viewer">Viewer</option>
             </select>
+            <button className="button secondary" onClick={() => setView("brand")}>Settings</button>
             <button className="button secondary" onClick={() => setView("upload")}>Upload CSV</button>
             <button className="button" onClick={() => setView("demo")}>Run demo</button>
             <button className="topbar-icon" aria-label="Notifications" onClick={() => setView("templates")}>!</button>
