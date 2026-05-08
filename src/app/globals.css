@@ -461,6 +461,24 @@ th {
   color: #334155;
 }
 
+.chip.ready {
+  border-color: #bbf7d0;
+  background: #f0fdf4;
+  color: var(--green);
+}
+
+.chip.limited {
+  border-color: #fde68a;
+  background: #fffbeb;
+  color: #7a4a00;
+}
+
+.chip.blocked {
+  border-color: #fecaca;
+  background: #fef2f2;
+  color: var(--red);
+}
+
 .split {
   display: flex;
   align-items: center;

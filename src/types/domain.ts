@@ -397,8 +397,14 @@ export interface ImportRecord {
   updated: number;
   missingFields: string[];
   dataQualityScore?: number;
-  analysisReadiness?: Array<{ area: string; status: "ready" | "limited" | "blocked"; reason: string }>;
+  analysisReadiness?: AnalysisReadinessItem[];
   createdAt: string;
+}
+
+export interface AnalysisReadinessItem {
+  area: string;
+  status: "ready" | "limited" | "blocked";
+  reason: string;
 }
 
 export interface ImportSummary {
@@ -414,7 +420,7 @@ export interface ImportSummary {
   dataQualityScore?: number;
   fieldsPresent?: string[];
   analysisUnlockedByAddingMissingFields?: string[];
-  analysisReadiness?: Array<{ area: string; status: "ready" | "limited" | "blocked"; reason: string }>;
+  analysisReadiness?: AnalysisReadinessItem[];
   planLimitWarnings?: string[];
   columnMapping: Record<string, string>;
   previewRows: Array<Record<string, string>>;

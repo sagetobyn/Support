@@ -46,6 +46,7 @@ import { exportWorkspaceBackup, loadWorkspaceState, saveWorkspaceState, storageV
 import { publishEvent } from "@/shared/events";
 import { createMainStore, proStoreLimitMessage } from "@/features/stores";
 import { defaultProRules, evaluateCustomRules } from "@/features/rules";
+import { buildDataTrust, type DataTrust } from "@/features/imports";
 import { generateHighRiskCodHoldPolicies } from "@/features/policy-recommendations";
 import { findAdvancedPrepaidOpportunities } from "@/features/prepaid";
 import { analyzePincodePolicies } from "@/features/pincode";
@@ -444,6 +445,10 @@ export default function Home() {
     }, 0);
     return Math.max(0, 100 - Math.round(penalty / orders.length));
   }, [orders]);
+  const dataTrust = useMemo(
+    () => buildDataTrust(lastImport, dataQualityScore, orders.length),
+    [lastImport, dataQualityScore, orders.length]
+  );
 
   const filteredOrders = orders.filter((order) => {
     if (filters.payment !== "all" && order.paymentMode !== filters.payment) return false;
@@ -1032,7 +1037,7 @@ export default function Home() {
         {toast && <div className="toast">{toast}</div>}
         {lastImport?.filename.startsWith("generated-") && <DemoModeBanner>{lastImport.filename} is active in this browser workspace.</DemoModeBanner>}
         {proLimitWarning && <div className="notice">{proLimitWarning}</div>}
-        {view !== "briefing" && <WorkspaceSummary orders={orders} roi={roi} lastImport={lastImport} />}
+        {view !== "briefing" && <WorkspaceSummary orders={orders} roi={roi} lastImport={lastImport} dataTrust={dataTrust} />}
 
         {view === "briefing" && (
           <MorningBriefing
@@ -1041,6 +1046,7 @@ export default function Home() {
             actionGroups={actionGroups}
             brand={brand}
             savingsEvents={savingsEvents}
+            dataTrust={dataTrust}
             setView={setView}
             queueMessage={queueMessage}
             completeAction={completeAction}
@@ -1069,7 +1075,7 @@ export default function Home() {
         )}
 
         {view === "dashboard" && (
-          <Dashboard roi={roi} actionGroups={actionGroups} brand={brand} savingsEvents={savingsEvents} orders={orders} ndrCases={ndrCases} setView={setView} />
+          <Dashboard roi={roi} actionGroups={actionGroups} brand={brand} savingsEvents={savingsEvents} orders={orders} ndrCases={ndrCases} dataTrust={dataTrust} setView={setView} />
         )}
 
         {view === "demo" && (
@@ -1207,7 +1213,7 @@ export default function Home() {
   );
 }
 
-function WorkspaceSummary({ orders, roi, lastImport }: { orders: Order[]; roi: ReturnType<typeof calculateRoi>; lastImport?: ImportRecord }) {
+function WorkspaceSummary({ orders, roi, lastImport, dataTrust }: { orders: Order[]; roi: ReturnType<typeof calculateRoi>; lastImport?: ImportRecord; dataTrust: DataTrust }) {
   return (
     <div className="workspace-strip">
       <strong>Current workspace:</strong> {orders.length} orders · {roi.codOrders} COD · {roi.totalRto} RTO · {roi.ndrCases} NDR cases
@@ -1216,17 +1222,44 @@ function WorkspaceSummary({ orders, roi, lastImport }: { orders: Order[]; roi: R
       {lastImport
         ? `${lastImport.successCount} rows imported, ${lastImport.created} created, ${lastImport.updated} updated, ${lastImport.errorCount} invalid`
         : "No CSV import in this workspace yet"}
+      <span className="divider">|</span>
+      <strong>Trust:</strong> {dataTrust.headline}
     </div>
   );
 }
 
-function Dashboard({ roi, actionGroups, brand, savingsEvents, orders, ndrCases, setView }: {
+function DataTrustNotice({ dataTrust, setView, compact = false }: { dataTrust: DataTrust; setView: (view: View) => void; compact?: boolean }) {
+  if (dataTrust.status === "ready" && compact) return null;
+  const className = dataTrust.status === "ready" ? "success" : "notice";
+  const visibleIssues = dataTrust.issues.slice(0, compact ? 2 : 3);
+  return (
+    <section className={className}>
+      <div className="split">
+        <div>
+          <strong>{dataTrust.headline}</strong>
+          <p className="muted">Quality {dataTrust.score}/100 · {dataTrust.readyCount} analysis areas ready. {dataTrust.detail}</p>
+        </div>
+        <button className="button secondary small" onClick={() => setView("upload")}>Improve data</button>
+      </div>
+      {visibleIssues.length ? (
+        <div className="chips">
+          {visibleIssues.map((issue) => (
+            <span className={`chip ${issue.status}`} key={issue.area}>{issue.area}: {issue.status}</span>
+          ))}
+        </div>
+      ) : null}
+    </section>
+  );
+}
+
+function Dashboard({ roi, actionGroups, brand, savingsEvents, orders, ndrCases, dataTrust, setView }: {
   roi: ReturnType<typeof calculateRoi>;
   actionGroups: Record<string, Order[]>;
   brand: BrandSettings;
   savingsEvents: SavingsEvent[];
   orders: Order[];
   ndrCases: NdrCase[];
+  dataTrust: DataTrust;
   setView: (view: View) => void;
 }) {
   const recoverableLeakage = estimatedRecoverableLeakage(orders, brand);
@@ -1278,6 +1311,7 @@ function Dashboard({ roi, actionGroups, brand, savingsEvents, orders, ndrCases, 
           <span className="impact-pill">Estimated, not guaranteed</span>
         </div>
       </section>
+      <DataTrustNotice dataTrust={dataTrust} setView={setView} compact />
       <ClientStory />
       <ServiceProductMap setView={setView} />
       {roi.lowSampleSize && <div className="notice">Low sample size: use at least 50 orders for credible leakage estimates. Upload the large sample or seller CSV before making claims.</div>}
@@ -1354,12 +1388,13 @@ function Dashboard({ roi, actionGroups, brand, savingsEvents, orders, ndrCases, 
   );
 }
 
-function MorningBriefing({ orders, ndrCases, actionGroups, brand, savingsEvents, setView, queueMessage, completeAction }: {
+function MorningBriefing({ orders, ndrCases, actionGroups, brand, savingsEvents, dataTrust, setView, queueMessage, completeAction }: {
   orders: Order[];
   ndrCases: NdrCase[];
   actionGroups: Record<string, Order[]>;
   brand: BrandSettings;
   savingsEvents: SavingsEvent[];
+  dataTrust: DataTrust;
   setView: (view: View) => void;
   queueMessage: (order: Order, template: TemplateType) => void;
   completeAction: (order: Order, actionType: RecommendedAction, note?: string) => void;
@@ -1411,6 +1446,7 @@ function MorningBriefing({ orders, ndrCases, actionGroups, brand, savingsEvents,
         subtitle="Your daily cockpit to stop leakage, recover revenue, and grow profit."
         actions={<button className="button secondary" onClick={() => setView("weekly")}>Share briefing</button>}
       />
+      <DataTrustNotice dataTrust={dataTrust} setView={setView} />
 
       <div className="briefing-hero-grid">
         <section className="recovery-brief-card">
