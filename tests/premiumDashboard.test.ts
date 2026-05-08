@@ -5,6 +5,11 @@ import { planConfigs } from "@/features/plans";
 import { buildLeakageAtlas } from "@/features/leakage-atlas";
 import { buildProfitMissions, getMissionProgress, getNextProfitMission } from "@/features/missions";
 import { dashboardLearningTracks, dataReadinessChecklist, formulaCards, glossaryTerms, operatingMethodology } from "@/features/learning";
+import { buildFounderDecisionBrief, generateWeeklyFounderReport } from "@/features/weekly-report";
+import { generateMonthlyStrategyReport } from "@/features/monthly-strategy";
+import { buildOnboardingJourney } from "@/features/onboarding";
+import { sopTemplates } from "@/features/sops";
+import { buildFutureOsBoundary, futureOsModules } from "@/features/operations-os";
 
 describe("premium profit recovery dashboard", () => {
   it("maps each pricing tier to seller outcomes and visible modules", () => {
@@ -54,5 +59,59 @@ describe("premium profit recovery dashboard", () => {
     expect(operatingMethodology.map((step) => step.title)).toEqual(["Diagnose leakage", "Prioritize work", "Act within SLA", "Record outcome", "Review policy"]);
     expect(dataReadinessChecklist.some((item) => item.field === "NDR reason and NDR time")).toBe(true);
     expect(dashboardLearningTracks.find((track) => track.module === "Priority Work Queue")?.targetView).toBe("missions");
+  });
+
+  it("builds a founder decision brief from weekly and monthly reports", () => {
+    const weekly = generateWeeklyFounderReport({ brand: defaultBrand, orders: seedOrders, savingsEvents: [] });
+    const monthly = generateMonthlyStrategyReport({ brand: defaultBrand, orders: seedOrders, savingsEvents: [] });
+    const brief = buildFounderDecisionBrief({
+      weeklyReport: weekly,
+      monthlyReport: monthly,
+      topDriverTitle: "Courier + Pincode",
+      topDriverRecommendation: "Run a lane switchback test.",
+      dataTrustHeadline: "Some insights are directional",
+      dataTrustStatus: "limited",
+      estimatedSavings: 12000,
+      verifiedSavings: 0
+    });
+
+    expect(brief.order).toEqual(["Driver", "Decision", "Experiment", "Savings proof", "Trust warning"]);
+    expect(brief.driver).toBe("Courier + Pincode");
+    expect(brief.decision).toContain("switchback");
+    expect(brief.savingsProof).toContain("Estimated savings only");
+    expect(brief.trustWarning).toContain("directional");
+  });
+
+  it("guides onboarding from upload to founder report and maps SOPs to workflows", () => {
+    const emptyJourney = buildOnboardingJourney({
+      orderCount: 0,
+      dataTrustStatus: "empty",
+      missionRemaining: 0,
+      savingsEventsCount: 0,
+      verifiedSavingsCount: 0
+    });
+    const activeJourney = buildOnboardingJourney({
+      orderCount: 100,
+      dataTrustStatus: "limited",
+      missionRemaining: 20,
+      savingsEventsCount: 3,
+      verifiedSavingsCount: 1
+    });
+
+    expect(emptyJourney.nextStep?.id).toBe("upload-data");
+    expect(activeJourney.progress.percentage).toBeGreaterThan(emptyJourney.progress.percentage);
+    expect(activeJourney.steps.map((step) => step.view)).toEqual(["upload", "briefing", "missions", "savings", "weekly"]);
+    expect(sopTemplates.every((sop) => sop.targetView)).toBe(true);
+    expect(sopTemplates.find((sop) => sop.id === "weekly-founder-review")?.targetView).toBe("weekly");
+  });
+
+  it("keeps the broader Wembro OS visible but gated behind wedge proof", () => {
+    const boundary = buildFutureOsBoundary(futureOsModules);
+
+    expect(boundary.active.map((module) => module.id)).toEqual(["revenue-leakage-control"]);
+    expect(boundary.locked.map((module) => module.id)).toEqual(expect.arrayContaining(["profit-control-tower", "settlement-recovery", "ai-operations-agent"]));
+    expect(boundary.proofGates).toHaveLength(5);
+    expect(boundary.boundaryRule).toContain("current wedge");
+    expect(boundary.locked.every((module) => module.unlockAfter && module.status === "future_locked")).toBe(true);
   });
 });

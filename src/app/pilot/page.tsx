@@ -12,6 +12,7 @@ import {
   type PilotDayMetrics,
   type PilotPlan
 } from "@/lib/pilot";
+import { buildPilotHandoffFromPlan } from "@/features/pilot-handoff";
 import { formatCurrency, formatNumber, formatPercent } from "@/lib/reporting";
 
 const pilotStorageKey = "rtoshield:pilot-plan";
@@ -52,6 +53,7 @@ export default function PilotPage() {
 
   const progress = useMemo(() => calculatePilotProgress(plan), [plan]);
   const finalReview = plan.finalReview || generatePilotFinalReview(plan);
+  const handoffPack = useMemo(() => buildPilotHandoffFromPlan(plan, progress, finalReview), [plan, progress, finalReview]);
   const dayProgressPercent = Math.round((currentDay / 14) * 100);
   const todayMetrics = plan.days[currentDay - 1] || plan.days[0];
   const completedActions = plan.checklist.filter((c) => c.complete).length + plan.days.filter((d) => d.ordersChecked > 0).length;
@@ -99,6 +101,36 @@ export default function PilotPage() {
       </section>
 
       {message && <section className="calculator-layout single"><div className="success">{message}</div></section>}
+
+      <section className={`panel wide-section pilot-handoff pilot-handoff--${handoffPack.status}`}>
+        <div className="split">
+          <div>
+            <p className="eyebrow">CEO handoff pack</p>
+            <h2>{handoffPack.headline}</h2>
+            <p className="muted">{handoffPack.ceoInstruction}</p>
+          </div>
+          <span className="badge neutral">{handoffPack.status.replaceAll("_", " ")}</span>
+        </div>
+        <div className="pilot-handoff__criteria">
+          {handoffPack.successCriteria.map((criterion) => (
+            <div className={criterion.met ? "pilot-criterion met" : "pilot-criterion"} key={criterion.label}>
+              <span>{criterion.met ? "Met" : "Open"}</span>
+              <strong>{criterion.label}</strong>
+              <small>{criterion.current} / {criterion.target}</small>
+            </div>
+          ))}
+        </div>
+        <div className="pilot-handoff__risks">
+          <div>
+            <strong>Decision rule</strong>
+            <p>{handoffPack.decisionRule}</p>
+          </div>
+          <div>
+            <strong>Renewal decision</strong>
+            <p>{handoffPack.renewalDecision}</p>
+          </div>
+        </div>
+      </section>
 
       <section className="panel wide-section">
         <div className="split" style={{ marginBottom: 10 }}>

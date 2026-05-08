@@ -1,4 +1,4 @@
-import type { BrandSettings, Order, PolicyRecommendation, SavingsEvent, WeeklyReport } from "@/types/domain";
+import type { BrandSettings, MonthlyStrategyReport, Order, PolicyRecommendation, SavingsEvent, WeeklyReport } from "@/types/domain";
 import { calculateRoi } from "@/lib/roi";
 import { publishEvent } from "@/shared/events";
 
@@ -46,4 +46,34 @@ export function generateWeeklyFounderReport(params: { brand: BrandSettings; orde
 
 export function exportWeeklyReportJson(report: WeeklyReport) {
   return JSON.stringify(report, null, 2);
+}
+
+export function buildFounderDecisionBrief(params: {
+  weeklyReport: WeeklyReport;
+  monthlyReport?: MonthlyStrategyReport;
+  topDriverTitle?: string;
+  topDriverRecommendation?: string;
+  dataTrustHeadline: string;
+  dataTrustStatus: string;
+  estimatedSavings: number;
+  verifiedSavings: number;
+}) {
+  const experiment = params.monthlyReport?.experiments?.[0];
+  const trustWarning = params.dataTrustStatus === "ready"
+    ? "Data foundation is ready for founder review."
+    : `${params.dataTrustHeadline}. Treat decisions as directional until missing fields are fixed.`;
+  const savingsProof = params.verifiedSavings > 0
+    ? `Verified savings proof: Rs ${Math.round(params.verifiedSavings).toLocaleString("en-IN")}.`
+    : `Estimated savings only: Rs ${Math.round(params.estimatedSavings).toLocaleString("en-IN")}. Verify events before claiming ROI.`;
+
+  return {
+    driver: params.topDriverTitle || String(params.weeklyReport.sections.topLeakageDrivers || "No clear leakage driver yet"),
+    decision: params.topDriverRecommendation || "Keep clearing the priority queue before changing policy.",
+    experiment: experiment
+      ? `${String(experiment.hypothesis)} Target: ${String(experiment.targetSegment)}.`
+      : "Run one 14-day controlled test on the highest-loss segment.",
+    savingsProof,
+    trustWarning,
+    order: ["Driver", "Decision", "Experiment", "Savings proof", "Trust warning"]
+  };
 }

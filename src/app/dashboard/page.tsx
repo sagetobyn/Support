@@ -57,12 +57,22 @@ import { analyzeCampaignLeakage, campaignMissingEmptyState, hasCampaignData } fr
 import { defaultNdrPlaybooks } from "@/features/ndr-playbooks";
 import { buildAdvancedActionQueue } from "@/features/actions";
 import { calculateSavingsLedger, savingsProofStatus, updateSavingEvent } from "@/features/savings-ledger";
-import { generateWeeklyFounderReport } from "@/features/weekly-report";
+import { buildFounderDecisionBrief, generateWeeklyFounderReport } from "@/features/weekly-report";
 import { generateMonthlyStrategyReport } from "@/features/monthly-strategy";
 import { simulatePolicy, type SimulatedPolicyType } from "@/features/policy-simulator";
-import { buildProductionTrustSummary, integrationReadinessCards, productionSecretsWarning } from "@/features/integration-readiness";
-import { defaultOnboardingChecklist, onboardingProgress } from "@/features/onboarding";
+import {
+  automationStageLabel,
+  buildIntegrationReadinessSummary,
+  buildProductionTrustSummary,
+  integrationReadinessCards,
+  placeholderWebhookUrl,
+  productionSecretsWarning
+} from "@/features/integration-readiness";
+import { buildOnboardingJourney, defaultOnboardingChecklist, onboardingProgress } from "@/features/onboarding";
 import { sopTemplates } from "@/features/sops";
+import { buildFutureOsBoundary, futureOsModules } from "@/features/operations-os";
+import { buildPilotHandoffFromWorkspace, type PilotHandoffPack } from "@/features/pilot-handoff";
+import { buildPilotReadinessFromWorkspace, type PilotReadinessSummary } from "@/features/pilot-readiness";
 import { canRole } from "@/features/roles";
 import { exportRowsCsv } from "@/features/reports";
 import { demoProfiles, generateDemoWorkspace, ordersToCsv, type DemoProfileId } from "@/features/demo";
@@ -449,6 +459,33 @@ export default function Home() {
   const dataTrust = useMemo(
     () => buildDataTrust(lastImport, dataQualityScore, orders.length),
     [lastImport, dataQualityScore, orders.length]
+  );
+  const pilotReadiness = useMemo(
+    () =>
+      buildPilotReadinessFromWorkspace({
+        orders,
+        imports,
+        ndrCases,
+        messages,
+        savingsEvents,
+        actions,
+        audits,
+        dataTrustStatus: dataTrust.status
+      }),
+    [orders, imports, ndrCases, messages, savingsEvents, actions, audits, dataTrust.status]
+  );
+  const pilotHandoff = useMemo(
+    () =>
+      buildPilotHandoffFromWorkspace({
+        brand,
+        orders,
+        ndrCases,
+        savingsEvents,
+        actions,
+        readinessStatus: pilotReadiness.status,
+        dataTrustStatus: dataTrust.status
+      }),
+    [brand, orders, ndrCases, savingsEvents, actions, pilotReadiness.status, dataTrust.status]
   );
 
   const filteredOrders = orders.filter((order) => {
@@ -1091,6 +1128,8 @@ export default function Home() {
             responses={responses}
             savingsEvents={savingsEvents}
             actions={actions}
+            pilotReadiness={pilotReadiness}
+            pilotHandoff={pilotHandoff}
             loadGeneratedDemoData={loadGeneratedDemoData}
             resetDemoData={resetDemoData}
             exportDemoWorkspace={exportDemoWorkspace}
@@ -1119,7 +1158,7 @@ export default function Home() {
           />
         )}
 
-        {view === "stores" && <ProView view={view} brand={brand} orders={orders} stores={stores} messages={messages} savingsEvents={savingsEvents} role={role} dataTrust={dataTrust} />}
+        {view === "stores" && <ProView view={view} brand={brand} orders={orders} stores={stores} messages={messages} savingsEvents={savingsEvents} role={role} dataTrust={dataTrust} setView={setView} />}
 
         {view === "orders" && (
           <OrdersView
@@ -1139,7 +1178,7 @@ export default function Home() {
           />
         )}
 
-        {view === "rules" && <ProView view={view} brand={brand} orders={orders} stores={stores} messages={messages} savingsEvents={savingsEvents} role={role} dataTrust={dataTrust} />}
+        {view === "rules" && <ProView view={view} brand={brand} orders={orders} stores={stores} messages={messages} savingsEvents={savingsEvents} role={role} dataTrust={dataTrust} setView={setView} />}
 
         {view === "ndr" && (
           <NdrView
@@ -1153,7 +1192,7 @@ export default function Home() {
           />
         )}
 
-        {view === "ndrPlaybooks" && <ProView view={view} brand={brand} orders={orders} stores={stores} messages={messages} savingsEvents={savingsEvents} role={role} dataTrust={dataTrust} />}
+        {view === "ndrPlaybooks" && <ProView view={view} brand={brand} orders={orders} stores={stores} messages={messages} savingsEvents={savingsEvents} role={role} dataTrust={dataTrust} setView={setView} />}
 
         {view === "actions" && (
           <ActionsView groups={actionGroups} role={role} brand={brand} orders={orders} queueMessage={queueMessage} completeAction={completeAction} />
@@ -1179,7 +1218,7 @@ export default function Home() {
         )}
 
         {["onboarding", "pincode", "courier", "sku", "campaigns", "weekly", "monthly", "integrations", "sops"].includes(view) && (
-          <ProView view={view} brand={brand} orders={orders} stores={stores} messages={messages} savingsEvents={savingsEvents} role={role} dataTrust={dataTrust} />
+          <ProView view={view} brand={brand} orders={orders} stores={stores} messages={messages} savingsEvents={savingsEvents} role={role} dataTrust={dataTrust} setView={setView} />
         )}
 
         {view === "templates" && selectedOrder && (
@@ -2209,30 +2248,77 @@ function ClientStory() {
 }
 
 function ServiceProductMap({ setView }: { setView: (view: View) => void }) {
+  const osBoundary = buildFutureOsBoundary(futureOsModules);
   return (
-    <section className="panel">
-      <PageHeader
-        title="Service Products For Different Client Personas"
-        subtitle="The same Wembro leakage-control workflow is packaged by what the client is trying to improve: trust, diagnosis, pilot execution, daily operations, or founder decisions."
-      />
-      <div className="service-grid">
-        {serviceProducts.map((product) => (
-          <div className="service-card" key={product.title}>
-            <div>
-              <span className="service-card__persona">{product.persona}</span>
-              <h3>{product.title}</h3>
-              <p>{product.promise}</p>
-              <div className="muted">{product.uses}</div>
+    <>
+      <section className="panel">
+        <PageHeader
+          title="Service Products For Different Client Personas"
+          subtitle="The same Wembro leakage-control workflow is packaged by what the client is trying to improve: trust, diagnosis, pilot execution, daily operations, or founder decisions."
+        />
+        <div className="service-grid">
+          {serviceProducts.map((product) => (
+            <div className="service-card" key={product.title}>
+              <div>
+                <span className="service-card__persona">{product.persona}</span>
+                <h3>{product.title}</h3>
+                <p>{product.promise}</p>
+                <div className="muted">{product.uses}</div>
+              </div>
+              {product.href ? (
+                <Link className="button secondary" href={product.href}>{product.actionLabel}</Link>
+              ) : (
+                <button className="button secondary" onClick={() => product.view && setView(product.view)}>{product.actionLabel}</button>
+              )}
             </div>
-            {product.href ? (
-              <Link className="button secondary" href={product.href}>{product.actionLabel}</Link>
-            ) : (
-              <button className="button secondary" onClick={() => product.view && setView(product.view)}>{product.actionLabel}</button>
-            )}
+          ))}
+        </div>
+      </section>
+
+      <section className="panel future-os-panel">
+        <PageHeader
+          title="Broader Wembro Operations OS"
+          subtitle="The future map is intentionally visible but locked: each module must earn activation through proof from the Revenue Leakage Control wedge."
+        />
+        <div className="future-os-hero">
+          <div>
+            <span className="eyebrow">Boundary rule</span>
+            <h2>{osBoundary.headline}</h2>
+            <p>{osBoundary.boundaryRule}</p>
           </div>
-        ))}
-      </div>
-    </section>
+          <div className="future-os-counts">
+            <Metric label="Active wedge" value={osBoundary.activeCount} />
+            <Metric label="Future locked" value={osBoundary.lockedCount} />
+          </div>
+        </div>
+        <div className="proof-gate-grid">
+          {osBoundary.proofGates.map((gate, index) => (
+            <div className="proof-gate" key={gate}>
+              <span>{index + 1}</span>
+              <p>{gate}</p>
+            </div>
+          ))}
+        </div>
+        <div className="future-module-grid">
+          {[...osBoundary.active, ...osBoundary.locked].map((module) => (
+            <article className={`future-module ${module.status}`} key={module.id}>
+              <div className="split">
+                <span className="eyebrow">{module.domain}</span>
+                <span className={`badge ${module.status === "current_wedge" ? "low" : "neutral"}`}>{module.status === "current_wedge" ? "Active" : "Future"}</span>
+              </div>
+              <h3>{module.name}</h3>
+              <p>{module.jobToBeDone}</p>
+              <div className="muted"><strong>Signals:</strong> {module.firstSignals.join(", ")}</div>
+              <div className="recommendation-strip">
+                <strong>Decision output</strong>
+                <span>{module.decisionOutput}</span>
+              </div>
+              <small>{module.unlockAfter}</small>
+            </article>
+          ))}
+        </div>
+      </section>
+    </>
   );
 }
 
@@ -2276,6 +2362,8 @@ function DemoView({
   responses,
   savingsEvents,
   actions,
+  pilotReadiness,
+  pilotHandoff,
   loadGeneratedDemoData,
   resetDemoData,
   exportDemoWorkspace,
@@ -2296,6 +2384,8 @@ function DemoView({
   responses: CustomerResponse[];
   savingsEvents: SavingsEvent[];
   actions: ActionItem[];
+  pilotReadiness: PilotReadinessSummary;
+  pilotHandoff: PilotHandoffPack;
   loadGeneratedDemoData: (profileId?: DemoProfileId, count?: number) => void;
   resetDemoData: () => void;
   exportDemoWorkspace: () => void;
@@ -2369,6 +2459,103 @@ function DemoView({
         }
       />
       <DemoModeBanner>Choose a profile, generate a workspace, then show the client how Wembro moves from leakage diagnosis to daily action and estimated savings proof.</DemoModeBanner>
+      <div className={`panel pilot-readiness pilot-readiness--${pilotReadiness.status}`}>
+        <div className="pilot-readiness__header">
+          <div>
+            <span className="eyebrow">Pilot readiness</span>
+            <h2>{pilotReadiness.headline}</h2>
+            <p>{pilotReadiness.detail}</p>
+          </div>
+          <div className="pilot-readiness__score">
+            <strong>{pilotReadiness.percentage}%</strong>
+            <span>{pilotReadiness.completedCount}/{pilotReadiness.totalCount} checks done</span>
+          </div>
+        </div>
+        <div className="pilot-readiness__meter" aria-label={`Pilot readiness ${pilotReadiness.percentage}%`}>
+          <span style={{ width: `${pilotReadiness.percentage}%` }} />
+        </div>
+        <div className="pilot-readiness__checks">
+          {pilotReadiness.checks.map((check) => (
+            <button className={`pilot-readiness__check ${check.complete ? "done" : ""}`} key={check.id} onClick={() => setView(check.targetView as View)}>
+              <span className="pilot-readiness__icon">{check.complete ? "OK" : check.required ? "!" : "+"}</span>
+              <span>
+                <strong>{check.label}</strong>
+                <small>{check.metric}</small>
+              </span>
+            </button>
+          ))}
+        </div>
+        {pilotReadiness.nextStep ? (
+          <div className="pilot-readiness__next">
+            <strong>Next CEO instruction:</strong> {pilotReadiness.nextStep.nextAction}
+          </div>
+        ) : null}
+      </div>
+      <section className={`panel pilot-handoff pilot-handoff--${pilotHandoff.status}`}>
+        <PageHeader
+          title="14-Day Pilot Handoff Pack"
+          subtitle={pilotHandoff.headline}
+          actions={
+            <>
+              <Link className="button secondary" href="/pilot">Open pilot workflow</Link>
+              <button className="button" onClick={exportDemoWorkspace} disabled={!orders.length}>Export handoff</button>
+            </>
+          }
+        />
+        <div className="pilot-handoff__decision">
+          <div>
+            <span className="eyebrow">CEO instruction</span>
+            <h3>{pilotHandoff.ceoInstruction}</h3>
+            <p>{pilotHandoff.decisionRule}</p>
+          </div>
+          <Metric label="Pilot window" value={pilotHandoff.pilotWindow} />
+        </div>
+        <div className="pilot-handoff__criteria">
+          {pilotHandoff.successCriteria.map((criterion) => (
+            <div className={criterion.met ? "pilot-criterion met" : "pilot-criterion"} key={criterion.label}>
+              <span>{criterion.met ? "Met" : "Open"}</span>
+              <strong>{criterion.label}</strong>
+              <small>{criterion.current} / {criterion.target}</small>
+            </div>
+          ))}
+        </div>
+        <div className="pilot-handoff__grid">
+          <div>
+            <h3>Operating Cadence</h3>
+            {pilotHandoff.operatingCadence.map((item) => <div className="action-row" key={item}>{item}</div>)}
+          </div>
+          <div>
+            <h3>Proof Artifacts</h3>
+            {pilotHandoff.proofArtifacts.map((artifact) => (
+              <button className="action-row pilot-artifact" key={artifact.label} onClick={() => setView(artifact.targetView as View)}>
+                <strong>{artifact.label}</strong>
+                <span>{artifact.source}</span>
+              </button>
+            ))}
+          </div>
+        </div>
+        <div className="pilot-workstream-grid">
+          {pilotHandoff.workstreams.map((stream) => (
+            <article className="pilot-workstream" key={stream.phase}>
+              <span className="eyebrow">{stream.days} · {stream.owner}</span>
+              <h3>{stream.phase}</h3>
+              <p>{stream.objective}</p>
+              {stream.actions.map((action) => <div className="mini-row" key={action}>{action}</div>)}
+              <small>{stream.output}</small>
+            </article>
+          ))}
+        </div>
+        <div className="pilot-handoff__risks">
+          <div>
+            <strong>Renewal decision</strong>
+            <p>{pilotHandoff.renewalDecision}</p>
+          </div>
+          <div>
+            <strong>Risks to manage</strong>
+            <p>{pilotHandoff.risks.join(" ")}</p>
+          </div>
+        </div>
+      </section>
       <div className="grid two-col">
         <div className="panel">
           <h2>Business Profile</h2>
@@ -3325,7 +3512,7 @@ function ReportsView({ report }: { report: ReturnType<typeof generateAuditReport
   );
 }
 
-function ProView({ view, brand, orders, stores, messages, savingsEvents, role, dataTrust }: {
+function ProView({ view, brand, orders, stores, messages, savingsEvents, role, dataTrust, setView }: {
   view: View;
   brand: BrandSettings;
   orders: Order[];
@@ -3334,6 +3521,7 @@ function ProView({ view, brand, orders, stores, messages, savingsEvents, role, d
   savingsEvents: SavingsEvent[];
   role: Role;
   dataTrust: DataTrust;
+  setView: (view: View) => void;
 }) {
   const policies = [...generateHighRiskCodHoldPolicies(orders, brand), ...analyzePincodePolicies(orders, brand)];
   const courier = analyzeCourierPolicies(orders, brand);
@@ -3344,6 +3532,15 @@ function ProView({ view, brand, orders, stores, messages, savingsEvents, role, d
   const ledger = calculateSavingsLedger(savingsEvents, messages, brand, orders, stores);
   const weekly = generateWeeklyFounderReport({ brand, orders, savingsEvents, policies });
   const monthly = generateMonthlyStrategyReport({ brand, orders, savingsEvents, policies });
+  const missionProgress = getMissionProgress(orders);
+  const verifiedSavingsCount = savingsEvents.filter((event) => event.status === "verified").length;
+  const onboardingJourney = buildOnboardingJourney({
+    orderCount: orders.length,
+    dataTrustStatus: dataTrust.status,
+    missionRemaining: missionProgress.remaining,
+    savingsEventsCount: savingsEvents.length,
+    verifiedSavingsCount
+  });
   const simulation = simulatePolicy(orders, brand, {
     policyType: "cod_verification_high_risk",
     assumedReductionPercent: 20,
@@ -3355,12 +3552,41 @@ function ProView({ view, brand, orders, stores, messages, savingsEvents, role, d
 
   if (view === "onboarding") {
     return (
+      <div className="grid">
+        <PageHeader
+          title="Operating Onboarding"
+          subtitle="A guided path from raw CSV to trusted daily execution and founder-ready proof."
+        />
+        <section className="panel">
+          <div className="split">
+            <div>
+              <span className="eyebrow">Next best setup step</span>
+              <h2>{onboardingJourney.nextStep?.title || "Onboarding complete"}</h2>
+              <p className="muted">{onboardingJourney.nextStep?.nextAction || "Keep reviewing the weekly founder report and savings ledger."}</p>
+            </div>
+            <Metric label="Journey progress" value={`${onboardingJourney.progress.percentage}%`} />
+          </div>
+        </section>
+        <div className="onboarding-journey">
+          {onboardingJourney.steps.map((step, index) => (
+            <button className={`onboarding-step ${step.completed ? "complete" : ""}`} key={step.id} onClick={() => setView(step.view)}>
+              <span>{index + 1}</span>
+              <div>
+                <strong>{step.title}</strong>
+                <small>{step.owner} · {step.metric}</small>
+                <p>{step.completed ? "Done" : step.nextAction}</p>
+              </div>
+              <span className={`badge ${step.completed ? "low" : "neutral"}`}>{step.completed ? "Done" : "Next"}</span>
+            </button>
+          ))}
+        </div>
       <div className="grid two-col">
         <ReportPanel title="Priority Onboarding">
           <Metric label="Progress" value={`${progress.percentage}%`} />
           <p className="muted">Next step: {progress.nextRecommendedStep}</p>
         </ReportPanel>
         <ReportPanel title="Checklist">{defaultOnboardingChecklist.map((item) => <div className="action-row" key={item.id}>{item.label}</div>)}</ReportPanel>
+      </div>
       </div>
     );
   }
@@ -3480,6 +3706,16 @@ function ProView({ view, brand, orders, stores, messages, savingsEvents, role, d
     const weeklyDrivers = buildLeakageAtlas(orders, [], brand);
     const topDriver = getTopLeakageDriver(weeklyDrivers);
     const decision = policies[0]?.recommendation || topDriver?.recommendation || "Keep working the daily mission queue before changing policy.";
+    const founderBrief = buildFounderDecisionBrief({
+      weeklyReport: weekly,
+      monthlyReport: monthly,
+      topDriverTitle: topDriver?.title,
+      topDriverRecommendation: decision,
+      dataTrustHeadline: dataTrust.headline,
+      dataTrustStatus: dataTrust.status,
+      estimatedSavings: ledger.estimatedSavings,
+      verifiedSavings: ledger.verifiedSavings
+    });
     return (
       <div className="grid">
         <PageHeader title="Weekly Executive Report" subtitle="A one-page weekly business story: three numbers, one driver, one decision, one policy test, and savings proof." actions={<PrintButton label="Print report" />} />
@@ -3487,7 +3723,18 @@ function ProView({ view, brand, orders, stores, messages, savingsEvents, role, d
           <MetricCard title="Recoverable leakage" value={money(estimatedRecoverableLeakage(orders, brand))} tone="warning" />
           <MetricCard title="RTO orders" value={weekly.metrics.rtoOrders || 0} tone="danger" />
           <MetricCard title="Estimated savings" value={money(weekly.metrics.estimatedSavings || 0)} tone="success" />
+          <MetricCard title="Verified savings" value={money(ledger.verifiedSavings)} tone={ledger.verifiedSavings ? "success" : "warning"} />
         </div>
+        <section className="panel founder-brief">
+          <span className="eyebrow">CEO decision brief</span>
+          <div className="founder-brief-grid">
+            <div><span>Driver</span><strong>{founderBrief.driver}</strong></div>
+            <div><span>Decision</span><strong>{founderBrief.decision}</strong></div>
+            <div><span>Experiment</span><strong>{founderBrief.experiment}</strong></div>
+            <div><span>Savings proof</span><strong>{founderBrief.savingsProof}</strong></div>
+            <div><span>Trust warning</span><strong>{founderBrief.trustWarning}</strong></div>
+          </div>
+        </section>
         <div className="grid two-col">
           <InsightCard title="This Week" insight={String(weekly.sections.executiveSummary)} recommendation={decision} confidence={orders.length >= 500 ? "High" : "Medium"} impact={money(weekly.metrics.estimatedSavings || 0)} />
           <section className="panel founder-decision">
@@ -3506,10 +3753,31 @@ function ProView({ view, brand, orders, stores, messages, savingsEvents, role, d
     );
   }
   if (view === "monthly") {
+    const monthlyDriver = getTopLeakageDriver(buildLeakageAtlas(orders, [], brand));
+    const monthlyBrief = buildFounderDecisionBrief({
+      weeklyReport: weekly,
+      monthlyReport: monthly,
+      topDriverTitle: monthlyDriver?.title,
+      topDriverRecommendation: monthlyDriver?.recommendation,
+      dataTrustHeadline: dataTrust.headline,
+      dataTrustStatus: dataTrust.status,
+      estimatedSavings: ledger.estimatedSavings,
+      verifiedSavings: ledger.verifiedSavings
+    });
     return (
       <div className="grid">
         <PageHeader title="Monthly Strategy Report" subtitle="Decisions, experiments, operational risks, and next-month plan." actions={<PrintButton label="Print strategy" />} />
         <InsightCard title="Monthly Narrative" insight={String(monthly.sections.executiveSummary)} recommendation="Run controlled experiments before changing courier, COD, or pincode policy permanently." confidence={orders.length >= 500 ? "High" : "Medium"} />
+        <section className="panel founder-brief">
+          <span className="eyebrow">Monthly CEO brief</span>
+          <div className="founder-brief-grid">
+            <div><span>Driver</span><strong>{monthlyBrief.driver}</strong></div>
+            <div><span>Decision</span><strong>{monthlyBrief.decision}</strong></div>
+            <div><span>Experiment</span><strong>{monthlyBrief.experiment}</strong></div>
+            <div><span>Savings proof</span><strong>{monthlyBrief.savingsProof}</strong></div>
+            <div><span>Trust warning</span><strong>{monthlyBrief.trustWarning}</strong></div>
+          </div>
+        </section>
         <div className="grid report-grid">
           <ReportPanel title="Top 3 Decisions">{["Verify COD in highest-loss pincodes", "Keep prepaid incentives within margin guardrails", "Prioritize NDR SLA for high-value COD"].map((item) => <div className="action-row" key={item}>{item}</div>)}</ReportPanel>
           <ReportPanel title="Top 3 Operational Risks">{["Low sample size can distort courier comparison", "Campaign source missing limits paid-leakage confidence", "Savings are estimates until verified"].map((item) => <div className="action-row" key={item}>{item}</div>)}</ReportPanel>
@@ -3522,10 +3790,71 @@ function ProView({ view, brand, orders, stores, messages, savingsEvents, role, d
     return <ReportPanel title="Policy Simulator"><p className="notice">{simulation.riskNotes[0]}</p><div className="grid metrics"><Metric label="Affected orders" value={simulation.affectedOrders} /><Metric label="Baseline leakage" value={money(simulation.baselineEstimatedLeakage)} /><Metric label="Saved leakage" value={money(simulation.assumedSavedLeakage)} /><Metric label="Intervention cost" value={money(simulation.interventionCost)} /><Metric label="Net benefit" value={money(simulation.netEstimatedBenefit)} /></div></ReportPanel>;
   }
   if (view === "integrations") {
-    return <div className="grid report-grid">{integrationReadinessCards.map((card) => <ReportPanel title={card.name} key={card.name}><span className="badge neutral">{card.status}</span><p className="muted">Data needed: {card.dataNeeded.join(", ")}</p><p>Unlocks: {card.unlocks.join(", ")}</p><p>Current workaround: {card.currentWorkaround}</p><p className="notice">{productionSecretsWarning}</p></ReportPanel>)}</div>;
+    const summary = buildIntegrationReadinessSummary(integrationReadinessCards);
+    return (
+      <div className="grid">
+        <PageHeader
+          title="Integration Readiness"
+          subtitle="Provider-safe staging for storefront, courier, WhatsApp, payment, support, and finance integrations."
+        />
+        <section className="notice">
+          <div className="split">
+            <div>
+              <strong>{summary.headline}</strong>
+              <p className="muted">{summary.principle}</p>
+            </div>
+            <span className="badge neutral">{summary.readyForAutomation} automation-ready</span>
+          </div>
+        </section>
+        <div className="automation-stage-grid">
+          {summary.byStage.map((stage) => (
+            <div className={`automation-stage ${stage.count ? "active" : ""}`} key={stage.id}>
+              <span>{stage.label}</span>
+              <strong>{stage.count}</strong>
+              <small>{stage.description}</small>
+            </div>
+          ))}
+        </div>
+        <div className="panel">
+          <h2>Provider Placeholder</h2>
+          <p className="muted">Webhook placeholder for docs and sandbox planning only. Do not put production secrets in this MVP.</p>
+          <code>{placeholderWebhookUrl("https://wembro.example.com")}</code>
+        </div>
+        <div className="grid report-grid">
+          {integrationReadinessCards.map((card) => (
+            <ReportPanel title={card.name} key={card.name}>
+              <div className="badge-stack">
+                <span className="badge neutral">{card.status}</span>
+                <span className="badge medium">{automationStageLabel(card.automationStage)}</span>
+              </div>
+              <p className="muted">Category: {card.category}</p>
+              <p><strong>Unlocks:</strong> {card.unlocks.join(", ")}</p>
+              <p><strong>Data needed:</strong> {card.dataNeeded.join(", ")}</p>
+              <p><strong>Current workaround:</strong> {card.currentWorkaround}</p>
+              <p><strong>Next step:</strong> {card.nextStep}</p>
+              <p className="notice">{card.productionBlocker}</p>
+            </ReportPanel>
+          ))}
+        </div>
+        <p className="notice">{productionSecretsWarning}</p>
+      </div>
+    );
   }
   if (view === "sops") {
-    return <div className="grid report-grid">{sopTemplates.map((sop) => <ReportPanel title={sop.title} key={sop.id}><p>{sop.purpose}</p><p className="muted">Owner: {sop.owner} · Metric: {sop.successMetric}</p>{sop.steps.map((step) => <div className="action-row" key={step}>{step}</div>)}</ReportPanel>)}</div>;
+    return (
+      <div className="grid report-grid">
+        {sopTemplates.map((sop) => (
+          <ReportPanel title={sop.title} key={sop.id}>
+            <p>{sop.purpose}</p>
+            <p className="muted">Owner: {sop.owner} · Metric: {sop.successMetric}</p>
+            <div className="toolbar tight">
+              <button className="button secondary" onClick={() => setView(sop.targetView)}>Open workflow</button>
+            </div>
+            {sop.steps.map((step) => <div className="action-row" key={step}>{step}</div>)}
+          </ReportPanel>
+        ))}
+      </div>
+    );
   }
   return <ReportPanel title="Pro Action Queue"><p className="muted">Role access: queue message {canRole(role, "queue_message") ? "allowed" : "blocked"} · export reports {canRole(role, "export_reports") ? "allowed" : "blocked"}</p>{advancedActions.slice(0, 20).map((action) => <div className="action-row" key={action.id}><strong>{action.title}</strong><div>{money(action.estimatedLeakage || 0)} leakage · owner {action.owner}</div><div className="muted">{action.reason}</div></div>)}</ReportPanel>;
 }

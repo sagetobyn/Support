@@ -20,7 +20,13 @@ import { generateMonthlyStrategyReport } from "@/features/monthly-strategy";
 import { simulatePolicy } from "@/features/policy-simulator";
 import { canRole } from "@/features/roles";
 import { exportReportsPackage } from "@/features/reports";
-import { buildProductionTrustSummary } from "@/features/integration-readiness";
+import {
+  automationStageLabel,
+  buildIntegrationReadinessSummary,
+  buildProductionTrustSummary,
+  integrationReadinessCards,
+  placeholderWebhookUrl
+} from "@/features/integration-readiness";
 
 describe("Pro plan", () => {
   it("defines Pro limits and Scale/Enterprise gates", () => {
@@ -110,5 +116,17 @@ describe("Pro plan", () => {
     expect(summary.exportCount).toBe(1);
     expect(summary.blockers.join(" ")).toContain("Local browser storage");
     expect(summary.controls.map((control) => control.label)).toEqual(["Storage", "Audit trail", "Exports", "Deletion"]);
+  });
+
+  it("keeps integration readiness provider-safe and staged", () => {
+    const summary = buildIntegrationReadinessSummary(integrationReadinessCards);
+
+    expect(summary.total).toBe(6);
+    expect(summary.principle).toContain("human approval");
+    expect(summary.readyForAutomation).toBe(0);
+    expect(summary.byStage.find((stage) => stage.id === "draft_action")?.count).toBe(1);
+    expect(integrationReadinessCards.every((card) => card.productionBlocker && card.nextStep)).toBe(true);
+    expect(automationStageLabel("manual_csv")).toBe("Manual CSV");
+    expect(placeholderWebhookUrl("https://wembro.example.com")).toBe("https://wembro.example.com/api/webhooks/provider-placeholder");
   });
 });
