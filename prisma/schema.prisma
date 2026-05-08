@@ -133,14 +133,17 @@ model AuditLog {
 model Integration {
   id             String    @id @default(uuid())
   brandId        String    @map("brand_id")
-  type           String    // "shopify" | "woocommerce" | "delhivery" | "shiprocket"
+  category       String    @default("source")  // "source" | "messaging" | "payment"
+  type           String    // platform identifier — see IntegrationType in src/features/integrations/types.ts
   label          String?   // human label e.g. "My Shopify Store"
   status         String    @default("active") // "active" | "paused" | "error"
-  credentials    Json      // platform-specific: { shopUrl, accessToken } etc — never expose in API
+  credentials    Json      // platform-specific: never expose in API
   lastSyncAt     DateTime? @map("last_sync_at")
   lastSyncStatus String?   @map("last_sync_status") // "ok" | "error"
   lastSyncError  String?   @map("last_sync_error")
   syncedCount    Int       @default(0) @map("synced_count")
+  // Counter for outbound messaging providers (messages sent via this provider)
+  sentCount      Int       @default(0) @map("sent_count")
   createdAt      DateTime  @default(now()) @map("created_at")
   updatedAt      DateTime  @updatedAt @map("updated_at")
 
@@ -148,5 +151,6 @@ model Integration {
 
   @@unique([brandId, type, label])
   @@index([brandId])
+  @@index([brandId, category])
   @@map("integrations")
 }

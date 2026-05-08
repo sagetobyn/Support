@@ -42,6 +42,24 @@ interface ConnectForm {
   // Bluedart
   loginId?: string;
   apiPassword?: string;
+  // AiSensy
+  senderNumber?: string;
+  // MSG91
+  authKey?: string;
+  senderId?: string;
+  defaultTemplateId?: string;
+  // Exotel
+  sid?: string;
+  apiToken?: string;
+  callerId?: string;
+  appId?: string;
+  // Wati
+  tenantId?: string;
+  // Razorpay
+  keyId?: string;
+  keySecret?: string;
+  // Cashfree (appId reused)
+  secretKey?: string;
 }
 
 const INTEGRATION_META: Record<IntegrationType, {
@@ -160,9 +178,84 @@ const INTEGRATION_META: Record<IntegrationType, {
       { key: "apiPassword", label: "API Password", placeholder: "••••••••", type: "password", required: true },
     ],
   },
+  aisensy: {
+    label: "AiSensy",
+    description: "Real WhatsApp Business API. Send pre-approved templates at scale (replaces wa.me click-and-send).",
+    logoChar: "AS",
+    fields: [
+      { key: "apiKey", label: "AiSensy API Key", placeholder: "API key from AiSensy dashboard", type: "password", required: true },
+      { key: "senderNumber", label: "Sender Number (optional)", placeholder: "Your WhatsApp Business number" },
+    ],
+  },
+  interakt: {
+    label: "Interakt",
+    description: "Tata's WhatsApp BSP. Coming soon — adapter roadmapped.",
+    logoChar: "IN",
+    fields: [
+      { key: "apiKey", label: "Interakt API Key", placeholder: "API key", type: "password", required: true },
+    ],
+  },
+  wati: {
+    label: "Wati",
+    description: "Popular SMB WhatsApp BSP. Coming soon — adapter roadmapped.",
+    logoChar: "WT",
+    fields: [
+      { key: "accessToken", label: "Access Token", placeholder: "Wati access token", type: "password", required: true },
+    ],
+  },
+  msg91: {
+    label: "MSG91 (SMS)",
+    description: "DLT-compliant SMS fallback when WhatsApp is unread. Critical for tier-2/3 city customers.",
+    logoChar: "M91",
+    fields: [
+      { key: "authKey", label: "MSG91 Auth Key", placeholder: "Your MSG91 auth key", type: "password", required: true },
+      { key: "senderId", label: "Sender ID (DLT)", placeholder: "RTOSHL", required: true },
+      { key: "defaultTemplateId", label: "Default Template ID", placeholder: "Default DLT template ID" },
+    ],
+  },
+  exotel: {
+    label: "Exotel (Voice/IVR)",
+    description: "Auto-call risky COD orders for confirmation. Recovers 10-15% of high-RTO COD orders before dispatch.",
+    logoChar: "EX",
+    fields: [
+      { key: "sid", label: "Account SID", placeholder: "Exotel account SID", required: true },
+      { key: "apiToken", label: "API Token", placeholder: "Exotel API token", type: "password", required: true },
+      { key: "callerId", label: "Caller ID", placeholder: "Verified caller number e.g. 08047185000", required: true },
+      { key: "appId", label: "App ID (optional)", placeholder: "Exotel call-flow app ID for IVR" },
+    ],
+  },
+  razorpay: {
+    label: "Razorpay",
+    description: "Generate real prepaid payment links for risky COD orders. Replaces the placeholder link in WhatsApp templates.",
+    logoChar: "RZ",
+    fields: [
+      { key: "keyId", label: "Key ID", placeholder: "rzp_live_xxxx or rzp_test_xxxx", required: true },
+      { key: "keySecret", label: "Key Secret", placeholder: "Razorpay key secret", type: "password", required: true },
+    ],
+  },
+  cashfree: {
+    label: "Cashfree",
+    description: "Alternative payment-link provider. Use as fallback if Razorpay is down.",
+    logoChar: "CF",
+    fields: [
+      { key: "appId", label: "App ID", placeholder: "Cashfree App ID", required: true },
+      { key: "secretKey", label: "Secret Key", placeholder: "Cashfree Secret Key", type: "password", required: true },
+    ],
+  },
 };
 
-const ALL_TYPES: IntegrationType[] = ["shopify", "woocommerce", "amazon", "flipkart", "meesho", "delhivery", "shiprocket", "nimbuspost", "xpressbees", "ecomexpress", "bluedart"];
+const SOURCE_TYPES_LIST: IntegrationType[] = ["shopify", "woocommerce", "amazon", "flipkart", "meesho"];
+const COURIER_TYPES_LIST: IntegrationType[] = ["delhivery", "shiprocket", "nimbuspost", "xpressbees", "ecomexpress", "bluedart"];
+const MESSAGING_TYPES_LIST: IntegrationType[] = ["aisensy", "interakt", "wati", "msg91", "exotel"];
+const PAYMENT_TYPES_LIST: IntegrationType[] = ["razorpay", "cashfree"];
+
+interface CategorySection { title: string; subtitle: string; types: IntegrationType[]; }
+const CATEGORY_SECTIONS: CategorySection[] = [
+  { title: "Order Sources", subtitle: "Auto-import orders from your storefronts and marketplaces.", types: SOURCE_TYPES_LIST },
+  { title: "Couriers", subtitle: "Pull NDRs and refresh tracking from courier APIs.", types: COURIER_TYPES_LIST },
+  { title: "Communication Channels", subtitle: "Send WhatsApp / SMS / IVR calls from inside the dashboard.", types: MESSAGING_TYPES_LIST },
+  { title: "Payment Providers", subtitle: "Generate real prepaid payment links for COD-to-prepaid conversion.", types: PAYMENT_TYPES_LIST },
+];
 
 export function IntegrationsView() {
   const [records, setRecords] = useState<IntegrationRecord[]>([]);
@@ -264,96 +357,113 @@ export function IntegrationsView() {
     if (type === "xpressbees") return { email: f.email ?? "", password: f.password ?? "" };
     if (type === "ecomexpress") return { username: f.username ?? "", password: f.password ?? "" };
     if (type === "bluedart") return { loginId: f.loginId ?? "", apiKey: f.apiKey ?? "", apiPassword: f.apiPassword ?? "" };
+    if (type === "aisensy") return { apiKey: f.apiKey ?? "", ...(f.senderNumber ? { senderNumber: f.senderNumber } : {}) };
+    if (type === "interakt") return { apiKey: f.apiKey ?? "" };
+    if (type === "wati") return { accessToken: f.accessToken ?? "", tenantId: f.tenantId ?? "" };
+    if (type === "msg91") return { authKey: f.authKey ?? "", senderId: f.senderId ?? "", ...(f.defaultTemplateId ? { defaultTemplateId: f.defaultTemplateId } : {}) };
+    if (type === "exotel") return { sid: f.sid ?? "", apiToken: f.apiToken ?? "", callerId: f.callerId ?? "", ...(f.appId ? { appId: f.appId } : {}) };
+    if (type === "razorpay") return { keyId: f.keyId ?? "", keySecret: f.keySecret ?? "" };
+    if (type === "cashfree") return { appId: f.appId ?? "", secretKey: f.secretKey ?? "" };
     return {};
   }
 
   if (loading) return <div className="panel"><p className="muted">Loading integrations…</p></div>;
 
-  return (
-    <div className="grid report-grid">
-      {error && <div className="notice" style={{ gridColumn: "1 / -1" }}>{error}</div>}
-      {ALL_TYPES.map((type) => {
-        const meta = INTEGRATION_META[type];
-        const record = records.find((r) => r.type === type);
-        const syncResult = record ? syncResults[record.id] : undefined;
-        const isConnecting = connectingType === type;
-        const isSyncing = record ? syncing === record.id : false;
+  function renderCard(type: IntegrationType) {
+    const meta = INTEGRATION_META[type];
+    const record = records.find((r) => r.type === type);
+    const syncResult = record ? syncResults[record.id] : undefined;
+    const isConnecting = connectingType === type;
+    const isSyncing = record ? syncing === record.id : false;
 
-        return (
-          <div className="panel" key={type}>
-            <div className="split">
-              <div style={{ display: "flex", alignItems: "center", gap: "0.75rem" }}>
-                <span style={{ fontWeight: 700, fontSize: "1.1rem", background: "var(--surface-raised, #f4f4f4)", borderRadius: 6, padding: "4px 10px" }}>{meta.logoChar}</span>
-                <div>
-                  <strong>{meta.label}</strong>
-                  {record && <span className={`badge ${record.status === "active" ? "success" : record.status === "error" ? "danger" : "neutral"}`} style={{ marginLeft: 8 }}>{record.status}</span>}
-                  {!record && <span className="badge neutral" style={{ marginLeft: 8 }}>not connected</span>}
-                </div>
-              </div>
+    return (
+      <div className="panel" key={type}>
+        <div className="split">
+          <div style={{ display: "flex", alignItems: "center", gap: "0.75rem" }}>
+            <span style={{ fontWeight: 700, fontSize: "1.1rem", background: "var(--surface-raised, #f4f4f4)", borderRadius: 6, padding: "4px 10px" }}>{meta.logoChar}</span>
+            <div>
+              <strong>{meta.label}</strong>
+              {record && <span className={`badge ${record.status === "active" ? "success" : record.status === "error" ? "danger" : "neutral"}`} style={{ marginLeft: 8 }}>{record.status}</span>}
+              {!record && <span className="badge neutral" style={{ marginLeft: 8 }}>not connected</span>}
             </div>
-            <p className="muted">{meta.description}</p>
+          </div>
+        </div>
+        <p className="muted">{meta.description}</p>
 
-            {record && (
-              <>
-                <div className="muted" style={{ fontSize: "0.85rem" }}>
-                  {record.syncedCount} orders synced
-                  {record.lastSyncAt && ` · last sync ${new Date(record.lastSyncAt).toLocaleString("en-IN")}`}
-                  {record.lastSyncError && <span style={{ color: "var(--danger, #c00)" }}> · {record.lastSyncError}</span>}
-                </div>
-                {syncResult && (
-                  <div className="notice">
-                    Sync complete: {syncResult.ordersIngested} ingested, {syncResult.ordersSkipped} skipped
-                    {syncResult.errors.length > 0 && <span style={{ color: "var(--danger, #c00)" }}> · {syncResult.errors.join("; ")}</span>}
-                  </div>
-                )}
-                <div className="toolbar tight">
-                  <button className="button" disabled={isSyncing} onClick={() => void triggerSync(record)}>
-                    {isSyncing ? "Syncing…" : "Sync now"}
-                  </button>
-                  <button className="button secondary" onClick={() => void disconnect(record)}>Disconnect</button>
-                </div>
-                {meta.webhookNote && (
-                  <p className="muted" style={{ fontSize: "0.8rem" }}>
-                    Webhook URL: <code>{meta.webhookNote}</code> — register in {meta.label} for real-time sync.
-                  </p>
-                )}
-              </>
-            )}
-
-            {!record && !isConnecting && (
-              <button className="button" onClick={() => { setConnectingType(type); setForm({}); setError(null); }}>Connect {meta.label}</button>
-            )}
-
-            {!record && isConnecting && (
-              <div className="form-grid one" style={{ marginTop: "0.75rem" }}>
-                {meta.fields.map((field) => (
-                  <label key={field.key}>
-                    <span className="muted">{field.label}</span>
-                    <input
-                      className="input"
-                      type={field.type ?? "text"}
-                      placeholder={field.placeholder}
-                      autoComplete="off"
-                      value={(form[field.key] as string) ?? ""}
-                      onChange={(e) => setForm((prev) => ({ ...prev, [field.key]: e.target.value }))}
-                    />
-                  </label>
-                ))}
-                <div className="toolbar tight">
-                  <button className="button" disabled={submitting} onClick={() => void connect(type)}>{submitting ? "Connecting…" : `Connect ${meta.label}`}</button>
-                  <button className="button secondary" onClick={() => { setConnectingType(null); setForm({}); }}>Cancel</button>
-                </div>
-                <p className="notice" style={{ fontSize: "0.8rem" }}>Credentials are stored encrypted in your account. Never share them with anyone.</p>
-                {meta.webhookNote && (
-                  <p className="muted" style={{ fontSize: "0.8rem" }}>
-                    After connecting, register this webhook URL in {meta.label}: <code>{meta.webhookNote}</code>
-                  </p>
-                )}
+        {record && (
+          <>
+            <div className="muted" style={{ fontSize: "0.85rem" }}>
+              {record.syncedCount} orders synced
+              {record.lastSyncAt && ` · last sync ${new Date(record.lastSyncAt).toLocaleString("en-IN")}`}
+              {record.lastSyncError && <span style={{ color: "var(--danger, #c00)" }}> · {record.lastSyncError}</span>}
+            </div>
+            {syncResult && (
+              <div className="notice">
+                Sync complete: {syncResult.ordersIngested} ingested, {syncResult.ordersSkipped} skipped
+                {syncResult.errors.length > 0 && <span style={{ color: "var(--danger, #c00)" }}> · {syncResult.errors.join("; ")}</span>}
               </div>
+            )}
+            <div className="toolbar tight">
+              <button className="button" disabled={isSyncing} onClick={() => void triggerSync(record)}>
+                {isSyncing ? "Syncing…" : "Sync now"}
+              </button>
+              <button className="button secondary" onClick={() => void disconnect(record)}>Disconnect</button>
+            </div>
+            {meta.webhookNote && (
+              <p className="muted" style={{ fontSize: "0.8rem" }}>
+                Webhook URL: <code>{meta.webhookNote}</code> — register in {meta.label} for real-time sync.
+              </p>
+            )}
+          </>
+        )}
+
+        {!record && !isConnecting && (
+          <button className="button" onClick={() => { setConnectingType(type); setForm({}); setError(null); }}>Connect {meta.label}</button>
+        )}
+
+        {!record && isConnecting && (
+          <div className="form-grid one" style={{ marginTop: "0.75rem" }}>
+            {meta.fields.map((field) => (
+              <label key={field.key}>
+                <span className="muted">{field.label}</span>
+                <input
+                  className="input"
+                  type={field.type ?? "text"}
+                  placeholder={field.placeholder}
+                  autoComplete="off"
+                  value={(form[field.key] as string) ?? ""}
+                  onChange={(e) => setForm((prev) => ({ ...prev, [field.key]: e.target.value }))}
+                />
+              </label>
+            ))}
+            <div className="toolbar tight">
+              <button className="button" disabled={submitting} onClick={() => void connect(type)}>{submitting ? "Connecting…" : `Connect ${meta.label}`}</button>
+              <button className="button secondary" onClick={() => { setConnectingType(null); setForm({}); }}>Cancel</button>
+            </div>
+            <p className="notice" style={{ fontSize: "0.8rem" }}>Credentials are stored encrypted in your account. Never share them with anyone.</p>
+            {meta.webhookNote && (
+              <p className="muted" style={{ fontSize: "0.8rem" }}>
+                After connecting, register this webhook URL in {meta.label}: <code>{meta.webhookNote}</code>
+              </p>
             )}
           </div>
-        );
-      })}
+        )}
+      </div>
+    );
+  }
+
+  return (
+    <div>
+      {error && <div className="notice" style={{ marginBottom: "1rem" }}>{error}</div>}
+      {CATEGORY_SECTIONS.map((section) => (
+        <div key={section.title} style={{ marginBottom: "1.5rem" }}>
+          <h2 style={{ marginBottom: "0.25rem" }}>{section.title}</h2>
+          <p className="muted" style={{ marginTop: 0 }}>{section.subtitle}</p>
+          <div className="grid report-grid">
+            {section.types.map(renderCard)}
+          </div>
+        </div>
+      ))}
     </div>
   );
 }
