@@ -24,7 +24,14 @@ export interface IntegrationOrderInput {
   rawData?: Record<string, unknown>;
 }
 
-export type IntegrationType = "shopify" | "woocommerce" | "delhivery" | "shiprocket";
+export type IntegrationType =
+  | "shopify"
+  | "woocommerce"
+  | "amazon"
+  | "flipkart"
+  | "meesho"
+  | "delhivery"
+  | "shiprocket";
 
 // Credentials are platform-specific. Keep the shape narrow per type.
 export type ShopifyCredentials = {
@@ -52,9 +59,41 @@ export type ShiprocketCredentials = {
   jwtExpiresAt?: string;
 };
 
+// Amazon SP-API uses Login With Amazon (LWA) refresh token + AWS STS role assumption.
+// Region: "in" for India. Sellers register the app once, get refreshToken, paste here.
+export type AmazonCredentials = {
+  region: "in" | "eu" | "us";
+  refreshToken: string;
+  clientId: string;
+  clientSecret: string;
+  sellerId: string;
+  marketplaceId: string;       // e.g. "A21TJRUUN4KGV" for India
+  // Cached LWA access token (1h lifetime)
+  accessToken?: string;
+  accessTokenExpiresAt?: string;
+};
+
+export type FlipkartCredentials = {
+  // Flipkart Seller API uses OAuth2 with merchant_id + access token
+  applicationId: string;
+  applicationSecret: string;
+  accessToken?: string;        // refreshed via client_credentials grant
+  accessTokenExpiresAt?: string;
+};
+
+export type MeeshoCredentials = {
+  // Meesho's Supplier API uses an API key + secret (Partner API).
+  // Note: requires being onboarded as a Meesho integration partner.
+  apiKey: string;
+  apiSecret: string;
+};
+
 export type IntegrationCredentials =
   | ShopifyCredentials
   | WooCommerceCredentials
+  | AmazonCredentials
+  | FlipkartCredentials
+  | MeeshoCredentials
   | DelhiveryCredentials
   | ShiprocketCredentials;
 

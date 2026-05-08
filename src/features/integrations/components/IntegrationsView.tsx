@@ -24,6 +24,19 @@ interface ConnectForm {
   // Shiprocket
   email?: string;
   password?: string;
+  // Amazon SP-API
+  region?: "in" | "eu" | "us";
+  refreshToken?: string;
+  clientId?: string;
+  clientSecret?: string;
+  sellerId?: string;
+  marketplaceId?: string;
+  // Flipkart
+  applicationId?: string;
+  applicationSecret?: string;
+  // Meesho
+  apiKey?: string;
+  apiSecret?: string;
 }
 
 const INTEGRATION_META: Record<IntegrationType, {
@@ -56,6 +69,37 @@ const INTEGRATION_META: Record<IntegrationType, {
     ],
     webhookNote: "/api/webhooks/woocommerce?brandId=YOUR_BRAND_ID",
   },
+  amazon: {
+    label: "Amazon Seller Central",
+    description: "Pull marketplace orders via SP-API. India marketplace ID: A21TJRUUN4KGV.",
+    logoChar: "A",
+    fields: [
+      { key: "region", label: "Region", placeholder: "in", required: true },
+      { key: "marketplaceId", label: "Marketplace ID", placeholder: "A21TJRUUN4KGV", required: true },
+      { key: "sellerId", label: "Seller ID", placeholder: "A1XXXXXXXXX", required: true },
+      { key: "clientId", label: "LWA Client ID", placeholder: "amzn1.application-oa2-client.xxx", required: true },
+      { key: "clientSecret", label: "LWA Client Secret", placeholder: "amzn1.oa2-cs.xxx", type: "password", required: true },
+      { key: "refreshToken", label: "LWA Refresh Token", placeholder: "Atzr|...", type: "password", required: true },
+    ],
+  },
+  flipkart: {
+    label: "Flipkart Seller Hub",
+    description: "Pull marketplace shipments via Flipkart Seller API.",
+    logoChar: "F",
+    fields: [
+      { key: "applicationId", label: "Application ID", placeholder: "Your Flipkart App ID", required: true },
+      { key: "applicationSecret", label: "Application Secret", placeholder: "Your Flipkart App Secret", type: "password", required: true },
+    ],
+  },
+  meesho: {
+    label: "Meesho Supplier",
+    description: "Pull marketplace orders + NDRs. Highest-RTO marketplace — single biggest impact.",
+    logoChar: "M",
+    fields: [
+      { key: "apiKey", label: "API Key", placeholder: "Meesho Partner API Key", required: true },
+      { key: "apiSecret", label: "API Secret", placeholder: "Meesho Partner API Secret", type: "password", required: true },
+    ],
+  },
   delhivery: {
     label: "Delhivery",
     description: "Pull NDR cases and tracking updates directly from Delhivery.",
@@ -76,7 +120,7 @@ const INTEGRATION_META: Record<IntegrationType, {
   },
 };
 
-const ALL_TYPES: IntegrationType[] = ["shopify", "woocommerce", "delhivery", "shiprocket"];
+const ALL_TYPES: IntegrationType[] = ["shopify", "woocommerce", "amazon", "flipkart", "meesho", "delhivery", "shiprocket"];
 
 export function IntegrationsView() {
   const [records, setRecords] = useState<IntegrationRecord[]>([]);
@@ -162,6 +206,16 @@ export function IntegrationsView() {
   function buildCredentials(type: IntegrationType, f: ConnectForm): Record<string, string> {
     if (type === "shopify") return { shopUrl: f.shopUrl ?? "", accessToken: f.accessToken ?? "", ...(f.webhookSecret ? { webhookSecret: f.webhookSecret } : {}) };
     if (type === "woocommerce") return { siteUrl: f.siteUrl ?? "", consumerKey: f.consumerKey ?? "", consumerSecret: f.consumerSecret ?? "", ...(f.webhookSecret ? { webhookSecret: f.webhookSecret } : {}) };
+    if (type === "amazon") return {
+      region: f.region ?? "in",
+      marketplaceId: f.marketplaceId ?? "A21TJRUUN4KGV",
+      sellerId: f.sellerId ?? "",
+      clientId: f.clientId ?? "",
+      clientSecret: f.clientSecret ?? "",
+      refreshToken: f.refreshToken ?? "",
+    };
+    if (type === "flipkart") return { applicationId: f.applicationId ?? "", applicationSecret: f.applicationSecret ?? "" };
+    if (type === "meesho") return { apiKey: f.apiKey ?? "", apiSecret: f.apiSecret ?? "" };
     if (type === "delhivery") return { apiToken: f.apiToken ?? "" };
     if (type === "shiprocket") return { email: f.email ?? "", password: f.password ?? "" };
     return {};
