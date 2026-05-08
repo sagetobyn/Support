@@ -43,8 +43,11 @@ export async function syncIntegration(params: {
   }
 
   let orders: IntegrationOrderInput[] = [];
+  let updatedCredentials: IntegrationCredentials | undefined;
   try {
-    orders = await adapter.fetchOrders(credentials, since);
+    const result = await adapter.fetchOrders(credentials, since);
+    orders = result.orders;
+    updatedCredentials = result.updatedCredentials;
   } catch (err) {
     const error = err instanceof Error ? err.message : String(err);
     errors.push(`Fetch failed: ${error}`);
@@ -81,6 +84,7 @@ export async function syncIntegration(params: {
     lastSyncError: errors.length ? errors.join("; ") : null,
     status: errors.length ? "error" : "active",
     syncedCount: totalSynced,
+    ...(updatedCredentials && { credentials: updatedCredentials }),
   });
 
   return { integrationId, ordersIngested: ingested, ordersSkipped: skipped, errors, syncedAt: now.toISOString() };

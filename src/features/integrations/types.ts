@@ -81,9 +81,16 @@ export interface SyncResult {
   syncedAt: string;
 }
 
+// What an adapter returns from fetchOrders. updatedCredentials is set when the adapter
+// refreshed credentials during the call (e.g. Shiprocket JWT) — the orchestrator persists them.
+export interface AdapterFetchResult {
+  orders: IntegrationOrderInput[];
+  updatedCredentials?: IntegrationCredentials;
+}
+
 // Every platform adapter implements this interface.
 // fetchOrders is called by the sync orchestrator; it must be idempotent (safe to call repeatedly).
 export interface IntegrationAdapter {
   readonly type: IntegrationType;
-  fetchOrders(credentials: IntegrationCredentials, since?: Date): Promise<IntegrationOrderInput[]>;
+  fetchOrders(credentials: IntegrationCredentials, since?: Date): Promise<AdapterFetchResult>;
 }

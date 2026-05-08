@@ -1,4 +1,4 @@
-import type { IntegrationAdapter, IntegrationCredentials, IntegrationOrderInput, WooCommerceCredentials } from "../types";
+import type { AdapterFetchResult, IntegrationAdapter, IntegrationCredentials, IntegrationOrderInput, WooCommerceCredentials } from "../types";
 
 // WooCommerce REST API v3 — Orders endpoint.
 // Docs: https://woocommerce.github.io/woocommerce-rest-api-docs/#orders
@@ -133,7 +133,7 @@ async function fetchWithRetry(url: string, basicAuth: string, attempt = 1): Prom
 export class WooCommerceAdapter implements IntegrationAdapter {
   readonly type = "woocommerce" as const;
 
-  async fetchOrders(credentials: IntegrationCredentials, since?: Date): Promise<IntegrationOrderInput[]> {
+  async fetchOrders(credentials: IntegrationCredentials, since?: Date): Promise<AdapterFetchResult> {
     const creds = credentials as WooCommerceCredentials;
     const cutoff = since ?? new Date(Date.now() - DEFAULT_BACKFILL_DAYS * 24 * 60 * 60 * 1000);
 
@@ -172,7 +172,7 @@ export class WooCommerceAdapter implements IntegrationAdapter {
       page++;
     }
 
-    return all;
+    return { orders: all };
   }
 }
 

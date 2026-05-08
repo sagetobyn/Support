@@ -1,4 +1,4 @@
-import type { DelhiveryCredentials, IntegrationAdapter, IntegrationCredentials, IntegrationOrderInput } from "../types";
+import type { AdapterFetchResult, DelhiveryCredentials, IntegrationAdapter, IntegrationCredentials, IntegrationOrderInput } from "../types";
 
 // Delhivery Tracking + NDR APIs.
 // Docs: https://developer.delhivery.com/
@@ -119,7 +119,7 @@ export class DelhiveryAdapter implements IntegrationAdapter {
   readonly type = "delhivery" as const;
 
   // Default sync: pull active NDRs (highest-priority data for RTO recovery)
-  async fetchOrders(credentials: IntegrationCredentials, _since?: Date): Promise<IntegrationOrderInput[]> {
+  async fetchOrders(credentials: IntegrationCredentials, _since?: Date): Promise<AdapterFetchResult> {
     const creds = credentials as DelhiveryCredentials;
     const all: IntegrationOrderInput[] = [];
 
@@ -141,7 +141,7 @@ export class DelhiveryAdapter implements IntegrationAdapter {
       if (rows.length < NDR_PAGE_SIZE) break;
     }
 
-    return all;
+    return { orders: all };
   }
 
   // Refresh tracking status for a list of known AWBs. Used by the nightly refresh flow.

@@ -1,4 +1,4 @@
-import type { IntegrationAdapter, IntegrationCredentials, IntegrationOrderInput, ShopifyCredentials } from "../types";
+import type { AdapterFetchResult, IntegrationAdapter, IntegrationCredentials, IntegrationOrderInput, ShopifyCredentials } from "../types";
 
 // Shopify Admin REST API — Orders endpoint.
 // Docs: https://shopify.dev/docs/api/admin-rest/latest/resources/order
@@ -122,7 +122,7 @@ async function fetchWithRetry(url: string, accessToken: string, attempt = 1): Pr
 export class ShopifyAdapter implements IntegrationAdapter {
   readonly type = "shopify" as const;
 
-  async fetchOrders(credentials: IntegrationCredentials, since?: Date): Promise<IntegrationOrderInput[]> {
+  async fetchOrders(credentials: IntegrationCredentials, since?: Date): Promise<AdapterFetchResult> {
     const creds = credentials as ShopifyCredentials;
     const cutoff = since ?? new Date(Date.now() - DEFAULT_BACKFILL_DAYS * 24 * 60 * 60 * 1000);
 
@@ -145,7 +145,6 @@ export class ShopifyAdapter implements IntegrationAdapter {
       const json = await res.json() as { orders?: ShopifyOrder[] };
       const orders = json.orders ?? [];
       for (const order of orders) {
-        // Skip fully cancelled orders unless they have a fulfillment (might be partially shipped/RTO'd)
         if (order.cancelled_at && (!order.fulfillments || order.fulfillments.length === 0)) continue;
         all.push(mapShopifyOrder(order));
       }
@@ -153,7 +152,7 @@ export class ShopifyAdapter implements IntegrationAdapter {
       nextUrl = parseNextPageUrl(res.headers.get("link"));
     }
 
-    return all;
+    return { orders: all };
   }
 }
 
