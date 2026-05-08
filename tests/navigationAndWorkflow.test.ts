@@ -5,7 +5,7 @@ import { buildActionGroups } from "@/lib/actionGroups";
 import { estimatedRecoverableLeakage } from "@/lib/profitRecovery";
 import { calculateRoi } from "@/lib/roi";
 import { defaultBrand, seedOrders } from "@/data/seed";
-import { updateSavingEvent } from "@/features/savings-ledger";
+import { calculateSavingsLedger, savingsProofStatus, updateSavingEvent } from "@/features/savings-ledger";
 import { generateAuditReport } from "@/lib/auditReport";
 import { simulatePolicy } from "@/features/policy-simulator";
 import { personaPages, recoverySteps, serviceModules, trustSignals } from "@/features/marketing";
@@ -55,6 +55,7 @@ describe("Navigation and workflow smoke coverage", () => {
       createdAt: new Date().toISOString()
     };
     const [verified] = updateSavingEvent([event], event.id, { status: "verified", actualSaving: 250 });
+    const ledger = calculateSavingsLedger([verified], [], defaultBrand, seedOrders);
     const simulation = simulatePolicy(seedOrders, defaultBrand, {
       policyType: "cod_verification_high_risk",
       assumedReductionPercent: 20,
@@ -65,6 +66,9 @@ describe("Navigation and workflow smoke coverage", () => {
 
     expect(verified.status).toBe("verified");
     expect(verified.actualSaving).toBe(250);
+    expect(savingsProofStatus(verified).label).toBe("Verified");
+    expect(ledger.proofRate).toBe(100);
+    expect(ledger.verifiedEventCount).toBe(1);
     expect(simulation.netEstimatedBenefit).toBe(simulation.assumedSavedLeakage - simulation.interventionCost - simulation.lostContributionEstimate);
   });
 

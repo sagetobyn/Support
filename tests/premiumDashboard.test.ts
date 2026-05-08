@@ -23,6 +23,8 @@ describe("premium profit recovery dashboard", () => {
     expect(missions.length).toBeGreaterThan(0);
     expect(["Critical", "High"]).toContain(missions[0].priority);
     expect(missions[0].estimatedLeakage).toBeGreaterThan(0);
+    expect(missions[0].priorityFactors.map((factor) => factor.label)).toEqual(["Impact", "Urgency", "Frequency", "Confidence"]);
+    expect(missions[0].priorityFactors.find((factor) => factor.label === "Impact")?.value).toContain("Rs");
     expect(getNextProfitMission(seedOrders, defaultBrand, ndrCases)?.order.id).toBe(missions[0].order.id);
   });
 

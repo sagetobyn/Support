@@ -21,6 +21,7 @@ import type {
   Role,
   SavingsEvent
 } from "@/types/domain";
+import type { AnalysisReadinessItem } from "@/types/domain";
 import { analyzeCsvImport } from "@/lib/csvImport";
 import { buildNdrCases } from "@/lib/ndrCases";
 import {
@@ -46,7 +47,7 @@ import { exportWorkspaceBackup, loadWorkspaceState, saveWorkspaceState, storageV
 import { publishEvent } from "@/shared/events";
 import { createMainStore, proStoreLimitMessage } from "@/features/stores";
 import { defaultProRules, evaluateCustomRules } from "@/features/rules";
-import { buildDataTrust, type DataTrust } from "@/features/imports";
+import { buildDataTrust, getAnalysisTrust, trustBadgeLabel, type DataTrust } from "@/features/imports";
 import { generateHighRiskCodHoldPolicies } from "@/features/policy-recommendations";
 import { findAdvancedPrepaidOpportunities } from "@/features/prepaid";
 import { analyzePincodePolicies } from "@/features/pincode";
@@ -55,11 +56,11 @@ import { analyzeSkuLeakage } from "@/features/sku";
 import { analyzeCampaignLeakage, campaignMissingEmptyState, hasCampaignData } from "@/features/campaigns";
 import { defaultNdrPlaybooks } from "@/features/ndr-playbooks";
 import { buildAdvancedActionQueue } from "@/features/actions";
-import { calculateSavingsLedger, updateSavingEvent } from "@/features/savings-ledger";
+import { calculateSavingsLedger, savingsProofStatus, updateSavingEvent } from "@/features/savings-ledger";
 import { generateWeeklyFounderReport } from "@/features/weekly-report";
 import { generateMonthlyStrategyReport } from "@/features/monthly-strategy";
 import { simulatePolicy, type SimulatedPolicyType } from "@/features/policy-simulator";
-import { integrationReadinessCards, productionSecretsWarning } from "@/features/integration-readiness";
+import { buildProductionTrustSummary, integrationReadinessCards, productionSecretsWarning } from "@/features/integration-readiness";
 import { defaultOnboardingChecklist, onboardingProgress } from "@/features/onboarding";
 import { sopTemplates } from "@/features/sops";
 import { canRole } from "@/features/roles";
@@ -933,7 +934,7 @@ export default function Home() {
   }
 
   function exportDemoWorkspace() {
-    downloadText("supportwaala-demo-workspace.json", exportWorkspaceBackup(state), "application/json");
+    downloadText("wembro-workspace-backup.json", exportWorkspaceBackup(state), "application/json");
     addAudit({ action: "export_created", entityType: "export", metadata: { orders: orders.length, source: "demo workspace export" } });
   }
 
@@ -1067,7 +1068,7 @@ export default function Home() {
         )}
 
         {view === "atlas" && (
-          <LeakageAtlasView drivers={atlasDrivers} openDriver={openAtlasDriver} />
+          <LeakageAtlasView drivers={atlasDrivers} openDriver={openAtlasDriver} dataTrust={dataTrust} />
         )}
 
         {view === "learning" && (
@@ -1118,7 +1119,7 @@ export default function Home() {
           />
         )}
 
-        {view === "stores" && <ProView view={view} brand={brand} orders={orders} stores={stores} messages={messages} savingsEvents={savingsEvents} role={role} />}
+        {view === "stores" && <ProView view={view} brand={brand} orders={orders} stores={stores} messages={messages} savingsEvents={savingsEvents} role={role} dataTrust={dataTrust} />}
 
         {view === "orders" && (
           <OrdersView
@@ -1138,7 +1139,7 @@ export default function Home() {
           />
         )}
 
-        {view === "rules" && <ProView view={view} brand={brand} orders={orders} stores={stores} messages={messages} savingsEvents={savingsEvents} role={role} />}
+        {view === "rules" && <ProView view={view} brand={brand} orders={orders} stores={stores} messages={messages} savingsEvents={savingsEvents} role={role} dataTrust={dataTrust} />}
 
         {view === "ndr" && (
           <NdrView
@@ -1152,7 +1153,7 @@ export default function Home() {
           />
         )}
 
-        {view === "ndrPlaybooks" && <ProView view={view} brand={brand} orders={orders} stores={stores} messages={messages} savingsEvents={savingsEvents} role={role} />}
+        {view === "ndrPlaybooks" && <ProView view={view} brand={brand} orders={orders} stores={stores} messages={messages} savingsEvents={savingsEvents} role={role} dataTrust={dataTrust} />}
 
         {view === "actions" && (
           <ActionsView groups={actionGroups} role={role} brand={brand} orders={orders} queueMessage={queueMessage} completeAction={completeAction} />
@@ -1178,7 +1179,7 @@ export default function Home() {
         )}
 
         {["onboarding", "pincode", "courier", "sku", "campaigns", "weekly", "monthly", "integrations", "sops"].includes(view) && (
-          <ProView view={view} brand={brand} orders={orders} stores={stores} messages={messages} savingsEvents={savingsEvents} role={role} />
+          <ProView view={view} brand={brand} orders={orders} stores={stores} messages={messages} savingsEvents={savingsEvents} role={role} dataTrust={dataTrust} />
         )}
 
         {view === "templates" && selectedOrder && (
@@ -1202,7 +1203,7 @@ export default function Home() {
         )}
 
         {view === "privacy" && (
-          <PrivacyView role={role} orders={orders} messages={messages} responses={responses} imports={imports} audits={audits} deleteImportedData={deleteImportedData} />
+          <PrivacyView role={role} orders={orders} messages={messages} responses={responses} imports={imports} audits={audits} deleteImportedData={deleteImportedData} exportWorkspace={exportDemoWorkspace} />
         )}
 
         {view === "billing" && (
@@ -1508,9 +1509,9 @@ function MorningBriefing({ orders, ndrCases, actionGroups, brand, savingsEvents,
 
       <div className="briefing-insight-grid">
         <MiniTrendCard atRiskRevenue={atRiskRevenue} recoveredValue={recoveredThisMonth} setView={setView} />
-        <DriverAnalysisCard drivers={atlasDrivers.slice(0, 5)} setView={setView} />
-        <CourierPerformanceCard rows={analyzeCourierPolicies(orders, brand).league.slice(0, 5)} setView={setView} />
-        <RiskyZonesCard policies={analyzePincodePolicies(orders, brand).slice(0, 5)} setView={setView} />
+        <DriverAnalysisCard drivers={atlasDrivers.slice(0, 5)} dataTrust={dataTrust} setView={setView} />
+        <CourierPerformanceCard rows={analyzeCourierPolicies(orders, brand).league.slice(0, 5)} dataTrust={dataTrust} setView={setView} />
+        <RiskyZonesCard policies={analyzePincodePolicies(orders, brand).slice(0, 5)} dataTrust={dataTrust} setView={setView} />
         <NdrUrgencyCard ndrCases={urgentNdrs.slice(0, 5)} orders={orders} brand={brand} setView={setView} />
         <SavingsTrackerCard savingsEvents={positiveSavings} totalRecovered={recoveredThisMonth} setView={setView} />
       </div>
@@ -1560,6 +1561,32 @@ function DriverBarList({ drivers }: { drivers: LeakageAtlasDriver[] }) {
   );
 }
 
+function trustForDriver(driver: LeakageAtlasDriver, dataTrust: DataTrust) {
+  if (["cod_risk", "ndr_sla", "address_quality"].includes(driver.id)) return getAnalysisTrust(dataTrust, "rtoNdr");
+  if (driver.id === "courier_pincode") return getAnalysisTrust(dataTrust, "pincodeCourier");
+  if (driver.id === "sku") return getAnalysisTrust(dataTrust, "sku");
+  if (driver.id === "campaign") return getAnalysisTrust(dataTrust, "campaign");
+  return getAnalysisTrust(dataTrust, "margin");
+}
+
+function TrustBadge({ item }: { item: AnalysisReadinessItem }) {
+  const className = item.status === "ready" ? "low" : item.status === "limited" ? "medium" : "critical";
+  return (
+    <span className={`badge trust-badge ${className}`} title={item.reason}>
+      {trustBadgeLabel(item)}
+    </span>
+  );
+}
+
+function TrustInline({ item }: { item: AnalysisReadinessItem }) {
+  return (
+    <div className="trust-inline">
+      <TrustBadge item={item} />
+      <span>{item.reason}</span>
+    </div>
+  );
+}
+
 function MiniTrendCard({ atRiskRevenue, recoveredValue, setView }: { atRiskRevenue: number; recoveredValue: number; setView: (view: View) => void }) {
   const current = [0.38, 0.46, 0.49, 0.58, 0.54, 0.62, 0.68, 0.64, 0.73, 0.79, 0.76, 0.86].map((multiplier) => Math.max(1, atRiskRevenue * multiplier));
   const previous = current.map((value, index) => Math.max(1, value * (0.68 + index * 0.018)));
@@ -1579,19 +1606,24 @@ function MiniTrendCard({ atRiskRevenue, recoveredValue, setView }: { atRiskReven
   );
 }
 
-function DriverAnalysisCard({ drivers, setView }: { drivers: LeakageAtlasDriver[]; setView: (view: View) => void }) {
+function DriverAnalysisCard({ drivers, dataTrust, setView }: { drivers: LeakageAtlasDriver[]; dataTrust: DataTrust; setView: (view: View) => void }) {
+  const visibleTrust = drivers.map((driver) => trustForDriver(driver, dataTrust));
+  const hasDirectionalDriver = visibleTrust.find((item) => item.status !== "ready");
   return (
     <section className="dashboard-card">
       <CardTitle title="Top leakage drivers" action="View all drivers" onAction={() => setView("atlas")} />
+      {hasDirectionalDriver ? <TrustInline item={hasDirectionalDriver} /> : null}
       <DriverBarList drivers={drivers} />
     </section>
   );
 }
 
-function CourierPerformanceCard({ rows, setView }: { rows: ReturnType<typeof analyzeCourierPolicies>["league"]; setView: (view: View) => void }) {
+function CourierPerformanceCard({ rows, dataTrust, setView }: { rows: ReturnType<typeof analyzeCourierPolicies>["league"]; dataTrust: DataTrust; setView: (view: View) => void }) {
+  const trust = getAnalysisTrust(dataTrust, "pincodeCourier");
   return (
     <section className="dashboard-card">
       <CardTitle title="Courier performance" action="View full report" onAction={() => setView("courier")} />
+      <TrustInline item={trust} />
       <div className="table-wrap compact-table">
         <table>
           <thead>
@@ -1614,10 +1646,12 @@ function CourierPerformanceCard({ rows, setView }: { rows: ReturnType<typeof ana
   );
 }
 
-function RiskyZonesCard({ policies, setView }: { policies: ReturnType<typeof analyzePincodePolicies>; setView: (view: View) => void }) {
+function RiskyZonesCard({ policies, dataTrust, setView }: { policies: ReturnType<typeof analyzePincodePolicies>; dataTrust: DataTrust; setView: (view: View) => void }) {
+  const trust = getAnalysisTrust(dataTrust, "pincodeCourier");
   return (
     <section className="dashboard-card">
       <CardTitle title="Top risky pincodes / zones" action="View all zones" onAction={() => setView("pincode")} />
+      <TrustInline item={trust} />
       <div className="table-wrap compact-table">
         <table>
           <thead>
@@ -1868,6 +1902,21 @@ function MissionModeView({ orders, ndrCases, role, brand, savingsEvents, queueMe
               <strong>Why this is next</strong>
               <span>{activeMission.why}</span>
             </div>
+            <div className="priority-rationale">
+              <div className="split">
+                <strong>Priority formula</strong>
+                <span>Impact x urgency x frequency x confidence</span>
+              </div>
+              <div className="priority-factor-grid">
+                {activeMission.priorityFactors.map((factor) => (
+                  <div className="priority-factor" key={factor.label}>
+                    <span>{factor.label}</span>
+                    <strong>{factor.value}</strong>
+                    <small>{factor.detail}</small>
+                  </div>
+                ))}
+              </div>
+            </div>
             <div className="mission-meta-grid">
               <div><span>Customer</span><strong>{activeOrder.customerName || "Customer"}</strong><small>{maskPhone(activeOrder.phone, role)}</small></div>
               <div><span>Order value</span><strong>{money(activeOrder.orderValue)}</strong><small>{activeOrder.paymentMode}</small></div>
@@ -1912,7 +1961,7 @@ function MissionModeView({ orders, ndrCases, role, brand, savingsEvents, queueMe
   );
 }
 
-function LeakageAtlasView({ drivers, openDriver }: { drivers: LeakageAtlasDriver[]; openDriver: (driver: LeakageAtlasDriver) => void }) {
+function LeakageAtlasView({ drivers, openDriver, dataTrust }: { drivers: LeakageAtlasDriver[]; openDriver: (driver: LeakageAtlasDriver) => void; dataTrust: DataTrust }) {
   const topDriver = getTopLeakageDriver(drivers);
   const totalLeakage = drivers.reduce((sum, driver) => sum + Math.max(0, driver.estimatedLeakage), 0);
   const maxLeakage = Math.max(1, ...drivers.map((driver) => driver.estimatedLeakage));
@@ -1939,18 +1988,25 @@ function LeakageAtlasView({ drivers, openDriver }: { drivers: LeakageAtlasDriver
         </div>
       </section>
       <div className="atlas-grid">
-        {drivers.map((driver) => (
-          <button className={`atlas-card tone-${driver.tone}`} key={driver.id} onClick={() => openDriver(driver)}>
-            <div className="split">
-              <span className="eyebrow">{driver.sellerQuestion}</span>
-              <span className="badge neutral">{driver.count}</span>
-            </div>
-            <h2>{driver.title}</h2>
-            <div className="atlas-card__value">{money(driver.estimatedLeakage)}</div>
-            <div className="atlas-bar"><span style={{ width: `${Math.max(6, (driver.estimatedLeakage / maxLeakage) * 100)}%` }} /></div>
-            <p>{driver.recommendation}</p>
-          </button>
-        ))}
+        {drivers.map((driver) => {
+          const trust = trustForDriver(driver, dataTrust);
+          return (
+            <button className={`atlas-card tone-${driver.tone}`} key={driver.id} onClick={() => openDriver(driver)}>
+              <div className="split">
+                <span className="eyebrow">{driver.sellerQuestion}</span>
+                <span className="badge neutral">{driver.count}</span>
+              </div>
+              <div className="split atlas-card__title-row">
+                <h2>{driver.title}</h2>
+                <TrustBadge item={trust} />
+              </div>
+              <div className="atlas-card__value">{money(driver.estimatedLeakage)}</div>
+              <div className="atlas-bar"><span style={{ width: `${Math.max(6, (driver.estimatedLeakage / maxLeakage) * 100)}%` }} /></div>
+              <p>{driver.recommendation}</p>
+              {trust.status !== "ready" ? <small className="trust-note">{trust.reason}</small> : null}
+            </button>
+          );
+        })}
       </div>
     </div>
   );
@@ -3036,10 +3092,18 @@ function SavingsView({ orders, brand, stores, messages, savingsEvents, setSaving
         <MetricCard title="Estimated savings" value={money(ledger.estimatedSavings)} tone="success" />
         <MetricCard title="Verified savings" value={money(ledger.verifiedSavings)} tone="success" />
         <MetricCard title="Rejected savings" value={money(ledger.rejectedSavings)} tone="danger" />
+        <MetricCard title="Proof rate" value={`${ledger.proofRate}%`} description={`${ledger.verifiedEventCount} of ${savingsEvents.length} events verified`} tone={ledger.proofRate >= 60 ? "success" : "warning"} />
         <MetricCard title="Software cost" value={money(ledger.softwareCost)} />
         <MetricCard title="Messaging cost" value={money(ledger.messagingCost)} />
         <MetricCard title="Net benefit" value={money(ledger.netEstimatedBenefit)} tone={ledger.netEstimatedBenefit >= 0 ? "success" : "warning"} />
       </div>
+      <section className={ledger.verifiedEventCount ? "success" : "notice"}>
+        <strong>{ledger.verifiedEventCount ? "Founder-ready proof exists" : "Savings are still estimates"}</strong>
+        <p className="muted">
+          {ledger.verifiedEventCount} verified, {ledger.estimatedEventCount} estimated, and {ledger.rejectedEventCount} rejected events.
+          Net verified benefit is {money(ledger.netVerifiedBenefit)} after messaging and software cost.
+        </p>
+      </section>
       <div className="panel">
         <h2>Events</h2>
         <div className="table-wrap">
@@ -3048,6 +3112,7 @@ function SavingsView({ orders, brand, stores, messages, savingsEvents, setSaving
             <tbody>
               {savingsEvents.map((event) => {
                 const order = orders.find((item) => item.id === event.orderId);
+                const proof = savingsProofStatus(event);
                 return (
                   <tr key={event.id}>
                     <td>{event.eventType.replaceAll("_", " ")}</td>
@@ -3058,7 +3123,10 @@ function SavingsView({ orders, brand, stores, messages, savingsEvents, setSaving
                     </td>
                     <td>{String(event.confidence || "medium")}</td>
                     <td>{event.formulaNote || formulaNote(event)}</td>
-                    <td><span className="badge neutral">{event.status || "estimated"}</span></td>
+                    <td>
+                      <span className={`badge proof-${proof.tone}`}>{proof.label}</span>
+                      <div className="muted">{proof.detail}</div>
+                    </td>
                     <td className="ops-buttons">
                       <button className="button secondary" onClick={() => update(event.id, { status: "verified", actualSaving: Number(adjustment[event.id] || event.estimatedSaving) })}>Verify</button>
                       <button className="button secondary" onClick={() => update(event.id, { status: "rejected" })}>Reject</button>
@@ -3257,7 +3325,7 @@ function ReportsView({ report }: { report: ReturnType<typeof generateAuditReport
   );
 }
 
-function ProView({ view, brand, orders, stores, messages, savingsEvents, role }: {
+function ProView({ view, brand, orders, stores, messages, savingsEvents, role, dataTrust }: {
   view: View;
   brand: BrandSettings;
   orders: Order[];
@@ -3265,6 +3333,7 @@ function ProView({ view, brand, orders, stores, messages, savingsEvents, role }:
   messages: Message[];
   savingsEvents: SavingsEvent[];
   role: Role;
+  dataTrust: DataTrust;
 }) {
   const policies = [...generateHighRiskCodHoldPolicies(orders, brand), ...analyzePincodePolicies(orders, brand)];
   const courier = analyzeCourierPolicies(orders, brand);
@@ -3322,9 +3391,11 @@ function ProView({ view, brand, orders, stores, messages, savingsEvents, role }:
   if (view === "pincode") {
     const pincodePolicies = analyzePincodePolicies(orders, brand);
     const top = pincodePolicies[0];
+    const trust = getAnalysisTrust(dataTrust, "pincodeCourier");
     return (
       <div className="grid">
         <PageHeader title="Pincode Analysis" subtitle="Find pincode clusters where COD, courier, address, and NDR leakage concentrate." />
+        <TrustInline item={trust} />
         <div className="grid metrics">
           <MetricCard title="Pincodes analyzed" value={pincodePolicies.length} />
           <MetricCard title="Highest leakage segment" value={top?.id.replace("pin-", "") || "None"} tone="danger" />
@@ -3340,9 +3411,11 @@ function ProView({ view, brand, orders, stores, messages, savingsEvents, role }:
   }
   if (view === "courier") {
     const top = courier.recommendations[0];
+    const trust = getAnalysisTrust(dataTrust, "pincodeCourier");
     return (
       <div className="grid">
         <PageHeader title="Courier Analysis" subtitle="Compare courier performance and courier+pincode lanes before changing allocation rules." />
+        <TrustInline item={trust} />
         <div className="notice">{courier.mixWarning}</div>
         <div className="grid metrics">
           <MetricCard title="Couriers analyzed" value={courier.league.length} />
@@ -3359,9 +3432,11 @@ function ProView({ view, brand, orders, stores, messages, savingsEvents, role }:
   }
   if (view === "sku") {
     const top = sku[0];
+    const trust = getAnalysisTrust(dataTrust, "sku");
     return (
       <div className="grid">
         <PageHeader title="SKU Analysis" subtitle="Identify products where sizing, ad promise, pricing, or product-page mismatch may be driving returns." />
+        <TrustInline item={trust} />
         <div className="grid metrics">
           <MetricCard title="SKUs analyzed" value={sku.length} />
           <MetricCard title="Highest leakage SKU" value={top?.sku || "None"} tone="danger" />
@@ -3373,11 +3448,13 @@ function ProView({ view, brand, orders, stores, messages, savingsEvents, role }:
     );
   }
   if (view === "campaigns") {
-    if (!hasCampaignData(orders)) return <ReportPanel title="Campaign Analysis"><EmptyState title="Campaign data missing" description={campaignMissingEmptyState()} /></ReportPanel>;
+    const trust = getAnalysisTrust(dataTrust, "campaign");
+    if (!hasCampaignData(orders)) return <ReportPanel title="Campaign Analysis"><TrustInline item={trust} /><EmptyState title="Campaign data missing" description={campaignMissingEmptyState()} /></ReportPanel>;
     const top = campaigns[0];
     return (
       <div className="grid">
         <PageHeader title="Campaign Analysis" subtitle="Separate profitable demand from campaigns that create low-intent COD and RTO leakage." />
+        <TrustInline item={trust} />
         <div className="grid metrics">
           <MetricCard title="Campaigns analyzed" value={campaigns.length} />
           <MetricCard title="Highest leakage campaign" value={top?.campaign || "None"} tone="danger" />
@@ -3453,7 +3530,7 @@ function ProView({ view, brand, orders, stores, messages, savingsEvents, role }:
   return <ReportPanel title="Pro Action Queue"><p className="muted">Role access: queue message {canRole(role, "queue_message") ? "allowed" : "blocked"} · export reports {canRole(role, "export_reports") ? "allowed" : "blocked"}</p>{advancedActions.slice(0, 20).map((action) => <div className="action-row" key={action.id}><strong>{action.title}</strong><div>{money(action.estimatedLeakage || 0)} leakage · owner {action.owner}</div><div className="muted">{action.reason}</div></div>)}</ReportPanel>;
 }
 
-function PrivacyView({ role, orders, messages, responses, imports, audits, deleteImportedData }: {
+function PrivacyView({ role, orders, messages, responses, imports, audits, deleteImportedData, exportWorkspace }: {
   role: Role;
   orders: Order[];
   messages: Message[];
@@ -3461,7 +3538,17 @@ function PrivacyView({ role, orders, messages, responses, imports, audits, delet
   imports: ImportRecord[];
   audits: AuditLog[];
   deleteImportedData: () => void;
+  exportWorkspace: () => void;
 }) {
+  const productionTrust = buildProductionTrustSummary({
+    ordersCount: orders.length,
+    messagesCount: messages.length,
+    responsesCount: responses.length,
+    importsCount: imports.length,
+    audits,
+    localOnly: true
+  });
+
   return (
     <div className="grid">
       <div className="panel">
@@ -3470,6 +3557,29 @@ function PrivacyView({ role, orders, messages, responses, imports, audits, delet
         <p>Phone masking: ops/viewer roles see masked phones like {maskPhone("9876543210", "ops")}; admin can see full phone for delivery/RTO operations.</p>
         <p>Customer data should only be used for delivery/RTO operations.</p>
         <p className="notice">Production must use tenant-isolated server storage, formal retention rules, opt-out handling, and DPDP-aware agreements before live customer use.</p>
+        <section className={productionTrust.status === "ready_for_review" ? "success" : "notice"}>
+          <div className="split">
+            <div>
+              <strong>{productionTrust.headline}</strong>
+              <p className="muted">{productionTrust.detail}</p>
+            </div>
+            <span className="badge neutral">{productionTrust.status.replaceAll("_", " ")}</span>
+          </div>
+          {productionTrust.blockers.length ? (
+            <div className="trust-control-list">
+              {productionTrust.blockers.map((blocker) => <span className="chip limited" key={blocker}>{blocker}</span>)}
+            </div>
+          ) : null}
+        </section>
+        <div className="trust-control-grid">
+          {productionTrust.controls.map((control) => (
+            <div className="trust-control" key={control.label}>
+              <span>{control.label}</span>
+              <strong>{control.value}</strong>
+              <small>{control.status}</small>
+            </div>
+          ))}
+        </div>
         <div className="metrics grid">
           <Metric label="Orders" value={orders.length} />
           <Metric label="Messages" value={messages.length} />
@@ -3479,7 +3589,7 @@ function PrivacyView({ role, orders, messages, responses, imports, audits, delet
         </div>
         <div className="toolbar">
           <button className="button secondary" onClick={deleteImportedData}>Delete imported data</button>
-          <button className="button secondary" onClick={() => alert("Use browser localStorage backup from Plan pilots; production export will create a signed file and log export_created.")}>Export workspace JSON</button>
+          <button className="button secondary" onClick={exportWorkspace}>Export workspace JSON</button>
           <button className="button secondary" onClick={() => alert("Import workspace JSON placeholder. Starter demos can restore backups through localStorage in this MVP.")}>Import workspace JSON</button>
           <button className="button secondary" onClick={deleteImportedData}>Clear workspace data</button>
         </div>

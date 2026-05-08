@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { buildDataTrust } from "@/features/imports";
+import { buildDataTrust, getAnalysisTrust, trustBadgeLabel } from "@/features/imports";
 import type { ImportRecord } from "@/types/domain";
 
 const baseImport: ImportRecord = {
@@ -36,6 +36,7 @@ describe("data trust summary", () => {
 
     expect(trust.status).toBe("ready");
     expect(trust.readyCount).toBe(2);
+    expect(trust.readiness).toHaveLength(2);
   });
 
   it("surfaces blocked and limited insight areas", () => {
@@ -51,5 +52,24 @@ describe("data trust summary", () => {
     expect(trust.status).toBe("limited");
     expect(trust.issues.map((issue) => issue.area)).toEqual(["Pincode and courier analysis", "RTO/NDR leakage"]);
     expect(trust.detail).toContain("Pincode and courier analysis");
+  });
+
+  it("returns operator-facing trust labels for a specific analysis area", () => {
+    const trust = buildDataTrust({
+      ...baseImport,
+      dataQualityScore: 72,
+      analysisReadiness: [
+        { area: "Pincode and courier analysis", status: "limited", reason: "courier field is missing" },
+        { area: "SKU leakage", status: "ready", reason: "sku exists" }
+      ]
+    }, 90, 100);
+
+    const pincodeTrust = getAnalysisTrust(trust, "pincodeCourier");
+    const campaignTrust = getAnalysisTrust(trust, "campaign");
+
+    expect(pincodeTrust.status).toBe("limited");
+    expect(trustBadgeLabel(pincodeTrust)).toBe("Directional");
+    expect(campaignTrust.status).toBe("ready");
+    expect(trustBadgeLabel(campaignTrust)).toBe("Reliable");
   });
 });

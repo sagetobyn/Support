@@ -11,6 +11,11 @@ export interface ProfitMission {
   urgencyLabel: string;
   slaHoursLeft?: number;
   why: string;
+  priorityFactors: Array<{
+    label: "Impact" | "Urgency" | "Frequency" | "Confidence";
+    value: string;
+    detail: string;
+  }>;
 }
 
 const riskRank: Record<string, number> = {
@@ -29,6 +34,22 @@ function ndrForOrder(order: Order, ndrCases: NdrCase[]) {
   return ndrCases.find((ndr) => ndr.orderId === order.id);
 }
 
+function matchingSignalCount(order: Order, orders: Order[]) {
+  return orders.filter((candidate) => {
+    if (!isMissionActionable(candidate)) return false;
+    if (order.pincode && candidate.pincode === order.pincode) return true;
+    if (order.courier && candidate.courier === order.courier && candidate.riskBucket === order.riskBucket) return true;
+    if (order.sku && candidate.sku === order.sku) return true;
+    const campaign = order.campaignName || order.utmCampaign;
+    const candidateCampaign = candidate.campaignName || candidate.utmCampaign;
+    return Boolean(campaign && candidateCampaign === campaign);
+  }).length;
+}
+
+function formatRs(value: number) {
+  return `Rs ${Math.round(value).toLocaleString("en-IN")}`;
+}
+
 export function isMissionActionable(order: Order) {
   return order.actionStatus !== "done" && order.recommendedAction !== "no_action" && !isDeliveredNoAction(order);
 }
@@ -42,15 +63,39 @@ export function buildProfitMissions(orders: Order[], brand: BrandSettings, ndrCa
       const slaHoursLeft = ndr ? Math.max(0, 12 - Math.round(hoursSinceNdr)) : undefined;
       const ndrUrgency = ndr && hoursSinceNdr >= 10 ? "SLA breach risk" : ndr && hoursSinceNdr >= 8 ? "Act this shift" : "";
       const urgencyLabel = ndrUrgency || (order.riskBucket === "Critical" ? "Critical COD risk" : order.riskBucket === "High" ? "High risk order" : "Recoverable action");
+      const estimatedLeakage = estimatedLeakageForOrder(order, brand);
+      const frequency = matchingSignalCount(order, orders);
       return {
         order,
         priority: missionPriority(order.riskBucket),
-        estimatedLeakage: estimatedLeakageForOrder(order, brand),
+        estimatedLeakage,
         urgencyLabel,
         slaHoursLeft,
         why: isNdrOrder(order)
           ? `NDR rescue window is active. ${order.recommendedActionReason}`
-          : order.recommendedActionReason
+          : order.recommendedActionReason,
+        priorityFactors: [
+          {
+            label: "Impact",
+            value: formatRs(estimatedLeakage),
+            detail: "Estimated leakage this action can protect or recover."
+          },
+          {
+            label: "Urgency",
+            value: slaHoursLeft !== undefined ? `${slaHoursLeft}h left` : urgencyLabel,
+            detail: slaHoursLeft !== undefined ? "NDR rescue window is time-sensitive." : "Risk bucket controls daily queue order."
+          },
+          {
+            label: "Frequency",
+            value: `${frequency} signal${frequency === 1 ? "" : "s"}`,
+            detail: "Similar open orders share pincode, courier, SKU, campaign, or risk signals."
+          },
+          {
+            label: "Confidence",
+            value: order.confidenceLabel || order.riskBucket,
+            detail: "Based on imported fields and the visible risk reason trail."
+          }
+        ]
       };
     })
     .sort((a, b) => {

@@ -286,6 +286,66 @@ th {
   justify-content: flex-end;
 }
 
+.trust-badge {
+  letter-spacing: 0;
+}
+
+.trust-inline {
+  align-items: center;
+  color: var(--muted);
+  display: flex;
+  flex-wrap: wrap;
+  font-size: 12px;
+  gap: 8px;
+  line-height: 1.4;
+  margin: -2px 0 8px;
+}
+
+.trust-note {
+  color: var(--muted);
+  display: block;
+  font-size: 12px;
+  line-height: 1.4;
+}
+
+.trust-control-grid {
+  display: grid;
+  gap: 10px;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+
+.trust-control {
+  background: #f8fafc;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  display: grid;
+  gap: 4px;
+  min-width: 0;
+  padding: 12px;
+}
+
+.trust-control span,
+.trust-control small {
+  color: var(--muted);
+  font-size: 12px;
+}
+
+.trust-control span {
+  font-weight: 800;
+  text-transform: uppercase;
+}
+
+.trust-control strong {
+  overflow-wrap: anywhere;
+}
+
+.trust-control-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 10px;
+}
+
 .neutral {
   color: #334155;
   background: #eef2f7;
@@ -309,6 +369,26 @@ th {
 .critical {
   color: var(--red);
   background: #ffe7e5;
+}
+
+.proof-success {
+  background: #eaf8ef;
+  color: var(--green);
+}
+
+.proof-warning {
+  background: #fff4d6;
+  color: #7a4a00;
+}
+
+.proof-danger {
+  background: #ffe7e5;
+  color: var(--red);
+}
+
+.proof-neutral {
+  background: #eef2f7;
+  color: #334155;
 }
 
 .priority-critical,
@@ -1833,6 +1913,49 @@ p {
   color: #fffefa;
 }
 
+.priority-rationale {
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 8px;
+  display: grid;
+  gap: 12px;
+  padding: 14px;
+}
+
+.priority-rationale > .split span {
+  color: #dbe6df;
+  font-size: 12px;
+  font-weight: 800;
+  text-transform: uppercase;
+}
+
+.priority-factor-grid {
+  display: grid;
+  gap: 10px;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+
+.priority-factor {
+  display: grid;
+  gap: 4px;
+  min-width: 0;
+}
+
+.priority-factor span,
+.priority-factor small {
+  color: #dbe6df;
+}
+
+.priority-factor span {
+  font-size: 11px;
+  font-weight: 800;
+  text-transform: uppercase;
+}
+
+.priority-factor strong {
+  overflow-wrap: anywhere;
+}
+
 .mission-value {
   color: #fff1c2;
   font-size: clamp(44px, 6vw, 86px);
@@ -2001,6 +2124,14 @@ p {
   font-size: clamp(24px, 2.2vw, 34px);
   font-weight: 900;
   overflow-wrap: anywhere;
+}
+
+.atlas-card__title-row {
+  align-items: flex-start;
+}
+
+.atlas-card__title-row h2 {
+  margin: 0;
 }
 
 .atlas-card p {
@@ -3296,6 +3427,8 @@ tbody tr:hover td {
   }
 
   .mission-meta-grid,
+  .priority-factor-grid,
+  .trust-control-grid,
   .founder-story-grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
@@ -3415,6 +3548,8 @@ tbody tr:hover td {
   }
 
   .mission-meta-grid,
+  .priority-factor-grid,
+  .trust-control-grid,
   .atlas-grid,
   .plan-grid,
   .founder-story-grid {

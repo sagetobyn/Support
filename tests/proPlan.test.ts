@@ -20,6 +20,7 @@ import { generateMonthlyStrategyReport } from "@/features/monthly-strategy";
 import { simulatePolicy } from "@/features/policy-simulator";
 import { canRole } from "@/features/roles";
 import { exportReportsPackage } from "@/features/reports";
+import { buildProductionTrustSummary } from "@/features/integration-readiness";
 
 describe("Pro plan", () => {
   it("defines Pro limits and Scale/Enterprise gates", () => {
@@ -90,5 +91,24 @@ describe("Pro plan", () => {
     expect(canRole("viewer", "queue_message")).toBe(false);
     expect(canRole("admin", "delete_workspace")).toBe(true);
     expect(exportReportsPackage({ stores: [], imports: [], orders: seedOrders.slice(0, 1), actions: [], messages: [message], savingsEvents: [], policyRecommendations: [], weeklyReports: [], monthlyStrategyReports: [], audits: [] })).toContain("pro_v1");
+  });
+
+  it("summarizes pilot-safe production trust controls", () => {
+    const summary = buildProductionTrustSummary({
+      ordersCount: seedOrders.length,
+      messagesCount: 1,
+      responsesCount: 0,
+      importsCount: 1,
+      localOnly: true,
+      audits: [
+        { action: "csv_imported", createdAt: "2026-05-08T00:00:00.000Z" },
+        { action: "export_created", createdAt: "2026-05-08T01:00:00.000Z" }
+      ]
+    });
+
+    expect(summary.status).toBe("pilot_safe");
+    expect(summary.exportCount).toBe(1);
+    expect(summary.blockers.join(" ")).toContain("Local browser storage");
+    expect(summary.controls.map((control) => control.label)).toEqual(["Storage", "Audit trail", "Exports", "Deletion"]);
   });
 });
