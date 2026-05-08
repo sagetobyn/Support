@@ -397,6 +397,7 @@ export default function Home() {
   const [filters, setFilters] = useState<OrderFilters>({ payment: "all", risk: "all", courier: "all", query: "", quick: "all" });
   const [toast, setToast] = useState("");
   const [upload, setUpload] = useState<{ filename: string; csv: string; analysis?: ReturnType<typeof analyzeCsvImport> }>({ filename: "", csv: "" });
+  const [uploadQueue, setUploadQueue] = useState<Array<{ filename: string; csv: string; analysis: ReturnType<typeof analyzeCsvImport> }>>([]);
   const [templateType, setTemplateType] = useState<TemplateType>("cod_confirmation");
   const [dateRange, setDateRange] = useState("30d");
   const [demoProfile, setDemoProfile] = useState<DemoProfileId>("fashion");
@@ -575,6 +576,56 @@ export default function Home() {
             .catch(err => console.warn("[DB sync] NDR case failed:", err))
         )
     );
+  }
+
+  async function handleFilesSelected(files: FileList | null) {
+    if (!files || files.length === 0) return;
+    const csvFiles = Array.from(files).filter((f) => f.name.toLowerCase().endsWith(".csv"));
+    if (csvFiles.length === 0) return;
+    if (csvFiles.length === 1) { handleCsvSelected(csvFiles[0]); return; }
+    const queue = await Promise.all(csvFiles.map(async (f) => {
+      const csv = await f.text();
+      return { filename: f.name, csv, analysis: analyzeCsvImport(csv) };
+    }));
+    setUploadQueue(queue);
+    setUpload({ filename: "", csv: "" });
+    const totalRows = queue.reduce((sum, f) => sum + f.analysis.rows.length, 0);
+    setToast(`${queue.length} files queued · ${totalRows.toLocaleString("en-IN")} total rows. Click "Import all" to proceed.`);
+  }
+
+  function runBatchImport() {
+    if (uploadQueue.length === 0) return;
+    let currentOrders = orders;
+    let currentNdrCases = ndrCases;
+    const newImports: ImportRecord[] = [];
+    let totalImported = 0;
+    for (const file of uploadQueue) {
+      const importId = nowId("import");
+      const { summary, orders: nextOrders, ndrCases: nextNdrCases } = runImportPipeline({
+        csv: file.csv, brandId: brand.id, settings: brand,
+        existingOrders: currentOrders, existingNdrCases: currentNdrCases, importId
+      });
+      const record: ImportRecord = {
+        id: importId, brandId: brand.id, filename: file.filename, sourceType: "csv",
+        rowCount: summary.rowCount, successCount: summary.successCount,
+        errorCount: summary.errorCount, created: summary.created, updated: summary.updated,
+        missingFields: summary.missingFields, createdAt: new Date().toISOString()
+      };
+      currentOrders = nextOrders;
+      currentNdrCases = nextNdrCases;
+      newImports.push(record);
+      totalImported += summary.successCount;
+      addAudit({ action: "csv_imported", entityType: "import", entityId: importId, metadata: { ...record } });
+    }
+    setState((current) => ({
+      ...current,
+      orders: currentOrders,
+      ndrCases: currentNdrCases,
+      imports: [...newImports, ...imports],
+      overLimit: currentOrders.length > currentProPlan.limits.monthly_order_limit
+    }));
+    setUploadQueue([]);
+    setToast(`Batch import complete: ${totalImported.toLocaleString("en-IN")} rows imported from ${newImports.length} files.`);
   }
 
   function queueMessage(order: Order, selectedTemplate: TemplateType) {
@@ -879,8 +930,23 @@ export default function Home() {
   }
 
   function exportCurrentOrdersCsv() {
-    downloadText("supportwaala-demo-orders.csv", ordersToCsv(orders), "text/csv");
-    addAudit({ action: "export_created", entityType: "export", metadata: { orders: orders.length, source: "orders csv export" } });
+    downloadText("wembro-orders.csv", ordersToCsv(orders), "text/csv");
+    addAudit({ action: "export_created", entityType: "export", metadata: { orders: orders.length, source: "orders csv" } });
+  }
+
+  function exportOrdersJson() {
+    downloadText("wembro-orders.json", JSON.stringify(orders, null, 2), "application/json");
+    addAudit({ action: "export_created", entityType: "export", metadata: { orders: orders.length, source: "orders json" } });
+  }
+
+  function exportNdrCsv() {
+    downloadText("wembro-ndr-cases.csv", exportRowsCsv(ndrCases as unknown as Array<Record<string, unknown>>), "text/csv");
+    addAudit({ action: "export_created", entityType: "export", metadata: { count: ndrCases.length, source: "ndr csv" } });
+  }
+
+  function exportSavingsCsv() {
+    downloadText("wembro-savings.csv", exportRowsCsv(savingsEvents as unknown as Array<Record<string, unknown>>), "text/csv");
+    addAudit({ action: "export_created", entityType: "export", metadata: { count: savingsEvents.length, source: "savings csv" } });
   }
 
   function deleteImportedData() {
@@ -1032,7 +1098,15 @@ export default function Home() {
         )}
 
         {view === "upload" && (
-          <UploadView upload={upload} handleCsvSelected={handleCsvSelected} runImport={runImport} imports={imports} orders={orders} setView={setView} />
+          <UploadView
+            upload={upload} handleCsvSelected={handleCsvSelected} runImport={runImport}
+            uploadQueue={uploadQueue} handleFilesSelected={handleFilesSelected} runBatchImport={runBatchImport}
+            removeFromQueue={(filename) => setUploadQueue((q) => q.filter((f) => f.filename !== filename))}
+            imports={imports} orders={orders} setView={setView}
+            exportOrdersCsv={exportCurrentOrdersCsv} exportOrdersJson={exportOrdersJson}
+            exportNdrCsv={exportNdrCsv} exportSavingsCsv={exportSavingsCsv}
+            ndrCases={ndrCases} savingsEvents={savingsEvents}
+          />
         )}
 
         {view === "stores" && <ProView view={view} brand={brand} orders={orders} stores={stores} messages={messages} savingsEvents={savingsEvents} role={role} />}
@@ -2290,62 +2364,119 @@ function BrandView({ brand, updateBrand }: { brand: BrandSettings; updateBrand: 
   );
 }
 
-function UploadView({ upload, handleCsvSelected, runImport, imports, orders, setView }: {
+function UploadView({
+  upload, handleCsvSelected, runImport,
+  uploadQueue, handleFilesSelected, runBatchImport, removeFromQueue,
+  imports, orders, ndrCases, savingsEvents, setView,
+  exportOrdersCsv, exportOrdersJson, exportNdrCsv, exportSavingsCsv
+}: {
   upload: { filename: string; csv: string; analysis?: ReturnType<typeof analyzeCsvImport> };
   handleCsvSelected: (file?: File) => void;
   runImport: () => void;
+  uploadQueue: Array<{ filename: string; csv: string; analysis: ReturnType<typeof analyzeCsvImport> }>;
+  handleFilesSelected: (files: FileList | null) => void;
+  runBatchImport: () => void;
+  removeFromQueue: (filename: string) => void;
   imports: ImportRecord[];
   orders: Order[];
+  ndrCases: NdrCase[];
+  savingsEvents: SavingsEvent[];
   setView: (view: View) => void;
+  exportOrdersCsv: () => void;
+  exportOrdersJson: () => void;
+  exportNdrCsv: () => void;
+  exportSavingsCsv: () => void;
 }) {
   const analysis = upload.analysis;
   const lastImport = imports[0];
+  const batchTotalRows = uploadQueue.reduce((sum, f) => sum + f.analysis.rows.length, 0);
+  const batchInvalidRows = uploadQueue.reduce((sum, f) => sum + f.analysis.invalidRows.length, 0);
   return (
     <div className="grid">
       <div className="panel">
         <PageHeader
-          title="CSV Upload"
-          subtitle="Upload order, shipment, or NDR CSV safely. Valid rows import; duplicate orders update by order_id + AWB."
+          title="Data Import"
+          subtitle="Upload one or more CSVs, or pick a folder. Valid rows import; duplicate orders update by order_id + AWB."
           actions={<button className="button secondary" onClick={() => setView("demo")}>Use demo data instead</button>}
         />
-        <div className="upload-dropzone" onDragOver={(event) => event.preventDefault()} onDrop={(event) => { event.preventDefault(); handleCsvSelected(event.dataTransfer.files?.[0]); }}>
-          <strong>Drag and drop a CSV here</strong>
-          <p className="muted">Accepted format: `.csv`. For the first audit, customer names, phones, emails, and full addresses are optional. You can use anonymized CSV.</p>
-          <label className="button">
-            Select CSV
-            <input hidden type="file" accept=".csv" onChange={(event) => handleCsvSelected(event.target.files?.[0])} />
-          </label>
+        <div
+          className="upload-dropzone"
+          onDragOver={(event) => event.preventDefault()}
+          onDrop={(event) => { event.preventDefault(); handleFilesSelected(event.dataTransfer.files); }}
+        >
+          <strong>Drag and drop CSV files here</strong>
+          <p className="muted">`.csv` files only. Customer names, phones, and addresses are optional for a first audit.</p>
+          <div className="toolbar">
+            <label className="button">
+              Select CSV(s)
+              <input hidden type="file" accept=".csv" multiple onChange={(event) => handleFilesSelected(event.target.files)} />
+            </label>
+            <label className="button secondary">
+              Select folder
+              {/* @ts-expect-error webkitdirectory is non-standard but widely supported */}
+              <input hidden type="file" accept=".csv" webkitdirectory="" onChange={(event) => handleFilesSelected(event.target.files)} />
+            </label>
+          </div>
         </div>
         <div className="notice">
-          <strong>Current workspace totals:</strong> {orders.length} orders.{" "}
+          <strong>Workspace:</strong> {orders.length} orders · {ndrCases.length} NDR cases.{" "}
           <strong>Last import:</strong>{" "}
           {lastImport ? `${lastImport.successCount} rows imported, ${lastImport.created} created, ${lastImport.updated} updated, ${lastImport.errorCount} invalid.` : "No CSV imported yet."}
         </div>
-        <div className="toolbar"><button className="button" disabled={!analysis} onClick={runImport}>Import valid rows</button></div>
-        {analysis && (
-          <div className="grid two-col">
-            <div>
-              <h3>{upload.filename}</h3>
-              <p>{analysis.rows.length} rows parsed · {analysis.invalidRows.length} invalid rows</p>
-              <DataQualityBadge score={analysis.dataQualityScore} />
-              {analysis.rows.length > currentProPlan.limits.max_import_rows_per_file && (
-                <div className="notice">Pro supports up to 10,000 rows per import. Larger imports are available in Scale.</div>
-              )}
-              {analysis.missingFields.length ? <div className="notice">Missing mapped fields: {analysis.missingFields.join(", ")}</div> : <div className="success">Required fields are mapped.</div>}
-              {analysis.dataQualityWarnings?.length ? <div className="notice">Warnings: {analysis.dataQualityWarnings.join(", ")}</div> : null}
-            </div>
-            <div>
-              <h3>Auto Mapping</h3>
-              <div className="chips">
-                {Object.entries(analysis.columnMapping).map(([field, original]) => <span className="chip" key={field}>{field} &larr; {original}</span>)}
+
+        {/* Batch queue */}
+        {uploadQueue.length > 0 && (
+          <div className="panel">
+            <h3>Batch queue — {uploadQueue.length} files · {batchTotalRows.toLocaleString("en-IN")} rows · {batchInvalidRows} invalid</h3>
+            {uploadQueue.map((f) => (
+              <div className="action-row" key={f.filename}>
+                <div>
+                  <strong>{f.filename}</strong>
+                  <span className="muted"> · {f.analysis.rows.length} rows · {f.analysis.invalidRows.length} invalid · quality {f.analysis.dataQualityScore}/100</span>
+                </div>
+                <button className="button secondary small" onClick={() => removeFromQueue(f.filename)}>Remove</button>
               </div>
-              <div className="recommendation-strip">
-                <strong>Better fields unlock better insights</strong>
-                <span>Campaign fields unlock campaign leakage. SKU fields unlock product leakage. NDR reason unlocks playbooks. Courier unlocks courier intelligence.</span>
-              </div>
+            ))}
+            <div className="toolbar">
+              <button className="button" onClick={runBatchImport}>Import all ({batchTotalRows.toLocaleString("en-IN")} rows)</button>
             </div>
           </div>
         )}
+
+        {/* Single-file import */}
+        {uploadQueue.length === 0 && (
+          <>
+            <div className="toolbar"><button className="button" disabled={!analysis} onClick={runImport}>Import valid rows</button></div>
+            {analysis && (
+              <div className="grid two-col">
+                <div>
+                  <h3>{upload.filename}</h3>
+                  <p>{analysis.rows.length} rows parsed · {analysis.invalidRows.length} invalid rows</p>
+                  <DataQualityBadge score={analysis.dataQualityScore} />
+                  {analysis.rows.length > currentProPlan.limits.max_import_rows_per_file && (
+                    <div className="notice">Pro supports up to 10,000 rows per import. Larger imports are available in Scale.</div>
+                  )}
+                  {analysis.invalidRows.length > 0 && (
+                    <div className="notice">{analysis.invalidRows.length} rows skipped (missing order_id or invalid data) — counted in error total.</div>
+                  )}
+                  {analysis.missingFields.length ? <div className="notice">Missing mapped fields: {analysis.missingFields.join(", ")}</div> : <div className="success">Required fields are mapped.</div>}
+                  {analysis.dataQualityWarnings?.length ? <div className="notice">Warnings: {analysis.dataQualityWarnings.join(", ")}</div> : null}
+                </div>
+                <div>
+                  <h3>Auto Mapping</h3>
+                  <div className="chips">
+                    {Object.entries(analysis.columnMapping).map(([field, original]) => <span className="chip" key={field}>{field} &larr; {original}</span>)}
+                  </div>
+                  <div className="recommendation-strip">
+                    <strong>Better fields unlock better insights</strong>
+                    <span>Campaign fields unlock campaign leakage. SKU fields unlock product leakage. NDR reason unlocks playbooks. Courier unlocks courier intelligence.</span>
+                  </div>
+                </div>
+              </div>
+            )}
+          </>
+        )}
+
         {lastImport && (
           <div className="toolbar">
             <button className="button secondary" onClick={() => setView("dashboard")}>View profit overview</button>
@@ -2354,7 +2485,21 @@ function UploadView({ upload, handleCsvSelected, runImport, imports, orders, set
           </div>
         )}
       </div>
-      {analysis && <PreviewTable summary={analysis} />}
+
+      {analysis && uploadQueue.length === 0 && <PreviewTable summary={analysis} />}
+
+      <div className="panel">
+        <h2>Export Data</h2>
+        <p className="muted">Download your workspace data in the format you need.</p>
+        <div className="toolbar">
+          <button className="button secondary" onClick={exportOrdersCsv} disabled={!orders.length}>Orders CSV</button>
+          <button className="button secondary" onClick={exportOrdersJson} disabled={!orders.length}>Orders JSON</button>
+          <button className="button secondary" onClick={exportNdrCsv} disabled={!ndrCases.length}>NDR Cases CSV</button>
+          <button className="button secondary" onClick={exportSavingsCsv} disabled={!savingsEvents.length}>Savings CSV</button>
+        </div>
+        <p className="muted" style={{ marginTop: "0.5rem" }}>Excel: open any CSV export directly in Excel or Google Sheets.</p>
+      </div>
+
       <div className="panel">
         <h2>Import History</h2>
         {imports.length ? imports.map((item) => (

@@ -59,7 +59,7 @@ export function buildAdvancedActionQueue(orders: Order[], brand: BrandSettings, 
   return [...policyActions, ...orderActions].sort((a, b) => {
     const leakageDiff = (b.estimatedLeakage || 0) - (a.estimatedLeakage || 0);
     if (leakageDiff !== 0) return leakageDiff;
-    return (priorityWeight[b.priority] || 0) - (priorityWeight[a.priority] || 0);
+    return (priorityWeight[b.priority ?? ""] || 0) - (priorityWeight[a.priority ?? ""] || 0);
   });
 }
 
