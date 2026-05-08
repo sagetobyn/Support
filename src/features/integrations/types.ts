@@ -31,7 +31,11 @@ export type IntegrationType =
   | "flipkart"
   | "meesho"
   | "delhivery"
-  | "shiprocket";
+  | "shiprocket"
+  | "nimbuspost"
+  | "xpressbees"
+  | "ecomexpress"
+  | "bluedart";
 
 // Credentials are platform-specific. Keep the shape narrow per type.
 export type ShopifyCredentials = {
@@ -88,6 +92,31 @@ export type MeeshoCredentials = {
   apiSecret: string;
 };
 
+export type NimbusPostCredentials = {
+  email: string;
+  password: string;
+  jwtToken?: string;
+  jwtExpiresAt?: string;
+};
+
+export type XpressBeesCredentials = {
+  email: string;
+  password: string;
+  bearerToken?: string;
+  bearerExpiresAt?: string;
+};
+
+export type EcomExpressCredentials = {
+  username: string;
+  password: string;
+};
+
+export type BluedartCredentials = {
+  apiKey: string;          // license key
+  loginId: string;
+  apiPassword: string;
+};
+
 export type IntegrationCredentials =
   | ShopifyCredentials
   | WooCommerceCredentials
@@ -95,7 +124,11 @@ export type IntegrationCredentials =
   | FlipkartCredentials
   | MeeshoCredentials
   | DelhiveryCredentials
-  | ShiprocketCredentials;
+  | ShiprocketCredentials
+  | NimbusPostCredentials
+  | XpressBeesCredentials
+  | EcomExpressCredentials
+  | BluedartCredentials;
 
 export interface IntegrationRecord {
   id: string;

@@ -8,7 +8,7 @@ import { z } from "zod";
 const integrationRepo = new IntegrationRepository();
 
 const createSchema = z.object({
-  type: z.enum(["shopify", "woocommerce", "amazon", "flipkart", "meesho", "delhivery", "shiprocket"]),
+  type: z.enum(["shopify", "woocommerce", "amazon", "flipkart", "meesho", "delhivery", "shiprocket", "nimbuspost", "xpressbees", "ecomexpress", "bluedart"]),
   label: z.string().optional(),
   credentials: z.record(z.string(), z.unknown()),
 });

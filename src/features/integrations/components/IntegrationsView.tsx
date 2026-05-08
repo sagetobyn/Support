@@ -37,6 +37,11 @@ interface ConnectForm {
   // Meesho
   apiKey?: string;
   apiSecret?: string;
+  // Ecom Express
+  username?: string;
+  // Bluedart
+  loginId?: string;
+  apiPassword?: string;
 }
 
 const INTEGRATION_META: Record<IntegrationType, {
@@ -118,9 +123,46 @@ const INTEGRATION_META: Record<IntegrationType, {
     ],
     webhookNote: "/api/webhooks/shiprocket?brandId=YOUR_BRAND_ID",
   },
+  nimbuspost: {
+    label: "NimbusPost",
+    description: "Major Shiprocket alternative. Pull orders + NDRs across NimbusPost's courier network.",
+    logoChar: "NP",
+    fields: [
+      { key: "email", label: "NimbusPost Email", placeholder: "seller@example.com", required: true },
+      { key: "password", label: "NimbusPost Password", placeholder: "••••••••", type: "password", required: true },
+    ],
+  },
+  xpressbees: {
+    label: "XpressBees",
+    description: "Direct courier integration. Pull NDRs + recent shipments from your XpressBees account.",
+    logoChar: "XB",
+    fields: [
+      { key: "email", label: "XpressBees Email", placeholder: "seller@example.com", required: true },
+      { key: "password", label: "XpressBees Password", placeholder: "••••••••", type: "password", required: true },
+    ],
+  },
+  ecomexpress: {
+    label: "Ecom Express",
+    description: "Direct courier integration. Pull active NDR cases and refresh AWB tracking.",
+    logoChar: "EE",
+    fields: [
+      { key: "username", label: "API Username", placeholder: "Ecom Express API username", required: true },
+      { key: "password", label: "API Password", placeholder: "••••••••", type: "password", required: true },
+    ],
+  },
+  bluedart: {
+    label: "Bluedart",
+    description: "Premium courier — AWB tracking refresh only. Use alongside an order source (Shopify/Amazon).",
+    logoChar: "BD",
+    fields: [
+      { key: "loginId", label: "Login ID", placeholder: "Bluedart login ID", required: true },
+      { key: "apiKey", label: "License Key", placeholder: "Bluedart license key", type: "password", required: true },
+      { key: "apiPassword", label: "API Password", placeholder: "••••••••", type: "password", required: true },
+    ],
+  },
 };
 
-const ALL_TYPES: IntegrationType[] = ["shopify", "woocommerce", "amazon", "flipkart", "meesho", "delhivery", "shiprocket"];
+const ALL_TYPES: IntegrationType[] = ["shopify", "woocommerce", "amazon", "flipkart", "meesho", "delhivery", "shiprocket", "nimbuspost", "xpressbees", "ecomexpress", "bluedart"];
 
 export function IntegrationsView() {
   const [records, setRecords] = useState<IntegrationRecord[]>([]);
@@ -218,6 +260,10 @@ export function IntegrationsView() {
     if (type === "meesho") return { apiKey: f.apiKey ?? "", apiSecret: f.apiSecret ?? "" };
     if (type === "delhivery") return { apiToken: f.apiToken ?? "" };
     if (type === "shiprocket") return { email: f.email ?? "", password: f.password ?? "" };
+    if (type === "nimbuspost") return { email: f.email ?? "", password: f.password ?? "" };
+    if (type === "xpressbees") return { email: f.email ?? "", password: f.password ?? "" };
+    if (type === "ecomexpress") return { username: f.username ?? "", password: f.password ?? "" };
+    if (type === "bluedart") return { loginId: f.loginId ?? "", apiKey: f.apiKey ?? "", apiPassword: f.apiPassword ?? "" };
     return {};
   }
 
