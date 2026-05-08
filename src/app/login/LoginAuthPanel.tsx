@@ -66,7 +66,15 @@ export function LoginAuthPanel() {
       } else {
         const { error: signInError } = await supabase.auth.signInWithPassword({ email, password })
         if (signInError) throw signInError
-        await onboardCurrentUser(brandName.trim() || email.split('@')[0])
+        // Onboarding creates the DB user record. If the DB is temporarily
+        // unavailable (e.g. Supabase infra incident), we still let the user
+        // reach the dashboard — it works from localStorage and will retry
+        // creating the record on the next successful POST /api/v1/users/me.
+        try {
+          await onboardCurrentUser(brandName.trim() || email.split('@')[0])
+        } catch {
+          // DB unreachable — proceed anyway; dashboard is client-side
+        }
         router.push('/dashboard')
         router.refresh()
       }
