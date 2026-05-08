@@ -1,6 +1,7 @@
 import type { EventHandler, StarterEvent, StarterEventType } from "./types";
 
-const eventStorageKey = "rtoshield:pro_v1:events";
+const eventStorageKey = "wembro:pro_v1:events";
+const previousEventStorageKey = "rtoshield:pro_v1:events";
 const subscribers = new Map<StarterEventType | "*", Set<EventHandler>>();
 let memoryEvents: StarterEvent[] = [];
 
@@ -15,7 +16,7 @@ function canUseLocalStorage() {
 function loadEvents() {
   if (!canUseLocalStorage()) return memoryEvents;
   try {
-    const stored = window.localStorage.getItem(eventStorageKey);
+    const stored = window.localStorage.getItem(eventStorageKey) || window.localStorage.getItem(previousEventStorageKey);
     memoryEvents = stored ? (JSON.parse(stored) as StarterEvent[]) : memoryEvents;
   } catch {
     memoryEvents = [];

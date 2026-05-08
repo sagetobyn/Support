@@ -2157,12 +2157,12 @@ p {
 .badge,
 .chip,
 .impact-pill {
-  border: 1px solid rgba(37, 33, 25, 0.08);
+  border: 1px solid rgba(122, 110, 86, 0.18);
 }
 
 .neutral {
-  background: #f1f3ef;
-  color: #475049;
+  background: #f4f1e9;
+  color: #4f554a;
 }
 
 .low,
@@ -2170,8 +2170,8 @@ p {
 .status-done,
 .status-delivered,
 .confidence-high {
-  background: #eaf8ef;
-  color: #0f6f45;
+  background: #eef5e8;
+  color: #2f5f2b;
 }
 
 .medium,
@@ -2179,27 +2179,59 @@ p {
 .status-waiting,
 .status-queued,
 .confidence-medium {
-  background: #fff2cf;
-  color: #7a4a00;
+  background: #fbefd7;
+  color: #81540f;
 }
 
 .high,
 .priority-high,
 .status-rto,
 .status-cancelled {
-  background: #ffe9da;
-  color: #a2470d;
+  background: #f8e2d3;
+  color: #984717;
 }
 
 .critical {
-  background: #ffe4e0;
-  color: var(--red);
+  background: #f4ded4;
+  color: #8d3828;
 }
 
 .priority-critical,
 .status-urgent {
-  background: #c2412d;
+  background: #9d3d28;
   color: #fffefa;
+}
+
+.trust-badge {
+  gap: 6px;
+  padding: 4px 9px;
+}
+
+.trust-badge::before {
+  background: currentColor;
+  border-radius: 999px;
+  content: "";
+  height: 6px;
+  opacity: 0.78;
+  width: 6px;
+}
+
+.trust-badge--ready {
+  background: #f3f6ed;
+  border-color: rgba(95, 128, 67, 0.22);
+  color: #496a31;
+}
+
+.trust-badge--limited {
+  background: #fbf0dc;
+  border-color: rgba(174, 112, 28, 0.22);
+  color: #805110;
+}
+
+.trust-badge--blocked {
+  background: #f4ded4;
+  border-color: rgba(151, 58, 38, 0.2);
+  color: #8d3828;
 }
 
 .metric-card {
@@ -5538,21 +5570,31 @@ tbody tr:hover td {
 }
 
 .workspace-picker {
-  background: #fffefa;
-  border: 1px solid rgba(226, 214, 194, 0.9);
+  background: linear-gradient(180deg, #fffefa 0%, #fbf6ed 100%);
+  border: 1px solid rgba(205, 190, 159, 0.95);
+  border-left: 4px solid #6f8e46;
   border-radius: 8px;
   display: grid;
   gap: 4px;
-  min-width: min(100%, 260px);
-  padding: 10px 14px;
+  min-width: min(100%, 280px);
+  padding: 10px 14px 10px 12px;
 }
 
 .workspace-picker strong {
   color: #171815;
-  font-size: 14px;
+  font-size: 15px;
+  letter-spacing: 0;
 }
 
-.workspace-picker span {
+.workspace-picker__eyebrow {
+  color: #7b836f;
+  font-size: 10px;
+  font-weight: 900;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.workspace-picker__meta {
   color: #6d746a;
   font-size: 12px;
 }
@@ -5566,7 +5608,7 @@ tbody tr:hover td {
   align-items: center;
   background: #fffefa;
   border: 1px solid rgba(226, 214, 194, 0.9);
-  border-radius: 999px;
+  border-radius: 8px;
   color: #1d201c;
   display: inline-flex;
   font-weight: 900;
@@ -5587,6 +5629,31 @@ tbody tr:hover td {
   border-color: #0f120d;
   color: #fffefa;
   font-size: 12px;
+}
+
+.data-trust-notice {
+  background:
+    linear-gradient(90deg, rgba(111, 142, 70, 0.08), transparent 40%),
+    linear-gradient(180deg, #fffefa 0%, #fbf6ed 100%);
+  border: 1px solid rgba(205, 190, 159, 0.95);
+  border-left: 4px solid #6f8e46;
+  border-radius: 8px;
+  color: #303628;
+  margin-bottom: 16px;
+  padding: 13px 14px;
+}
+
+.data-trust-notice--attention {
+  border-left-color: #b76f18;
+}
+
+.data-trust-notice strong {
+  color: #1f2b19;
+}
+
+.data-trust-notice .muted {
+  color: #606956;
+  margin: 6px 0 0;
 }
 
 .dashboard-board {
@@ -5807,28 +5874,36 @@ tbody tr:hover td {
 
 .recovery-metric__icon {
   align-items: center;
-  background: #2f632f;
-  border-radius: 999px;
-  color: #fffefa;
+  background: linear-gradient(180deg, #fffefa 0%, #f2ecdf 100%);
+  border: 1px solid rgba(188, 169, 130, 0.95);
+  border-radius: 8px;
+  color: #26381b;
   display: inline-flex;
   flex: 0 0 48px;
-  font-size: 19px;
+  font-size: 12px;
   font-weight: 950;
   height: 48px;
   justify-content: center;
+  letter-spacing: 0.04em;
   width: 48px;
 }
 
 .recovery-metric.tone-warning .recovery-metric__icon {
-  background: #c77214;
+  background: #fff4df;
+  border-color: #ddbd84;
+  color: #8f4e0f;
 }
 
 .recovery-metric.tone-danger .recovery-metric__icon {
-  background: #b3482f;
+  background: #fff0e8;
+  border-color: #d6a48c;
+  color: #9a3d25;
 }
 
 .recovery-metric.tone-neutral .recovery-metric__icon {
-  background: #464832;
+  background: #f2f1e9;
+  border-color: #c9c6b4;
+  color: #464832;
 }
 
 .recovery-metric small {

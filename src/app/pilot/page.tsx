@@ -15,8 +15,10 @@ import {
 import { buildPilotHandoffFromPlan } from "@/features/pilot-handoff";
 import { formatCurrency, formatNumber, formatPercent } from "@/lib/reporting";
 
-const pilotStorageKey = "rtoshield:pilot-plan";
-const auditStorageKey = "rtoshield:audit-sessions";
+const pilotStorageKey = "wembro:pilot-plan";
+const previousPilotStorageKey = "rtoshield:pilot-plan";
+const auditStorageKey = "wembro:audit-sessions";
+const previousAuditStorageKey = "rtoshield:audit-sessions";
 
 function getCurrentPilotDay(plan: PilotPlan) {
   const completedDays = plan.days.filter((d) => d.ordersChecked > 0).length;
@@ -32,13 +34,13 @@ export default function PilotPage() {
 
   useEffect(() => {
     try {
-      const savedPlan = localStorage.getItem(pilotStorageKey);
+      const savedPlan = localStorage.getItem(pilotStorageKey) || localStorage.getItem(previousPilotStorageKey);
       if (savedPlan) {
         const parsed = JSON.parse(savedPlan) as PilotPlan;
         setPlan(parsed);
         setCurrentDay(getCurrentPilotDay(parsed));
       }
-      const savedAudits = JSON.parse(localStorage.getItem(auditStorageKey) || "[]") as AuditSession[];
+      const savedAudits = JSON.parse(localStorage.getItem(auditStorageKey) || localStorage.getItem(previousAuditStorageKey) || "[]") as AuditSession[];
       setAudits(savedAudits);
       setSelectedAuditId(savedAudits[0]?.id || "");
     } catch {

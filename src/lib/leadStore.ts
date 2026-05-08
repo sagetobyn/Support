@@ -16,7 +16,8 @@ export interface CalculatorLead {
   createdAt: string;
 }
 
-export const calculatorLeadStorageKey = "rtoshield:calculator-leads";
+export const calculatorLeadStorageKey = "wembro:calculator-leads";
+export const previousCalculatorLeadStorageKey = "rtoshield:calculator-leads";
 
 function readStorage(storage: Storage, key: string) {
   try {
@@ -28,7 +29,8 @@ function readStorage(storage: Storage, key: string) {
 
 export function listCalculatorLeads(storage?: Storage) {
   if (!storage) return [];
-  return readStorage(storage, calculatorLeadStorageKey);
+  const current = readStorage(storage, calculatorLeadStorageKey);
+  return current.length ? current : readStorage(storage, previousCalculatorLeadStorageKey);
 }
 
 export function saveCalculatorLead(lead: Omit<CalculatorLead, "id" | "createdAt">, storage?: Storage) {
@@ -38,14 +40,14 @@ export function saveCalculatorLead(lead: Omit<CalculatorLead, "id" | "createdAt"
     id: `lead-${Date.now()}-${Math.random().toString(16).slice(2, 7)}`,
     createdAt: new Date().toISOString()
   };
-  const next = [record, ...readStorage(storage, calculatorLeadStorageKey)];
+  const next = [record, ...listCalculatorLeads(storage)];
   storage.setItem(calculatorLeadStorageKey, JSON.stringify(next));
   return record;
 }
 
 export function deleteLead(id: string, storage?: Storage) {
   if (!storage) return [];
-  const next = readStorage(storage, calculatorLeadStorageKey).filter((lead) => lead.id !== id);
+  const next = listCalculatorLeads(storage).filter((lead) => lead.id !== id);
   storage.setItem(calculatorLeadStorageKey, JSON.stringify(next));
   return next;
 }

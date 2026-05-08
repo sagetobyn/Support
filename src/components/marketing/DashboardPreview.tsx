@@ -10,7 +10,7 @@ export function DashboardPreview({ compact = false }: { compact?: boolean }) {
         <p>The dashboard leads with the money at risk and the action to take. Tables, rules, logs, and setup stay behind clear drill-downs.</p>
       </div>
       <div className="dashboard-preview-frame">
-        <img src="/media/dashboard-control-room.png" alt="RTOShield dashboard showing profit recovery briefing and operational controls" />
+        <img src="/media/dashboard-control-room.png" alt="Wembro dashboard showing profit recovery briefing and operational controls" />
         <div className="dashboard-preview-panel" aria-label="Dashboard highlights">
           {dashboardHighlights.map((item) => (
             <div className="dashboard-preview-point" key={item}>

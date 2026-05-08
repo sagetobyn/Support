@@ -157,6 +157,6 @@ export function buildIntegrationReadinessSummary(cards = integrationReadinessCar
   };
 }
 
-export function placeholderWebhookUrl(baseUrl = "https://rtoshield.example.com") {
+export function placeholderWebhookUrl(baseUrl = "https://wembro.example.com") {
   return `${baseUrl}/api/webhooks/provider-placeholder`;
 }

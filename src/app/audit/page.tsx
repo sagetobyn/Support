@@ -16,7 +16,8 @@ import {
 } from "@/lib/audit";
 import { formatCurrency, formatNumber, formatPercent } from "@/lib/reporting";
 
-const auditStorageKey = "rtoshield:audit-sessions";
+const auditStorageKey = "wembro:audit-sessions";
+const previousAuditStorageKey = "rtoshield:audit-sessions";
 
 function initialSummary(): SummaryAuditInputs {
   return {
@@ -53,7 +54,7 @@ export default function AuditPage() {
 
   useEffect(() => {
     try {
-      setSessions(JSON.parse(localStorage.getItem(auditStorageKey) || "[]") as AuditSession[]);
+      setSessions(JSON.parse(localStorage.getItem(auditStorageKey) || localStorage.getItem(previousAuditStorageKey) || "[]") as AuditSession[]);
     } catch {
       setSessions([]);
     }

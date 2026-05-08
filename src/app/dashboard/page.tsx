@@ -1101,8 +1101,9 @@ export default function Home() {
       <main className="main">
         <div className="topbar">
           <div className="workspace-picker">
+            <span className="workspace-picker__eyebrow">Workspace</span>
             <strong>{brand.name}</strong>
-            <span>{activePlan.name} plan · {orders.length.toLocaleString("en-IN")} orders · {dateRange === "30d" ? "Last 30 days" : dateRange}</span>
+            <span className="workspace-picker__meta">{activePlan.name} plan · {orders.length.toLocaleString("en-IN")} orders · {dateRange === "30d" ? "Last 30 days" : dateRange}</span>
           </div>
           <div className="toolbar tight">
             <DataQualityBadge score={dataQualityScore} />
@@ -1323,7 +1324,7 @@ function WorkspaceSummary({ orders, roi, lastImport, dataTrust }: { orders: Orde
 
 function DataTrustNotice({ dataTrust, setView, compact = false }: { dataTrust: DataTrust; setView: (view: View) => void; compact?: boolean }) {
   if (dataTrust.status === "ready" && compact) return null;
-  const className = dataTrust.status === "ready" ? "success" : "notice";
+  const className = `data-trust-notice data-trust-notice--${dataTrust.status === "ready" ? "ready" : "attention"}`;
   const visibleIssues = dataTrust.issues.slice(0, compact ? 2 : 3);
   return (
     <section className={className}>
@@ -1585,12 +1586,12 @@ function MorningBriefing({ orders, ndrCases, actionGroups, brand, savingsEvents,
       </div>
 
       <div className="recovery-metrics">
-        <RecoveryMetricCard title="At-risk revenue" value={money(atRiskRevenue)} detail="Recoverable leakage" tone="success" icon="₹" />
+        <RecoveryMetricCard title="At-risk revenue" value={money(atRiskRevenue)} detail="Recoverable leakage" tone="success" icon="Rs" />
         <RecoveryMetricCard title="Critical actions" value={criticalActions.length} detail="Needs attention" tone="danger" icon="!" />
-        <RecoveryMetricCard title="NDRs nearing SLA" value={ndrBreachingSoon} detail={ndrBreachingSoon ? "Act within 2h" : "Within SLA"} tone="warning" icon="⏱" />
-        <RecoveryMetricCard title="Recovered this month" value={money(recoveredThisMonth)} detail="Savings ledger" tone="success" icon="✓" />
-        <RecoveryMetricCard title="Recovery rate" value={percent(recoveryRate)} detail="Savings / RTO loss" tone="neutral" icon="↗" />
-        <RecoveryMetricCard title="COD risk score" value={`${codRiskScore} / 100`} detail={codRiskLabel} tone={codRiskScore >= 70 ? "danger" : codRiskScore >= 45 ? "warning" : "success"} icon="◇" />
+        <RecoveryMetricCard title="NDRs nearing SLA" value={ndrBreachingSoon} detail={ndrBreachingSoon ? "Act within 2h" : "Within SLA"} tone="warning" icon="SLA" />
+        <RecoveryMetricCard title="Recovered this month" value={money(recoveredThisMonth)} detail="Savings ledger" tone="success" icon="OK" />
+        <RecoveryMetricCard title="Recovery rate" value={percent(recoveryRate)} detail="Savings / RTO loss" tone="neutral" icon="%" />
+        <RecoveryMetricCard title="COD risk score" value={`${codRiskScore} / 100`} detail={codRiskLabel} tone={codRiskScore >= 70 ? "danger" : codRiskScore >= 45 ? "warning" : "success"} icon="COD" />
       </div>
 
       {criticalActions.length === 0 && highActions.length === 0 && (
@@ -1664,7 +1665,7 @@ function trustForDriver(driver: LeakageAtlasDriver, dataTrust: DataTrust) {
 function TrustBadge({ item }: { item: AnalysisReadinessItem }) {
   const className = item.status === "ready" ? "low" : item.status === "limited" ? "medium" : "critical";
   return (
-    <span className={`badge trust-badge ${className}`} title={item.reason}>
+    <span className={`badge trust-badge trust-badge--${item.status} ${className}`} title={item.reason}>
       {trustBadgeLabel(item)}
     </span>
   );

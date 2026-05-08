@@ -7,7 +7,7 @@ export function MarketingHeader({ variant = "light" }: { variant?: "light" | "da
         <span>W</span>
         <strong>
           Wembro
-          <small>RTOShield Profit Recovery</small>
+          <small>Profit Recovery Control Room</small>
         </strong>
       </Link>
       <nav className="saas-nav" aria-label="Main navigation">

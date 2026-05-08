@@ -7,7 +7,7 @@ export function PersonaPage({ persona }: { persona: PersonaContent }) {
   return (
     <MarketingPage>
       <section className="persona-hero">
-        <img className="product-hero__bg" src="/media/dashboard-control-room.png" alt="RTOShield dashboard interface" />
+        <img className="product-hero__bg" src="/media/dashboard-control-room.png" alt="Wembro dashboard interface" />
         <div>
           <span className="eyebrow">{persona.eyebrow}</span>
           <h1>{persona.headline}</h1>

@@ -18,7 +18,8 @@ import type {
 import type { PlanId } from "@/features/plans";
 
 export const storageVersion = "starter_v1";
-export const workspaceStorageKey = `rtoshield:${storageVersion}`;
+export const workspaceStorageKey = `wembro:${storageVersion}`;
+export const previousWorkspaceStorageKey = `rtoshield:${storageVersion}`;
 export const legacyStorageKey = "rtoshield:v0.2";
 
 export interface StarterWorkspaceState {
@@ -66,7 +67,7 @@ function canUseLocalStorage() {
 export function loadWorkspaceState(fallback: StarterWorkspaceState = emptyStarterWorkspace()) {
   if (!canUseLocalStorage()) return fallback;
   try {
-    const current = window.localStorage.getItem(workspaceStorageKey);
+    const current = window.localStorage.getItem(workspaceStorageKey) || window.localStorage.getItem(previousWorkspaceStorageKey);
     if (current) return { ...fallback, ...(JSON.parse(current) as Partial<StarterWorkspaceState>), storageVersion };
 
     const legacy = window.localStorage.getItem(legacyStorageKey);
@@ -104,4 +105,5 @@ export function importWorkspaceBackup(json: string) {
 export function clearWorkspaceState() {
   if (!canUseLocalStorage()) return;
   window.localStorage.removeItem(workspaceStorageKey);
+  window.localStorage.removeItem(previousWorkspaceStorageKey);
 }
