@@ -26,10 +26,10 @@ describe("Navigation and workflow smoke coverage", () => {
   });
 
   it("defines the SaaS website journey around product, personas, trust, and conversion", () => {
-    expect(recoverySteps.map((step) => step.title)).toEqual(["Measure the leak", "Choose the mission", "Act with context", "Prove the value"]);
-    expect(serviceModules.map((module) => module.name)).toEqual(expect.arrayContaining(["Leakage Check", "Profit Audit", "Daily Control Room", "Founder Intelligence"]));
+    expect(recoverySteps.map((step) => step.title)).toEqual(["Measure the leak", "Pick the priority", "Act with context", "Prove the savings"]);
+    expect(serviceModules.map((module) => module.name)).toEqual(expect.arrayContaining(["Free Leakage Check", "Profit Audit", "Daily Control Room", "Founder Reports"]));
     expect(personaPages.map((persona) => persona.slug)).toEqual(["founder", "operations", "growth-lead"]);
-    expect(trustSignals.join(" ")).toContain("Transparent formulas");
+    expect(trustSignals.join(" ")).toContain("Every formula is visible");
   });
 
   it("derives cockpit metrics and recoverable leakage from actionable orders", () => {

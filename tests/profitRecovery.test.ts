@@ -47,15 +47,18 @@ describe("ProfitRecoveryService", () => {
   });
 
   it("estimates leakage from risk bucket and records confirmed RTO at full loss", () => {
-    const lossPerRto =
+    const baseLoss =
       defaultBrand.forwardShippingCost +
       defaultBrand.returnShippingCost +
       defaultBrand.packagingCost +
       defaultBrand.estimatedCac +
       defaultBrand.codFee +
       (defaultBrand.supportOpsCost || 0);
-    expect(estimatedLeakageForOrder(baseOrder as Order, defaultBrand)).toBe(Math.round(lossPerRto * 0.55));
-    expect(estimatedLeakageForOrder({ ...baseOrder, finalStatus: "RTO" } as Order, defaultBrand)).toBe(lossPerRto);
+    const cogsPct = 1 - (defaultBrand.grossMarginPercent ?? 40) / 100;
+    const cogsLoss = Math.round(baseOrder.orderValue * cogsPct);
+    const fullRtoLoss = baseLoss + cogsLoss;
+    expect(estimatedLeakageForOrder(baseOrder as Order, defaultBrand)).toBe(Math.round(fullRtoLoss * 0.55));
+    expect(estimatedLeakageForOrder({ ...baseOrder, finalStatus: "RTO" } as Order, defaultBrand)).toBe(fullRtoLoss);
     expect(estimatedLeakageForOrder({ ...baseOrder, finalStatus: "Delivered" } as Order, defaultBrand)).toBe(0);
   });
 

@@ -2,8 +2,8 @@ import type { Metadata } from "next";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "SupportWaala — RTOShield Profit Recovery SaaS",
-  description: "Modern COD, NDR, and RTO profit recovery SaaS for ecommerce sellers"
+  title: "Wembro — Profit Recovery for Ecom Sellers",
+  description: "COD, NDR, and RTO profit recovery for ecommerce sellers"
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {

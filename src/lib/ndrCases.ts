@@ -28,7 +28,10 @@ export function buildNdrCases(orders: Order[], existingCases: NdrCase[] = [], se
       const previous = existing.get(order.id);
       const normalized = normalizeNdrReason(order.ndrReason || order.shipmentStatus);
       const urgent = order.attemptCount >= 2;
-      const createdAt = previous?.ndrCreatedAt || order.updatedAt;
+      const orderDateIso = order.orderDate ? new Date(order.orderDate).toISOString() : "";
+      const createdAt =
+        previous?.ndrCreatedAt ||
+        (orderDateIso && !Number.isNaN(new Date(orderDateIso).getTime()) ? orderDateIso : order.updatedAt);
       const slaHours = settings?.ndrSlaHours || 12;
       const hoursSinceNdr = hoursBetween(createdAt);
       const slaDeadline = new Date(new Date(createdAt).getTime() + slaHours * 36e5).toISOString();

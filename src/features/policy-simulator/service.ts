@@ -52,7 +52,7 @@ export function simulatePolicy(orders: Order[], brand: BrandSettings, input: Sim
     assumedSavedLeakage: Math.round(assumedSavedLeakage),
     interventionCost: Math.round(interventionCost),
     lostContributionEstimate: Math.round(lostContributionEstimate),
-    netEstimatedBenefit: Math.round(assumedSavedLeakage - interventionCost - lostContributionEstimate),
+    netEstimatedBenefit: Math.round(assumedSavedLeakage) - Math.round(interventionCost) - Math.round(lostContributionEstimate),
     riskNotes: ["This is a simple simulation, not a guarantee.", `Pilot duration: ${input.pilotDurationDays} days.`],
     createdAt: new Date().toISOString()
   };

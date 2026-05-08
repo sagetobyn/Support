@@ -465,8 +465,8 @@ export default function Home() {
   const urgentNdrCount = ndrCases.filter((ndr) => (ndr.hoursSinceNdr || 0) >= 8 && !["delivered_after_ndr", "rto"].includes(ndr.state)).length;
 
   function navBadge(id?: View, staticBadge?: string) {
-    if (id === "missions" && openActionCount) return String(Math.min(openActionCount, 99));
-    if (id === "ndr" && urgentNdrCount) return String(Math.min(urgentNdrCount, 99));
+    if (id === "missions" && openActionCount) return openActionCount > 99 ? "99+" : String(openActionCount);
+    if (id === "ndr" && urgentNdrCount) return urgentNdrCount > 99 ? "99+" : String(urgentNdrCount);
     return staticBadge;
   }
 
@@ -1157,11 +1157,24 @@ function Dashboard({ roi, actionGroups, brand, savingsEvents, orders, ndrCases, 
   const topActions = openActions
     .sort((a, b) => estimatedLeakageForOrder(b, brand) - estimatedLeakageForOrder(a, brand))
     .slice(0, 5);
+  const isFinalDelivered = (order: Order) => /delivered/i.test(order.finalStatus || "");
+  const isFinalRto = (order: Order) => /rto|return to origin/i.test(order.finalStatus || "");
+  const isInTransit = (order: Order) => /transit|picked|ofd/i.test(`${order.finalStatus} ${order.shipmentStatus}`);
+  const deliveredCount = orders.filter(isFinalDelivered).length;
+  const inTransitCount = orders.filter((order) => !isFinalDelivered(order) && !isFinalRto(order) && isInTransit(order)).length;
+  const activeNdrCount = orders.filter(
+    (order) =>
+      !isFinalDelivered(order) &&
+      !isFinalRto(order) &&
+      (order.ndrReason || /ndr|undelivered|failed/i.test(order.shipmentStatus || ""))
+  ).length;
+  const otherCount = Math.max(0, orders.length - deliveredCount - roi.totalRto - inTransitCount - activeNdrCount);
   const statusRows = [
-    { label: "Delivered", value: orders.filter((order) => /delivered/i.test(order.finalStatus || "")).length, tone: "success" },
+    { label: "Delivered", value: deliveredCount, tone: "success" },
     { label: "RTO", value: roi.totalRto, tone: "danger" },
-    { label: "NDR", value: roi.ndrCases, tone: "warning" },
-    { label: "In transit", value: orders.filter((order) => /transit|picked|ofd/i.test(`${order.finalStatus} ${order.shipmentStatus}`)).length, tone: "neutral" }
+    { label: "Active NDR", value: activeNdrCount, tone: "warning" },
+    { label: "In transit", value: inTransitCount, tone: "neutral" },
+    ...(otherCount > 0 ? [{ label: "Other / unknown", value: otherCount, tone: "neutral" as const }] : [])
   ];
   const pincodePolicies = analyzePincodePolicies(orders, brand);
   const courierPolicies = analyzeCourierPolicies(orders, brand).recommendations;
@@ -1186,7 +1199,7 @@ function Dashboard({ roi, actionGroups, brand, savingsEvents, orders, ndrCases, 
     <div className="grid">
       <section className="hero-insight">
         <div>
-          <h2>RTOShield by SupportWaala</h2>
+          <h2>Wembro Profit Overview</h2>
           <div className="hero-insight__value">{money(recoverableLeakage)}</div>
           <p>Estimated preventable leakage this month. Start with the business problem, then the daily recovery workflow: COD failures, weak addresses, courier lanes, and delayed NDR action.</p>
           <div className="toolbar tight">
@@ -2037,7 +2050,7 @@ function ServiceProductMap({ setView }: { setView: (view: View) => void }) {
     <section className="panel">
       <PageHeader
         title="Service Products For Different Client Personas"
-        subtitle="The same RTOShield workflow is packaged by what the client is trying to improve: trust, diagnosis, pilot execution, daily operations, or founder decisions."
+        subtitle="The same Wembro workflow is packaged by what the client is trying to improve: trust, diagnosis, pilot execution, daily operations, or founder decisions."
       />
       <div className="service-grid">
         {serviceProducts.map((product) => (
@@ -2527,7 +2540,11 @@ function NdrView({ orders, role, brand, ndrCases, queueMessage, recordResponse, 
   const [selectedNdrId, setSelectedNdrId] = useState(ndrCases[0]?.id || "");
   const activeNdrs = ndrCases.filter((ndr) => !["delivered_after_ndr", "rto"].includes(ndr.state));
   const urgentNdrs = ndrCases.filter((ndr) => ndr.urgency === "Critical" || ndr.urgency === "High");
-  const breached = ndrCases.filter((ndr) => (ndr.hoursSinceNdr || 0) >= 12);
+  const breached = ndrCases.filter(
+    (ndr) =>
+      !["delivered_after_ndr", "rto"].includes(ndr.state) &&
+      ((ndr.hoursSinceNdr || 0) >= 12 || (ndr.attemptCount || 0) >= 3)
+  );
   const deliveredAfterNdr = ndrCases.filter((ndr) => ndr.state === "delivered_after_ndr").length;
   const filteredNdrs = ndrCases.filter((ndr) => {
     if (tab === "urgent") return ndr.urgency === "Critical" || ndr.urgency === "High";
@@ -2997,7 +3014,7 @@ function TemplatesView({ orders, ndrCases, brand, selectedOrder, setSelectedOrde
 
 function ReportsView({ report }: { report: ReturnType<typeof generateAuditReport> }) {
   function reportText() {
-    return `SupportWaala RTOShield Profit Leakage Report\nOrders: ${report.orderVolume}\nCOD: ${percent(report.codPercentage)}\nRTO: ${percent(report.rtoRate)}\nEstimated monthly RTO loss: ${money(report.estimatedMonthlyLoss)}\nRecommended action plan:\n${report.recommendedPilotPlan.join("\n")}`;
+    return `Wembro Profit Leakage Report\nOrders: ${report.orderVolume}\nCOD: ${percent(report.codPercentage)}\nRTO: ${percent(report.rtoRate)}\nEstimated monthly RTO loss: ${money(report.estimatedMonthlyLoss)}\nRecommended action plan:\n${report.recommendedPilotPlan.join("\n")}`;
   }
   function download(filename: string, content: string, type: string) {
     const blob = new Blob([content], { type });
@@ -3011,7 +3028,7 @@ function ReportsView({ report }: { report: ReturnType<typeof generateAuditReport
   return (
     <div className="printable grid report-grid">
       <ReportPanel title="Profit Leakage Report">
-        <p className="muted">SupportWaala starts with RTOShield: measurable leakage, daily actions, NDR rescue, and a savings ledger.</p>
+        <p className="muted">Wembro: measurable leakage, daily actions, NDR rescue, and a savings ledger.</p>
         <div className="toolbar">
           <button className="button secondary" onClick={() => navigator.clipboard?.writeText(reportText())}>Copy report</button>
           <PrintButton label="Print report" />
