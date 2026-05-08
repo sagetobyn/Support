@@ -19,6 +19,7 @@ model Brand {
   actions       Action[]
   savingsEvents SavingsEvent[]
   auditLogs     AuditLog[]
+  integrations  Integration[]
 
   @@map("brands")
 }
@@ -124,4 +125,28 @@ model AuditLog {
 
   @@index([brandId])
   @@map("audit_logs")
+}
+
+// Stores a connected integration per brand (one row per platform per brand).
+// credentials is a JSON blob — store only what the API adapter needs (token, shop url, etc).
+// Never log credentials in audit logs or API responses.
+model Integration {
+  id             String    @id @default(uuid())
+  brandId        String    @map("brand_id")
+  type           String    // "shopify" | "woocommerce" | "delhivery" | "shiprocket"
+  label          String?   // human label e.g. "My Shopify Store"
+  status         String    @default("active") // "active" | "paused" | "error"
+  credentials    Json      // platform-specific: { shopUrl, accessToken } etc — never expose in API
+  lastSyncAt     DateTime? @map("last_sync_at")
+  lastSyncStatus String?   @map("last_sync_status") // "ok" | "error"
+  lastSyncError  String?   @map("last_sync_error")
+  syncedCount    Int       @default(0) @map("synced_count")
+  createdAt      DateTime  @default(now()) @map("created_at")
+  updatedAt      DateTime  @updatedAt @map("updated_at")
+
+  brand          Brand     @relation(fields: [brandId], references: [id], onDelete: Cascade)
+
+  @@unique([brandId, type, label])
+  @@index([brandId])
+  @@map("integrations")
 }

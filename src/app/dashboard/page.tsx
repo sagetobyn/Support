@@ -60,7 +60,8 @@ import { calculateSavingsLedger, savingsProofStatus, updateSavingEvent } from "@
 import { generateWeeklyFounderReport } from "@/features/weekly-report";
 import { generateMonthlyStrategyReport } from "@/features/monthly-strategy";
 import { simulatePolicy, type SimulatedPolicyType } from "@/features/policy-simulator";
-import { buildProductionTrustSummary, integrationReadinessCards, productionSecretsWarning } from "@/features/integration-readiness";
+import { buildProductionTrustSummary } from "@/features/integration-readiness";
+import { IntegrationsView } from "@/features/integrations/components/IntegrationsView";
 import { defaultOnboardingChecklist, onboardingProgress } from "@/features/onboarding";
 import { sopTemplates } from "@/features/sops";
 import { canRole } from "@/features/roles";
@@ -3530,7 +3531,7 @@ function ProView({ view, brand, orders, stores, messages, savingsEvents, role, d
     return <ReportPanel title="Policy Simulator"><p className="notice">{simulation.riskNotes[0]}</p><div className="grid metrics"><Metric label="Affected orders" value={simulation.affectedOrders} /><Metric label="Baseline leakage" value={money(simulation.baselineEstimatedLeakage)} /><Metric label="Saved leakage" value={money(simulation.assumedSavedLeakage)} /><Metric label="Intervention cost" value={money(simulation.interventionCost)} /><Metric label="Net benefit" value={money(simulation.netEstimatedBenefit)} /></div></ReportPanel>;
   }
   if (view === "integrations") {
-    return <div className="grid report-grid">{integrationReadinessCards.map((card) => <ReportPanel title={card.name} key={card.name}><span className="badge neutral">{card.status}</span><p className="muted">Data needed: {card.dataNeeded.join(", ")}</p><p>Unlocks: {card.unlocks.join(", ")}</p><p>Current workaround: {card.currentWorkaround}</p><p className="notice">{productionSecretsWarning}</p></ReportPanel>)}</div>;
+    return <IntegrationsView />;
   }
   if (view === "sops") {
     return <div className="grid report-grid">{sopTemplates.map((sop) => <ReportPanel title={sop.title} key={sop.id}><p>{sop.purpose}</p><p className="muted">Owner: {sop.owner} · Metric: {sop.successMetric}</p>{sop.steps.map((step) => <div className="action-row" key={step}>{step}</div>)}</ReportPanel>)}</div>;
