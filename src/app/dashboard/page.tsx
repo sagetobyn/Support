@@ -33,7 +33,7 @@ import {
 } from "@/lib/roi";
 import { maskPhone } from "@/lib/privacy";
 import { nextActionAfterResponse, recommendedActionLabel } from "@/lib/actions";
-import { renderTemplate, templateButtons, templates, type TemplateType } from "@/lib/messaging";
+import { buildWaMeLink, renderTemplate, templateButtons, templates, type TemplateType } from "@/lib/messaging";
 import { detectIntent } from "@/lib/responses";
 import { generateAuditReport } from "@/lib/auditReport";
 import { normalizeNdrReason } from "@/lib/ndr";
@@ -3246,20 +3246,28 @@ function TemplatesView({ orders, ndrCases, brand, selectedOrder, setSelectedOrde
           <p>{preview}</p>
           <div className="chips">{templateButtons[templateType].map((button) => <span className="chip" key={button}>{button}</span>)}</div>
         </div>
-        <button className="button" disabled={deliveredNoAction} onClick={() => queueMessage(selectedOrder, templateType)}>Queue mock WhatsApp</button>
-        <p className="muted">Real WhatsApp integration is available later. This MVP supports mock/manual export with estimated utility/service costs.</p>
+        <button className="button" disabled={deliveredNoAction} onClick={() => queueMessage(selectedOrder, templateType)}>Queue WhatsApp</button>
+        <p className="muted">Queue messages here, then click <strong>Send on WhatsApp</strong> in the outbox to open WhatsApp with the message pre-filled. You stay in control — review and hit send from your own number.</p>
         <p className="muted">NDR case: {ndrCases.find((item) => item.orderId === selectedOrder.id)?.state || "not NDR"}</p>
       </div>
       <div className="panel">
         <div className="split"><h2>Queued And Manual Messages</h2><button className="button secondary" onClick={exportOutbox} disabled={!messages.length}>Export messages CSV</button></div>
         {messages.length ? messages.slice(0, 14).map((message) => {
           const order = orders.find((item) => item.id === message.orderId);
+          const waLink = buildWaMeLink(order?.phone, message.messageBody);
+          const alreadySent = message.status === "sent" || message.status === "manually_sent" || message.status === "responded";
+          function sendOnWhatsApp() {
+            if (!waLink) return;
+            window.open(waLink, "_blank", "noopener,noreferrer");
+            if (!alreadySent) updateMessageStatus(message, "manually_sent");
+          }
           return (
             <div className="action-row" key={message.id}>
               <div className="split"><strong>{message.templateType.replaceAll("_", " ")}</strong><span className="badge neutral">{message.status}</span></div>
               <div className="muted">{message.recipientPhoneMasked} · {order?.orderId}</div>
               <div>{message.messageBody}</div>
               <div className="toolbar tight">
+                <button className="button" disabled={!waLink} title={waLink ? "Opens WhatsApp with this message pre-filled. You review and hit send." : "Customer phone missing or invalid"} onClick={sendOnWhatsApp}>Send on WhatsApp</button>
                 <button className="button secondary" onClick={() => updateMessageStatus(message, "manually_sent")}>Mark sent</button>
                 <button className="button secondary" onClick={() => updateMessageStatus(message, "failed")}>Failed</button>
               </div>
