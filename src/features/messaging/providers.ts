@@ -1,5 +1,5 @@
 import type { BrandSettings, Message, Order } from "@/types/domain";
-import { createMockMessage, templateButtons, type TemplateType } from "@/lib/messaging";
+import { buildWaMeLink, createMockMessage, templateButtons, type TemplateType } from "@/lib/messaging";
 import { canQueueOperationalMessage } from "./messaging.service";
 
 export type MessageStatus = Message["status"];
@@ -34,6 +34,18 @@ export class MockProvider implements MessagingProvider {
   }
 }
 
+export class WaMeProvider implements MessagingProvider {
+  async sendMessage(message: Message): Promise<MessageResult> {
+    return { ok: true, providerMessageId: `wa_me-${message.id}`, status: "queued" };
+  }
+  async getMessageStatus() {
+    return "queued" as const;
+  }
+  parseWebhook(payload: unknown) {
+    return { rawText: JSON.stringify(payload) };
+  }
+}
+
 export class ManualExportProvider implements MessagingProvider {
   async sendMessage(message: Message): Promise<MessageResult> {
     return { ok: true, providerMessageId: `manual-${message.id}`, status: "queued" };
@@ -59,9 +71,14 @@ export class ProviderReadyPlaceholder implements MessagingProvider {
 }
 
 export function createProvider(mode: BrandSettings["whatsappProviderMode"]): MessagingProvider {
+  if (mode === "wa_me") return new WaMeProvider();
   if (mode === "manual_export") return new ManualExportProvider();
   if (mode === "add_on") return new ProviderReadyPlaceholder();
   return new MockProvider();
+}
+
+export function buildWaMeLinkForMessage(message: Message, order: Pick<Order, "phone"> | undefined, defaultCountryCode = "91") {
+  return buildWaMeLink(order?.phone, message.messageBody, defaultCountryCode);
 }
 
 export function defaultTemplateForContext(order: Order, templateHint?: TemplateType): TemplateType {

@@ -102,6 +102,20 @@ export function renderTemplate(template: TemplateType, order: Order, brand: Bran
   return templates[template].replace(/\{\{(\w+)\}\}/g, (_, key: string) => String(values[key] ?? ""));
 }
 
+export function formatWhatsAppPhone(phone: string | undefined, defaultCountryCode = "91"): string | null {
+  if (!phone) return null;
+  const digits = phone.replace(/\D/g, "");
+  if (digits.length < 10) return null;
+  if (digits.length === 10) return `${defaultCountryCode}${digits}`;
+  return digits;
+}
+
+export function buildWaMeLink(phone: string | undefined, body: string, defaultCountryCode = "91"): string | null {
+  const formatted = formatWhatsAppPhone(phone, defaultCountryCode);
+  if (!formatted) return null;
+  return `https://wa.me/${formatted}?text=${encodeURIComponent(body)}`;
+}
+
 export function createMockMessage(params: {
   brand: BrandSettings;
   order: Order;

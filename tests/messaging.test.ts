@@ -3,6 +3,7 @@ import type { Order } from "@/types/domain";
 import { defaultBrand } from "@/data/seed";
 import { clearEvents, listEvents } from "@/shared/events";
 import { defaultTemplateForStarter, queueMockMessage, renderTemplate } from "@/features/messaging";
+import { buildWaMeLink, formatWhatsAppPhone } from "@/lib/messaging";
 
 const baseOrder = {
   id: "order-1",
@@ -44,6 +45,20 @@ describe("MessagingFeature", () => {
     const delivered = { ...baseOrder, finalStatus: "Delivered", recommendedAction: "no_action" } as Order;
     expect(() => queueMockMessage({ brand: defaultBrand, order: delivered, templateType: "cod_confirmation" })).toThrow(/delivered/i);
     expect(defaultTemplateForStarter(baseOrder as Order, { id: "ndr-1" } as never)).toBe("ndr_rescue");
+  });
+
+  it("formats Indian phones to E.164 wa.me form and builds click-to-chat links", () => {
+    expect(formatWhatsAppPhone("9876543210")).toBe("919876543210");
+    expect(formatWhatsAppPhone("+91 98765-43210")).toBe("919876543210");
+    expect(formatWhatsAppPhone("919876543210")).toBe("919876543210");
+    expect(formatWhatsAppPhone("12345")).toBeNull();
+    expect(formatWhatsAppPhone(undefined)).toBeNull();
+
+    const link = buildWaMeLink("9876543210", "Hi Rahul, order T-1 is out for delivery.");
+    expect(link).toContain("https://wa.me/919876543210");
+    expect(link).toContain("Hi%20Rahul");
+    expect(link).toContain("T-1");
+    expect(buildWaMeLink(undefined, "x")).toBeNull();
   });
 });
 

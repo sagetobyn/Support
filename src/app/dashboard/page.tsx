@@ -33,7 +33,7 @@ import {
 } from "@/lib/roi";
 import { maskPhone } from "@/lib/privacy";
 import { nextActionAfterResponse, recommendedActionLabel } from "@/lib/actions";
-import { renderTemplate, templateButtons, templates, type TemplateType } from "@/lib/messaging";
+import { buildWaMeLink, renderTemplate, templateButtons, templates, type TemplateType } from "@/lib/messaging";
 import { detectIntent } from "@/lib/responses";
 import { generateAuditReport } from "@/lib/auditReport";
 import { normalizeNdrReason } from "@/lib/ndr";
@@ -60,14 +60,8 @@ import { calculateSavingsLedger, savingsProofStatus, updateSavingEvent } from "@
 import { buildFounderDecisionBrief, generateWeeklyFounderReport } from "@/features/weekly-report";
 import { generateMonthlyStrategyReport } from "@/features/monthly-strategy";
 import { simulatePolicy, type SimulatedPolicyType } from "@/features/policy-simulator";
-import {
-  automationStageLabel,
-  buildIntegrationReadinessSummary,
-  buildProductionTrustSummary,
-  integrationReadinessCards,
-  placeholderWebhookUrl,
-  productionSecretsWarning
-} from "@/features/integration-readiness";
+import { buildProductionTrustSummary } from "@/features/integration-readiness";
+import { IntegrationsView } from "@/features/integrations/components/IntegrationsView";
 import { buildOnboardingJourney, defaultOnboardingChecklist, onboardingProgress } from "@/features/onboarding";
 import { sopTemplates } from "@/features/sops";
 import { buildFutureOsBoundary, futureOsModules } from "@/features/operations-os";
@@ -3487,20 +3481,28 @@ function TemplatesView({ orders, ndrCases, brand, selectedOrder, setSelectedOrde
           <p>{preview}</p>
           <div className="chips">{templateButtons[templateType].map((button) => <span className="chip" key={button}>{button}</span>)}</div>
         </div>
-        <button className="button" disabled={deliveredNoAction} onClick={() => queueMessage(selectedOrder, templateType)}>Queue mock WhatsApp</button>
-        <p className="muted">Real WhatsApp integration is available later. This MVP supports mock/manual export with estimated utility/service costs.</p>
+        <button className="button" disabled={deliveredNoAction} onClick={() => queueMessage(selectedOrder, templateType)}>Queue WhatsApp</button>
+        <p className="muted">Queue messages here, then click <strong>Send on WhatsApp</strong> in the outbox to open WhatsApp with the message pre-filled. You stay in control — review and hit send from your own number.</p>
         <p className="muted">NDR case: {ndrCases.find((item) => item.orderId === selectedOrder.id)?.state || "not NDR"}</p>
       </div>
       <div className="panel">
         <div className="split"><h2>Queued And Manual Messages</h2><button className="button secondary" onClick={exportOutbox} disabled={!messages.length}>Export messages CSV</button></div>
         {messages.length ? messages.slice(0, 14).map((message) => {
           const order = orders.find((item) => item.id === message.orderId);
+          const waLink = buildWaMeLink(order?.phone, message.messageBody);
+          const alreadySent = message.status === "sent" || message.status === "manually_sent" || message.status === "responded";
+          function sendOnWhatsApp() {
+            if (!waLink) return;
+            window.open(waLink, "_blank", "noopener,noreferrer");
+            if (!alreadySent) updateMessageStatus(message, "manually_sent");
+          }
           return (
             <div className="action-row" key={message.id}>
               <div className="split"><strong>{message.templateType.replaceAll("_", " ")}</strong><span className="badge neutral">{message.status}</span></div>
               <div className="muted">{message.recipientPhoneMasked} · {order?.orderId}</div>
               <div>{message.messageBody}</div>
               <div className="toolbar tight">
+                <button className="button" disabled={!waLink} title={waLink ? "Opens WhatsApp with this message pre-filled. You review and hit send." : "Customer phone missing or invalid"} onClick={sendOnWhatsApp}>Send on WhatsApp</button>
                 <button className="button secondary" onClick={() => updateMessageStatus(message, "manually_sent")}>Mark sent</button>
                 <button className="button secondary" onClick={() => updateMessageStatus(message, "failed")}>Failed</button>
               </div>
@@ -3844,55 +3846,7 @@ function ProView({ view, brand, orders, stores, messages, savingsEvents, role, d
     return <ReportPanel title="Policy Simulator"><p className="notice">{simulation.riskNotes[0]}</p><div className="grid metrics"><Metric label="Affected orders" value={simulation.affectedOrders} /><Metric label="Baseline leakage" value={money(simulation.baselineEstimatedLeakage)} /><Metric label="Saved leakage" value={money(simulation.assumedSavedLeakage)} /><Metric label="Intervention cost" value={money(simulation.interventionCost)} /><Metric label="Net benefit" value={money(simulation.netEstimatedBenefit)} /></div></ReportPanel>;
   }
   if (view === "integrations") {
-    const summary = buildIntegrationReadinessSummary(integrationReadinessCards);
-    return (
-      <div className="grid">
-        <PageHeader
-          title="Integration Readiness"
-          subtitle="Provider-safe staging for storefront, courier, WhatsApp, payment, support, and finance integrations."
-        />
-        <section className="notice">
-          <div className="split">
-            <div>
-              <strong>{summary.headline}</strong>
-              <p className="muted">{summary.principle}</p>
-            </div>
-            <span className="badge neutral">{summary.readyForAutomation} automation-ready</span>
-          </div>
-        </section>
-        <div className="automation-stage-grid">
-          {summary.byStage.map((stage) => (
-            <div className={`automation-stage ${stage.count ? "active" : ""}`} key={stage.id}>
-              <span>{stage.label}</span>
-              <strong>{stage.count}</strong>
-              <small>{stage.description}</small>
-            </div>
-          ))}
-        </div>
-        <div className="panel">
-          <h2>Provider Placeholder</h2>
-          <p className="muted">Webhook placeholder for docs and sandbox planning only. Do not put production secrets in this MVP.</p>
-          <code>{placeholderWebhookUrl("https://wembro.example.com")}</code>
-        </div>
-        <div className="grid report-grid">
-          {integrationReadinessCards.map((card) => (
-            <ReportPanel title={card.name} key={card.name}>
-              <div className="badge-stack">
-                <span className="badge neutral">{card.status}</span>
-                <span className="badge medium">{automationStageLabel(card.automationStage)}</span>
-              </div>
-              <p className="muted">Category: {card.category}</p>
-              <p><strong>Unlocks:</strong> {card.unlocks.join(", ")}</p>
-              <p><strong>Data needed:</strong> {card.dataNeeded.join(", ")}</p>
-              <p><strong>Current workaround:</strong> {card.currentWorkaround}</p>
-              <p><strong>Next step:</strong> {card.nextStep}</p>
-              <p className="notice">{card.productionBlocker}</p>
-            </ReportPanel>
-          ))}
-        </div>
-        <p className="notice">{productionSecretsWarning}</p>
-      </div>
-    );
+    return <IntegrationsView />;
   }
   if (view === "sops") {
     return (

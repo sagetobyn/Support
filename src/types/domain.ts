@@ -90,7 +90,7 @@ export interface BrandSettings {
   ndrCriticalHours?: number;
   highValueNdrThreshold?: number;
   maxContactAttemptsPerNdr?: number;
-  whatsappProviderMode?: "mock" | "manual_export" | "add_on";
+  whatsappProviderMode?: "mock" | "wa_me" | "manual_export" | "add_on";
   messageCostMarketing?: number;
   messageCostUtility?: number;
   messageCostService?: number;
@@ -209,7 +209,7 @@ export interface Message {
   orderId?: string;
   ndrCaseId?: string;
   channel: "whatsapp";
-  provider: "mock" | "manual_export" | "provider_ready" | "meta_cloud" | "gupshup" | "wati" | "interakt" | "aisensy";
+  provider: "mock" | "wa_me" | "manual_export" | "provider_ready" | "meta_cloud" | "gupshup" | "wati" | "interakt" | "aisensy";
   templateType: string;
   category?: "utility" | "marketing" | "service" | "authentication";
   estimatedCost?: number;
