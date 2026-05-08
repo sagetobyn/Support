@@ -1293,15 +1293,22 @@ function MorningBriefing({ orders, ndrCases, actionGroups, brand, savingsEvents,
   const criticalValue = criticalActions.reduce((sum, order) => sum + estimatedLeakageForOrder(order, brand), 0);
   const highValue = highActions.reduce((sum, order) => sum + estimatedLeakageForOrder(order, brand), 0);
   const atRiskRevenue = criticalValue + highValue;
-  const urgentNdrs = ndrCases.filter((ndr) => (ndr.hoursSinceNdr || 0) >= 8 && !["delivered_after_ndr", "rto"].includes(ndr.state));
+  const urgentNdrs = ndrCases
+    .filter((ndr) => (ndr.hoursSinceNdr || 0) >= 8 && !["delivered_after_ndr", "rto"].includes(ndr.state))
+    .sort((a, b) => (b.hoursSinceNdr || 0) - (a.hoursSinceNdr || 0));
   const ndrBreachingSoon = urgentNdrs.filter((ndr) => (ndr.hoursSinceNdr || 0) >= 10).length;
   const completedToday = orders.filter((order) => order.actionStatus === "done").length;
   const missionProgress = getMissionProgress(orders);
   const roi = calculateRoi(orders, savingsEvents, brand);
   const atlasDrivers = buildLeakageAtlas(orders, ndrCases, brand);
   const topDriver = getTopLeakageDriver(atlasDrivers);
+  const riskPriority: Record<string, number> = { Critical: 4, High: 3, Medium: 2, Low: 1 };
   const topActionRows = [...allActions]
-    .sort((a, b) => estimatedLeakageForOrder(b, brand) - estimatedLeakageForOrder(a, brand))
+    .sort((a, b) => {
+      const leakageDiff = estimatedLeakageForOrder(b, brand) - estimatedLeakageForOrder(a, brand);
+      if (leakageDiff !== 0) return leakageDiff;
+      return (riskPriority[b.riskBucket] || 0) - (riskPriority[a.riskBucket] || 0);
+    })
     .slice(0, 4);
   const positiveSavings = savingsEvents.filter((event) => event.estimatedSaving > 0 && event.status !== "rejected");
   const recoveredThisMonth = positiveSavings.filter((event) => {

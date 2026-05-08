@@ -55,7 +55,12 @@ export function buildAdvancedActionQueue(orders: Order[], brand: BrandSettings, 
       status: "open",
       createdAt: new Date().toISOString()
     })) as ActionItem[];
-  return [...policyActions, ...orderActions].sort((a, b) => (b.estimatedLeakage || 0) - (a.estimatedLeakage || 0));
+  const priorityWeight: Record<string, number> = { critical: 4, high: 3, medium: 2, low: 1 };
+  return [...policyActions, ...orderActions].sort((a, b) => {
+    const leakageDiff = (b.estimatedLeakage || 0) - (a.estimatedLeakage || 0);
+    if (leakageDiff !== 0) return leakageDiff;
+    return (priorityWeight[b.priority] || 0) - (priorityWeight[a.priority] || 0);
+  });
 }
 
 export function assignActionOwner(actions: ActionItem[], actionId: string, owner: NonNullable<ActionItem["owner"]>) {

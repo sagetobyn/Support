@@ -11,10 +11,12 @@ export function importStarterCsv(params: {
   settings: BrandSettings;
   existingOrders?: Order[];
   importId?: string;
+  maxRows?: number;
 }) {
+  const rowLimit = params.maxRows ?? currentStarterPlan.limits.max_import_rows_per_file;
   const rows = analyzeCsvImport(params.csv).rows;
-  const limitedRows = rows.length > currentStarterPlan.limits.max_import_rows_per_file;
-  const csv = limitedRows ? rebuildCsvFromRows(rows.slice(0, currentStarterPlan.limits.max_import_rows_per_file)) : params.csv;
+  const limitedRows = rows.length > rowLimit;
+  const csv = limitedRows ? rebuildCsvFromRows(rows.slice(0, rowLimit)) : params.csv;
   const summary = importOrdersFromCsv({ ...params, csv });
   publishEvent({
     type: "csv.imported",
