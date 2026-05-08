@@ -204,19 +204,19 @@ function roleNavGroups(role: Role): typeof allNavGroups {
 
 const clientStoryStages = [
   {
-    label: "1. Core problem",
+    label: "1. The problem",
     title: "Money leaks after checkout",
-    description: "COD failures, weak addresses, courier/pincode issues, and slow NDR action turn orders into avoidable RTO loss."
+    description: "Cash-on-delivery refusals, wrong addresses, weak couriers, and slow rescue turn orders into returns — and returns into lost margin."
   },
   {
-    label: "2. Solution",
-    title: "Prioritize recovery work",
-    description: "SupportWaala identifies the biggest leakage, tells the team what to do today, rescues NDRs, and tracks estimated savings."
+    label: "2. The fix",
+    title: "Work the highest-loss orders first",
+    description: "Wembro shows the biggest leaks, tells your team what to do today, rescues failed deliveries, and logs the savings."
   },
   {
-    label: "3. Product",
-    title: "RTOShield by SupportWaala",
-    description: "Use the leakage check, audit, pilot, action queue, NDR rescue, reports, and savings ledger only when they support that business outcome."
+    label: "3. The product",
+    title: "Wembro Control Room",
+    description: "Calculator, audit, pilot, action queue, rescue, reports, and savings ledger — used only when they help you keep more profit."
   }
 ];
 
@@ -230,41 +230,41 @@ const serviceProducts: Array<{
   view?: View;
 }> = [
   {
-    title: "Free RTO Leakage Check",
+    title: "Free leakage check",
     persona: "Founders not ready to share customer data",
-    promise: "Know your estimated COD/RTO loss without uploading customer data.",
-    uses: "Calculator, sample report, summary-only audit",
+    promise: "See your monthly loss to returns and failed deliveries — no upload needed.",
+    uses: "Calculator, sample report, summary audit",
     actionLabel: "Open calculator",
     href: "/calculator"
   },
   {
-    title: "RTO Profit Audit",
+    title: "Profit audit",
     persona: "Founders, finance heads, and ecommerce heads",
-    promise: "See where profit is leaking and what actions can reduce it.",
-    uses: "Anonymized CSV audit, leakage report, pilot recommendation",
+    promise: "See exactly where profit is leaking and what to do about it.",
+    uses: "Anonymized CSV audit, written report, pilot recommendation",
     actionLabel: "Start audit",
     href: "/audit"
   },
   {
-    title: "14-Day RTO Rescue Pilot",
+    title: "14-day rescue pilot",
     persona: "Founders and ops managers",
-    promise: "Work the highest-value COD/NDR actions and track estimated savings.",
-    uses: "Priority work queue, NDR management, mock messaging, savings ledger",
-    actionLabel: "Create pilot",
+    promise: "Work the highest-loss orders for two weeks and log every save.",
+    uses: "Work queue, rescue tracker, message templates, savings ledger",
+    actionLabel: "Plan a pilot",
     href: "/pilot"
   },
   {
-    title: "Daily Ops Control Room",
-    persona: "Ops executives, support teams, warehouse teams",
-    promise: "Know which orders to confirm, hold, correct, reattempt, cancel, or mark RTO.",
-    uses: "Priority work queue, order risk, NDR management, prepaid conversion",
+    title: "Daily control room",
+    persona: "Ops, support, and warehouse teams",
+    promise: "Know which orders to confirm, hold, correct, reattempt, cancel, or return.",
+    uses: "Work queue, order risk, rescue tracker, prepaid conversion",
     actionLabel: "Open queue",
     view: "missions"
   },
   {
-    title: "Founder Profit Intelligence",
+    title: "Founder reports",
     persona: "Founders, ecommerce heads, and growth teams",
-    promise: "Turn RTO data into courier, pincode, product, and campaign decisions.",
+    promise: "Turn delivery reality into courier, pincode, product, and campaign decisions.",
     uses: "Profit overview, weekly report, monthly strategy, simulator",
     actionLabel: "Open founder report",
     view: "weekly"
@@ -902,10 +902,10 @@ export default function Home() {
     <div className="shell">
       <aside className="sidebar">
         <div className="brandmark">
-          <span className="brandmark__icon">SW</span>
-          <span>SupportWaala</span>
+          <span className="brandmark__icon">W</span>
+          <span>Wembro</span>
         </div>
-        <div className="tagline">RTOShield by SupportWaala helps Indian D2C brands find COD/RTO leakage, work the highest-value actions, and prove estimated savings.</div>
+        <div className="tagline">Find where money is leaking, work the highest-value orders first, and prove what you saved — every day.</div>
         <div className="nav">
           {roleNavGroups(role).map((group) => (
             <div className="nav-section" key={group.title}>
