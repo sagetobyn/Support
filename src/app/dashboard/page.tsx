@@ -164,7 +164,7 @@ const allNavGroups: Array<{
       { id: "stores", label: "Team & Stores" },
       { id: "rules", label: "Risk Rules" },
       { id: "templates", label: "Notifications & Messages" },
-      { id: "integrations", label: "Integrations", badge: "Gated" }
+      { id: "integrations", label: "Integrations" }
     ]
   },
   {
