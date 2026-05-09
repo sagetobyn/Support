@@ -274,11 +274,17 @@ export function IntegrationsView() {
     setLoading(true);
     try {
       const res = await fetch("/api/v1/integrations");
+      // 401/400 = no session yet (dev mode without Supabase, or onboarding not done).
+      // Render the empty connect cards rather than a raw error code.
+      if (res.status === 401 || res.status === 400) {
+        setRecords([]);
+        return;
+      }
       if (!res.ok) throw new Error(`${res.status}`);
       const json = await res.json() as { integrations: IntegrationRecord[] };
       setRecords(json.integrations);
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to load integrations. Are you logged in?");
+      setError(err instanceof Error ? err.message : "Failed to load integrations.");
     } finally {
       setLoading(false);
     }

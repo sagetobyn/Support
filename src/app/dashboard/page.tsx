@@ -197,14 +197,14 @@ function roleNavGroups(role: Role): typeof allNavGroups {
   if (role === "admin") return allNavGroups;
   const allowed = (ids: View[]) => (link: { id?: View; label: string; href?: string; badge?: string }) => !link.id || ids.includes(link.id);
   if (role === "ops") {
-    const ids: View[] = ["briefing", "missions", "atlas", "dashboard", "demo", "actions", "upload", "orders", "ndr", "templates", "savings", "reports", "courier", "brand", "learning", "privacy", "billing"];
+    const ids: View[] = ["briefing", "missions", "atlas", "dashboard", "demo", "actions", "upload", "orders", "ndr", "templates", "savings", "reports", "courier", "brand", "integrations", "learning", "privacy", "billing"];
     return allNavGroups.map((group) => ({ ...group, links: group.links.filter(allowed(ids)) })).filter((g) => g.links.length);
   }
   if (role === "analyst") {
-    const ids: View[] = ["briefing", "missions", "atlas", "dashboard", "demo", "actions", "upload", "orders", "ndr", "prepaid", "templates", "savings", "reports", "weekly", "pincode", "courier", "sku", "campaigns", "simulator", "monthly", "brand", "learning", "privacy", "billing"];
+    const ids: View[] = ["briefing", "missions", "atlas", "dashboard", "demo", "actions", "upload", "orders", "ndr", "prepaid", "templates", "savings", "reports", "weekly", "pincode", "courier", "sku", "campaigns", "simulator", "monthly", "brand", "integrations", "learning", "privacy", "billing"];
     return allNavGroups.map((group) => ({ ...group, links: group.links.filter(allowed(ids)) })).filter((g) => g.links.length);
   }
-  const ids: View[] = ["briefing", "atlas", "dashboard", "demo", "weekly", "reports", "savings", "brand", "learning", "privacy", "billing"];
+  const ids: View[] = ["briefing", "atlas", "dashboard", "demo", "weekly", "reports", "savings", "brand", "integrations", "learning", "privacy", "billing"];
   return allNavGroups.map((group) => ({ ...group, links: group.links.filter(allowed(ids)) })).filter((g) => g.links.length);
 }
 
