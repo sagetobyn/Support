@@ -30,13 +30,17 @@ function hasFinalStatus(order: Order, pattern: RegExp) {
 }
 
 export function estimatedLeakageForOrder(order: Order, settings: BrandSettings) {
-  const lossPerRto = estimatedRtoLossPerOrder(settings);
-  if (hasFinalStatus(order, /rto|return to origin/i)) return lossPerRto;
+  const baseLoss = estimatedRtoLossPerOrder(settings);
+  const cogsPct = Math.max(0, Math.min(1, 1 - (settings.grossMarginPercent ?? 40) / 100));
+  const orderValue = Math.max(0, order.orderValue || 0);
+  const cogsLoss = Math.round(orderValue * cogsPct * (order.paymentMode === "COD" ? 1 : 0.5));
+  const fullRtoLoss = baseLoss + cogsLoss;
+  if (hasFinalStatus(order, /rto|return to origin/i)) return fullRtoLoss;
   if (hasFinalStatus(order, /delivered/i)) return 0;
 
   const multiplier = riskLeakageMultiplier[order.riskBucket] || 0.25;
   const codExposure = order.paymentMode === "COD" ? 1 : 0.65;
-  return Math.round(lossPerRto * multiplier * codExposure);
+  return Math.round(fullRtoLoss * multiplier * codExposure);
 }
 
 export function estimatedRecoverableLeakage(orders: Order[], settings: BrandSettings) {

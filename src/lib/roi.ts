@@ -53,7 +53,13 @@ export function calculateRoi(orders: Order[], savingsEvents: SavingsEvent[], set
   const codRto = codOrders.filter((order) => /rto|return to origin/i.test(order.finalStatus || ""));
   const ndrOrders = orders.filter((order) => order.ndrReason || /ndr|undelivered|failed/i.test(order.shipmentStatus || ""));
 
-  const estimatedRtoLoss = rtoOrders.length * estimatedRtoLossPerOrder(settings);
+  const cogsPct = Math.max(0, Math.min(1, 1 - (settings.grossMarginPercent ?? 40) / 100));
+  const baseLoss = estimatedRtoLossPerOrder(settings);
+  const estimatedRtoLoss = rtoOrders.reduce((sum, order) => {
+    const value = Math.max(0, order.orderValue || 0);
+    const cogsLoss = Math.round(value * cogsPct * (order.paymentMode === "COD" ? 1 : 0.5));
+    return sum + baseLoss + cogsLoss;
+  }, 0);
   const estimatedSavings = savingsEvents.filter((event) => event.eventType !== "rto_loss_recorded").reduce((sum, event) => sum + event.estimatedSaving, 0);
   const estimatedMessagingCost = totalEstimatedMessagingCost(messages);
   const monthlyOpportunityBase = Math.max(estimatedRtoLoss, orders.length * estimatedRtoLossPerOrder(settings) * 0.18);
