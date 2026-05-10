@@ -16,6 +16,27 @@ export type ConnectionStatus = "connected" | "syncing" | "needs_attention" | "no
 export type RiskLevel = "low" | "medium" | "high" | "critical";
 export type ConfidenceLabel = "low" | "medium" | "high";
 export type AutomationLevel = 1 | 2 | 3 | 4 | 5;
+export type AutomationActionType =
+  | "claim_draft"
+  | "ndr_message_draft"
+  | "cod_block_rule"
+  | "settlement_reconciliation"
+  | "reorder_sku_recommendation"
+  | "listing_optimization_draft"
+  | "ad_budget_recommendation"
+  | "support_reply_draft"
+  | "profit_leakage_review"
+  | "return_reason_review"
+  | "margin_guardrail_recommendation"
+  | "profit_aware_growth_review"
+  | "settlement_mismatch_packet"
+  | "ndr_rescue_draft"
+  | "reorder_recommendation"
+  | "customer_message_draft"
+  | "cod_rule_change";
+export type AutomationPolicyStatus = "recommendation_only" | "draft_only" | "approval_ready" | "auto_allowed" | "blocked";
+export type AutomationPolicyCheckStatus = "passed" | "warning" | "blocked";
+export type AutomationActivityKind = "created" | "policy_checked" | "drafted" | "approval_requested" | "approved" | "mock_executed" | "blocked" | "failed";
 export type IngestionInputKind = "api" | "csv" | "xlsx" | "pdf" | "email" | "webhook";
 export type ConnectorCategory = "marketplace" | "upload" | "logistics" | "finance" | "support" | "reputation" | "advertising";
 export type IngestionJobStatus =
@@ -499,6 +520,166 @@ export interface AutomationRule {
   approvalRequired: boolean;
 }
 
+export interface AutomationLevelDefinition {
+  level: AutomationLevel;
+  key: "recommend" | "draft" | "one_click_approve" | "auto_execute" | "full_autopilot";
+  label: string;
+  description: string;
+  requiresApproval: boolean;
+  externalExecutionAllowed: boolean;
+}
+
+export interface AutomationPolicyCheck {
+  id: string;
+  label: string;
+  status: AutomationPolicyCheckStatus;
+  detail: string;
+}
+
+export interface SellerApprovalPolicy {
+  id: string;
+  workspaceId: string;
+  name: string;
+  automationCeiling: AutomationLevel;
+  minConfidenceForAutoExecute: number;
+  maxImpactWithoutApproval: number;
+  requiresApprovalForRisk: RiskLevel[];
+  allowedAutoActionTypes: AutomationActionType[];
+  blockedExternalActionTypes: AutomationActionType[];
+  quietHours: {
+    startHour: number;
+    endHour: number;
+    timezone: string;
+  };
+  notes: string[];
+}
+
+export interface AutomationExecutionTarget {
+  kind: "marketplace" | "customer_message" | "internal_record" | "finance_packet" | "inventory_planning" | "listing_content" | "ad_budget";
+  label: string;
+  externalSystem: string;
+  externalWriteRequired: boolean;
+}
+
+export interface AutomationStateTransition {
+  from: ExecutionState;
+  to: ExecutionState;
+  label: string;
+  requiresApproval: boolean;
+}
+
+export interface MockExecutionResult {
+  id: string;
+  actionId: string;
+  status: "not_started" | "simulated_success" | "simulated_blocked" | "simulated_failed";
+  summary: string;
+  externalCallMade: false;
+  evidenceRefs: string[];
+  completedAt?: string;
+}
+
+export interface AutomationQueueItem extends AutomationAction {
+  workspaceId: string;
+  actionType: AutomationActionType;
+  sourceIntentId?: string;
+  description: string;
+  targetEntityRefs: AgentFindingEntityRef[];
+  lineageRefs: string[];
+  priorityScore: number;
+  policyStatus: AutomationPolicyStatus;
+  policyChecks: AutomationPolicyCheck[];
+  executionTarget: AutomationExecutionTarget;
+  mockExecutionResult: MockExecutionResult;
+  auditLogIds: string[];
+  updatedAt: string;
+}
+
+export interface ApprovalQueueItem {
+  id: string;
+  actionId: string;
+  title: string;
+  requestedBy: string;
+  approverRole: string;
+  reason: string;
+  impactAmount: number;
+  riskLevel: RiskLevel;
+  confidence: number;
+  status: "pending" | "approved" | "rejected" | "blocked";
+  createdAt: string;
+  policyChecks: AutomationPolicyCheck[];
+}
+
+export interface AutomationAuditLog {
+  id: string;
+  actionId: string;
+  eventType: AutomationActivityKind;
+  actor: "system" | "seller" | "ops" | "finance" | "cx" | "growth";
+  message: string;
+  fromState?: ExecutionState;
+  toState?: ExecutionState;
+  occurredAt: string;
+}
+
+export interface AutomationActivityTimelineItem {
+  id: string;
+  actionId: string;
+  kind: AutomationActivityKind;
+  title: string;
+  detail: string;
+  occurredAt: string;
+  tone: "neutral" | "success" | "warning" | "danger";
+}
+
+export interface AutomationRuleBuilderNode {
+  id: string;
+  nodeType: "trigger" | "condition" | "guardrail" | "action";
+  label: string;
+  detail: string;
+}
+
+export interface AutomationRuleBuilderView {
+  ruleId: string;
+  name: string;
+  active: boolean;
+  automationLevel: AutomationLevel;
+  approvalRequired: boolean;
+  nodes: AutomationRuleBuilderNode[];
+}
+
+export interface AutomationActionDetailView {
+  action: AutomationQueueItem;
+  approval?: ApprovalQueueItem;
+  allowedNextStates: ExecutionState[];
+  stateTrail: AutomationStateTransition[];
+  auditLogs: AutomationAuditLog[];
+  recentActivity: AutomationActivityTimelineItem[];
+}
+
+export interface AutomationStateCount {
+  state: ExecutionState;
+  label: string;
+  count: number;
+}
+
+export interface AutomationLayerOverview {
+  actions: AutomationQueueItem[];
+  approvalQueue: ApprovalQueueItem[];
+  rules: AutomationRule[];
+  ruleBuilder: AutomationRuleBuilderView[];
+  sellerPolicy: SellerApprovalPolicy;
+  levelDefinitions: AutomationLevelDefinition[];
+  stateCounts: AutomationStateCount[];
+  auditLogs: AutomationAuditLog[];
+  recentActivity: AutomationActivityTimelineItem[];
+  selectedAction: AutomationActionDetailView;
+  potentialImpact: number;
+  pendingApproval: number;
+  executed: number;
+  blocked: number;
+  autoExecutableCount: number;
+  avgConfidence: number;
+}
+
 export interface ReportSummary {
   id: string;
   title: string;
@@ -522,6 +703,76 @@ export interface AgentModelConfig {
   approvalRequiredAbove: RiskLevel;
 }
 
+export interface ModelProviderDefinition {
+  id: AgentModelConfig["provider"];
+  label: string;
+  status: "available" | "not_configured" | "disabled";
+  apiKeyRequired: boolean;
+  supportsTools: boolean;
+  supportsJsonMode: boolean;
+  supportsVision: boolean;
+  supportsReasoningControl: boolean;
+  defaultModel: string;
+  fallbackModel: string;
+  notes: string;
+}
+
+export interface PromptTemplateSetting {
+  id: string;
+  agentId: AgentId;
+  name: string;
+  systemInstruction: string;
+  outputContract: string;
+  safetyBoundary: string;
+  version: string;
+  lastEditedAt: string;
+}
+
+export interface BrandVoiceSettings {
+  id: string;
+  brandVoice: "premium" | "friendly" | "expert" | "value_first";
+  supportTone: "formal" | "friendly" | "hinglish" | "premium";
+  marketingTone: "premium" | "educational" | "conversion_focused" | "less_discount_heavy";
+  financeStrictness: "balanced" | "strict" | "very_strict";
+  languagePreference: "english" | "hinglish" | "hindi_english";
+  examples: string[];
+}
+
+export interface ProfitMarginRule {
+  id: string;
+  label: string;
+  minMarginPercent: number;
+  appliesTo: string;
+  actionBelowFloor: "block" | "require_approval" | "warn";
+  approvalRequired: boolean;
+}
+
+export interface CodRtoRule {
+  id: string;
+  label: string;
+  rtoRiskThreshold: number;
+  paymentMethod: "COD" | "prepaid" | "all";
+  action: "draft_cod_block" | "auto_block_cod" | "recommend_review";
+  approvalRequired: boolean;
+}
+
+export interface AutomationApprovalRule {
+  id: string;
+  label: string;
+  riskLevel: RiskLevel;
+  maxAutomationLevel: AutomationLevel;
+  approvalRequired: boolean;
+  notes: string;
+}
+
+export interface NotificationPreference {
+  id: string;
+  channel: "in_app" | "email" | "whatsapp" | "slack";
+  severity: "critical" | "high" | "medium" | "low" | "digest";
+  cadence: "instant" | "daily" | "weekly" | "muted";
+  enabled: boolean;
+}
+
 export interface SellerRuleDraft {
   id: string;
   sourceInstruction: string;
@@ -531,6 +782,27 @@ export interface SellerRuleDraft {
   riskLevel: RiskLevel;
   approvalRequired: boolean;
   confidence: number;
+}
+
+export interface StructuredSellerRule extends SellerRuleDraft {
+  ruleType: "profit_margin" | "cod_rto" | "automation_approval" | "notification" | "tone" | "model_control" | "general";
+  settingPath: string;
+  operator: "set" | "minimum" | "maximum" | "greater_than" | "less_than" | "contains";
+  parsedValue: string | number | boolean;
+  affectedAgents: AgentId[];
+  status: "preview" | "applied";
+}
+
+export interface PromptToConfigPreview {
+  id: string;
+  instruction: string;
+  parser: "mock_keyword_parser" | "llm_parser_ready";
+  confidence: number;
+  rules: StructuredSellerRule[];
+  settingsPatch: Record<string, string | number | boolean>;
+  requiresReview: boolean;
+  applied: boolean;
+  auditSummary: string;
 }
 
 export interface SellerSettings {
@@ -543,6 +815,44 @@ export interface SellerSettings {
   automationCeiling: AutomationLevel;
   modelConfigs: AgentModelConfig[];
   promptRuleDrafts: SellerRuleDraft[];
+  brandVoice?: BrandVoiceSettings;
+  profitMarginRules?: ProfitMarginRule[];
+  codRtoRules?: CodRtoRule[];
+  automationApprovalRules?: AutomationApprovalRule[];
+  notificationPreferences?: NotificationPreference[];
+  promptTemplates?: PromptTemplateSetting[];
+  appliedStructuredRules?: StructuredSellerRule[];
+}
+
+export interface SettingsControlOverview {
+  settings: SellerSettings;
+  brandVoice: BrandVoiceSettings;
+  profitMarginRules: ProfitMarginRule[];
+  codRtoRules: CodRtoRule[];
+  automationApprovalRules: AutomationApprovalRule[];
+  notificationPreferences: NotificationPreference[];
+  promptToConfigPreview: PromptToConfigPreview;
+  appliedRules: StructuredSellerRule[];
+}
+
+export interface AgentModelControlRow {
+  config: AgentModelConfig;
+  agentName: string;
+  agentPurpose: string;
+  provider: ModelProviderDefinition;
+  promptTemplate: PromptTemplateSetting;
+  monthlyBudgetUsedInr: number;
+  estimatedMonthlyCostInr: number;
+}
+
+export interface ModelControlOverview {
+  providers: ModelProviderDefinition[];
+  agentRows: AgentModelControlRow[];
+  promptTemplates: PromptTemplateSetting[];
+  safeModeCount: number;
+  totalMonthlyBudgetInr: number;
+  configuredProviderCount: number;
+  llmCallsEnabled: false;
 }
 
 export interface MarketingRecommendation {

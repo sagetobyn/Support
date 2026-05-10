@@ -2,17 +2,17 @@
 
 ## Next Best Task
 
-Implement Phase 5.1 policy handoff and approval queue integration:
+Implement Phase 8.1 persisted settings adapter and server-side validation:
 
-1. Convert `AutomationDraftIntent` records into approval-queue preview records without executing actions.
-2. Add policy handoff checks for risk level, confidence threshold, seller approval rules, and integration availability.
-3. Show blocked vs approval-ready intents in the automation/action layer.
-4. Add tests proving high-risk intents cannot auto-execute and low-risk intents still remain preview-only until Phase 6 execution.
-5. Keep all marketplace/customer/bank side effects disabled.
+1. Add a frontend-safe settings adapter interface that can later swap from mock data to API/database persistence.
+2. Add server-side validation schemas for prompt-to-config previews before persistence.
+3. Add versioning/audit fields for applied setting changes.
+4. Add tests proving prompt-to-config persistence is isolated from AI execution and automation execution.
+5. Keep real LLM parsing and provider calls disabled until credentials, budgets, and audit boundaries are configured.
 
 Suggested prompt:
 
-> Continue Phase 5.1 for the AI Operations OS. Wire structured AI findings and automation draft intents into a policy handoff preview for the Automation / Action Layer. Do not execute actions; only classify approval-ready, blocked, and recommendation-only intents with tests.
+> Continue Phase 8.1 for the AI Operations OS. Add a settings persistence adapter interface and validation layer for prompt-to-config rules. Do not call real LLM providers or execute automation; only prepare the storage boundary and tests.
 
 ## Phase 1 Follow-Ups
 
@@ -60,18 +60,19 @@ Suggested prompt:
 
 ## Phase 6 Follow-Ups
 
-- Implement approval queue.
-- Implement automation rules builder.
-- Implement execution state machine tests.
-- Add rollback plan fields.
-- Add audit timeline per action.
+- Add client-side approval/rejection simulation.
+- Add action detail routing or selection state.
+- Add retry and rollback simulation for failed or reverted actions.
+- Add policy preview controls before Phase 8 settings persistence.
+- Done in mock foundation: action queue, approval queue, safe automation levels, seller approval policy, execution state machine, rule builder UI, action detail view, audit logs, recent activity, and mock internal execution.
 
 ## Phase 8 Follow-Ups
 
-- Implement prompt-to-config parser mock.
-- Add preview/apply rule flow.
-- Add model control form per agent.
-- Persist settings in a frontend-safe adapter until backend schema is ready.
+- Add persistence adapter interface for settings, model configs, prompt templates, and applied structured rules.
+- Add validation schemas for prompt-to-config outputs.
+- Add editable model config controls once persistence exists.
+- Add audit/version history per applied setting change.
+- Done in mock foundation: provider abstraction, agent-specific model settings, prompt templates, brand voice, support tone, marketing tone, risk appetite, profit margin rules, COD/RTO rules, approval rules, notifications, prompt-to-config preview/apply UI, and tests.
 
 ## Hard Non-Goals For Now
 

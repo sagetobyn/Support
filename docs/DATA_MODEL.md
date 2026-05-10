@@ -158,12 +158,31 @@ Implemented mock structures:
 - Normalized commerce entities for seller, workspace, marketplace account, product, SKU, listing, order, order item, customer, address, pincode, courier, shipment, NDR, RTO, return, refund, settlement, deduction, claim, inventory item, warehouse, supplier, purchase order, support case, warranty case, review, ad campaign, keyword, competitor listing, and report file.
 - SKU mappings, marketplace ID mappings, entity confidence scores, and lineage records.
 
+Phase 5/6 adds typed contracts for AI findings and automation handoff:
+
+- `StructuredAiFinding` with input entity refs, lineage refs, confidence signals, explanation summary, recommended action, and automation draft intent.
+- `AutomationQueueItem` with policy status, detailed policy checks, execution target, mock execution result, audit refs, and action detail data.
+- `ApprovalQueueItem` for seller approval routing.
+- `SellerApprovalPolicy` for risk approval rules, confidence floor, automation ceiling, quiet hours, blocked external action types, and allowed internal auto actions.
+- `AutomationAuditLog` and `AutomationActivityTimelineItem` for append-only mock evidence.
+- `AutomationLevelDefinition` for recommend, draft, one-click approve, auto-execute, and full autopilot.
+
+Phase 8 adds typed settings and model-control contracts:
+
+- `ModelProviderDefinition` for provider routing readiness without module-scope SDK initialization.
+- `AgentModelConfig` rows per agent with provider, model name, reasoning depth, fallback, budget, safe mode, and approval threshold.
+- `PromptTemplateSetting` for per-agent system instructions and output contracts.
+- `BrandVoiceSettings`, `ProfitMarginRule`, `CodRtoRule`, `AutomationApprovalRule`, and `NotificationPreference`.
+- `StructuredSellerRule` and `PromptToConfigPreview` for natural-language instructions converted into structured settings patches.
+
 Current non-goals:
 
 - No real marketplace API calls.
 - No real CSV, XLSX, PDF, bank statement, email, or review parsing.
 - No database migration.
-- No AI engine, automation execution, or marketing UI behavior added in this increment.
+- No real LLM calls, marketplace writes, customer messages, claim submissions, listing changes, ad budget changes, bank actions, inventory writes, or database persistence.
+- Mock execution means deterministic local state-machine output only.
+- Mock prompt-to-config means deterministic local parsing only.
 
 ## Canonical Record Fields
 

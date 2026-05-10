@@ -92,6 +92,36 @@ Current rules:
 - Draft intents may be shown in the automation layer as future queue candidates.
 - No external marketplace, customer, bank, support, inventory, pricing, or ad action is executed in Phase 5.
 
+## Phase 6 Mock Foundation
+
+Status: implemented as a deterministic mock service layer.
+
+The automation layer now converts AI draft intents into `AutomationQueueItem` records and adds missing action-layer examples for:
+
+- Claim draft.
+- NDR message draft.
+- COD block rule approval.
+- Settlement reconciliation mock execution.
+- SKU reorder recommendation mock execution.
+- Listing optimization draft.
+- Ad budget recommendation.
+
+Implemented service boundaries:
+
+- `automationService`: route-facing facade for queue, approval, rules, state counts, audit logs, activity, and action detail.
+- `automationPolicyService`: seller approval policy, external-write guardrails, confidence checks, and auto-execute eligibility.
+- `automationStateMachineService`: valid states, allowed transitions, state counts, and mock execution results.
+- `approvalQueueService`: approval queue records derived from policy and action risk.
+- `automationAuditService`: append-only mock audit logs and recent activity timeline.
+
+Current safety rules:
+
+- Mock execution writes no external state.
+- `MockExecutionResult.externalCallMade` is always `false`.
+- External marketplace, customer, listing, ad, support, bank, and inventory writes are blocked from execution.
+- Level 4 auto-execute is allowed only for internal mock records such as local reconciliation and reorder recommendations.
+- Level 5 full autopilot is represented in the model but disabled for external writes.
+
 ## Policy Checks
 
 Before execution, check:
@@ -106,6 +136,15 @@ Before execution, check:
 - Human approval requirements.
 - Integration availability.
 - Rollback or undo plan.
+
+The current mock policy evaluates:
+
+- Seller automation ceiling.
+- External-write guardrail.
+- Risk-based approval.
+- Auto-execution confidence floor.
+- Maximum impact without approval.
+- Customer-message quiet hours.
 
 ## Dashboard Relationship
 

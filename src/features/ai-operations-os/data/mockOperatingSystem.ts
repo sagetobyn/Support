@@ -6,6 +6,16 @@ import {
   normalizedCommerceEntities,
   skuMappings
 } from "./mockCommerceData";
+import {
+  agentModelConfigs,
+  appliedStructuredRules,
+  automationApprovalRules,
+  brandVoiceSettings,
+  codRtoRules,
+  notificationPreferences,
+  profitMarginRules,
+  promptTemplates
+} from "./mockSettingsControl";
 
 const ruleDrafts: SellerRuleDraft[] = [
   {
@@ -357,15 +367,15 @@ export const aiOperationsWorkspace: AiOperationsWorkspace = {
     supportTone: "hinglish",
     notificationPreference: "critical_only",
     automationCeiling: 3,
-    modelConfigs: [
-      { id: "model-profit", agentId: "profit-leakage-engine", provider: "openai", modelName: "strong-reasoning", temperature: 0.2, reasoningDepth: "high", maxMonthlyBudgetInr: 18000, fallbackModelName: "balanced-reasoning", safeMode: true, approvalRequiredAbove: "medium" },
-      { id: "model-rto", agentId: "rto-ndr-engine", provider: "openai", modelName: "balanced-reasoning", temperature: 0.1, reasoningDepth: "medium", maxMonthlyBudgetInr: 12000, fallbackModelName: "fast-ops", safeMode: true, approvalRequiredAbove: "medium" },
-      { id: "model-settlement", agentId: "settlement-reconciliation-engine", provider: "openai", modelName: "strong-reasoning", temperature: 0, reasoningDepth: "high", maxMonthlyBudgetInr: 15000, fallbackModelName: "balanced-reasoning", safeMode: true, approvalRequiredAbove: "low" },
-      { id: "model-inventory", agentId: "inventory-intelligence", provider: "openai", modelName: "balanced-reasoning", temperature: 0.15, reasoningDepth: "medium", maxMonthlyBudgetInr: 9000, fallbackModelName: "fast-ops", safeMode: true, approvalRequiredAbove: "high" },
-      { id: "model-marketing", agentId: "marketing-growth-agent", provider: "openai", modelName: "creative-commerce", temperature: 0.45, reasoningDepth: "medium", maxMonthlyBudgetInr: 9000, fallbackModelName: "balanced-reasoning", safeMode: true, approvalRequiredAbove: "medium" },
-      { id: "model-decision", agentId: "seller-decision-agent", provider: "openai", modelName: "strong-reasoning", temperature: 0.1, reasoningDepth: "high", maxMonthlyBudgetInr: 12000, fallbackModelName: "balanced-reasoning", safeMode: true, approvalRequiredAbove: "low" }
-    ],
-    promptRuleDrafts: ruleDrafts
+    modelConfigs: agentModelConfigs,
+    promptRuleDrafts: ruleDrafts,
+    brandVoice: brandVoiceSettings,
+    profitMarginRules,
+    codRtoRules,
+    automationApprovalRules,
+    notificationPreferences,
+    promptTemplates,
+    appliedStructuredRules
   },
   marketingRecommendations: [
     {

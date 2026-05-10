@@ -92,13 +92,24 @@ Current limits:
 
 ## Phase 6: Automation / Action Layer
 
+Status: mock foundation completed in this increment.
+
 Deliverables:
 
-- Action queue.
-- Approval queue.
-- Automation rules builder.
-- Execution state machine.
-- Audit logs.
+- Action queue. Implemented from Phase 5 `AutomationDraftIntent` records plus action-layer mock examples.
+- Approval queue. Implemented as policy-derived approval records with approver role, reason, risk, confidence, and status.
+- Automation rules builder. Implemented as service-backed mock rule graph with trigger, condition, guardrail, and action nodes.
+- Execution state machine. Implemented with supported states, transitions, state counts, and mock execution results.
+- Seller approval policies. Implemented with automation ceiling, confidence floor, risk approval rules, quiet hours, external-write guardrails, and max impact without approval.
+- Audit logs and recent activity. Implemented as deterministic mock records from action state and policy decisions.
+- Action detail view. Implemented on `/automation` from the service-layer view model.
+
+Current limits:
+
+- No real external API calls.
+- No marketplace, customer, support, listing, ad, bank, supplier, or inventory writes.
+- Mock execution means local state-machine simulation only.
+- No database persistence or mutation.
 
 ## Phase 7: Dashboard, Alerts, Reports
 
@@ -114,13 +125,22 @@ Deliverables:
 
 ## Phase 8: Settings + Prompt-to-Config + Model Control
 
+Status: mock foundation completed in this increment.
+
 Deliverables:
 
-- Settings page.
-- Agent model config UI.
-- Natural language instruction input.
-- Mock conversion into structured rule.
-- Preview before applying.
+- Settings page. Implemented with brand voice, support tone, marketing tone, risk appetite, profit margin rules, COD/RTO rules, approval rules, notifications, and applied structured rules.
+- Agent model config UI. Implemented with provider abstraction, per-agent model settings, safe mode, fallback model, budget, reasoning depth, and approval threshold.
+- Natural language instruction input. Implemented as a client-side mock prompt-to-config panel.
+- Mock conversion into structured rule. Implemented through deterministic parser outputting setting paths, operators, parsed values, affected agents, risk, confidence, and approval requirement.
+- Preview before applying. Implemented with local mock apply state and audit summary.
+
+Current limits:
+
+- No real LLM calls.
+- No provider API key use.
+- No database persistence.
+- No hidden automation or model execution changes.
 
 ## Phase 9: Marketing Automation Integration
 

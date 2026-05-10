@@ -7999,6 +7999,15 @@ tbody tr:hover td {
 .os-file-list,
 .os-pipeline,
 .os-rule-stack,
+.os-level-grid,
+.os-state-grid,
+.os-policy-checks,
+.os-rule-nodes,
+.os-timeline,
+.os-prompt-config,
+.os-preview-rule-list,
+.os-provider-grid,
+.os-template-grid,
 .os-finding-list,
 .os-report-list,
 .os-quality-list {
@@ -8015,6 +8024,204 @@ tbody tr:hover td {
   display: grid;
   gap: 5px;
   padding: 12px;
+}
+
+.os-level-grid {
+  grid-template-columns: repeat(5, minmax(150px, 1fr));
+}
+
+.os-level-grid article,
+.os-state-grid article,
+.os-policy-checks article,
+.os-rule-nodes span,
+.os-timeline article,
+.os-preview-rule-list article,
+.os-provider-grid article,
+.os-template-grid article,
+.os-action-detail {
+  border: 1px solid var(--os-line-soft);
+  border-radius: 8px;
+  padding: 12px;
+}
+
+.os-level-grid article {
+  display: grid;
+  gap: 7px;
+}
+
+.os-level-grid span,
+.os-state-grid span,
+.os-action-detail dt,
+.os-rule-nodes b,
+.os-prompt-config label,
+.os-preview-rule-list dt,
+.os-timeline > article > span {
+  color: var(--os-amber-bright);
+  font-size: 12px;
+  font-weight: 850;
+  text-transform: uppercase;
+}
+
+.os-level-grid strong,
+.os-state-grid strong,
+.os-action-detail dd,
+.os-preview-rule-list dd,
+.os-provider-grid strong,
+.os-template-grid strong {
+  color: #fff8ed;
+}
+
+.os-level-grid p,
+.os-level-grid small,
+.os-action-detail small,
+.os-policy-checks small,
+.os-rule-nodes span,
+.os-prompt-config__actions span,
+.os-preview-rule-list small,
+.os-provider-grid p,
+.os-provider-grid small,
+.os-template-grid p,
+.os-template-grid small,
+.os-timeline small {
+  color: var(--os-muted);
+}
+
+.os-prompt-config textarea {
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid var(--os-line-soft);
+  border-radius: 8px;
+  color: var(--os-text);
+  font: inherit;
+  line-height: 1.5;
+  min-height: 104px;
+  padding: 12px;
+  resize: vertical;
+  width: 100%;
+}
+
+.os-prompt-config__actions {
+  align-items: center;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.os-preview-rule-list {
+  grid-template-columns: repeat(2, minmax(220px, 1fr));
+}
+
+.os-preview-rule-list article,
+.os-provider-grid article,
+.os-template-grid article {
+  display: grid;
+  gap: 10px;
+}
+
+.os-preview-rule-list article > div:first-child,
+.os-provider-grid article > div:first-child,
+.os-template-grid article > div:first-child {
+  align-items: flex-start;
+  display: flex;
+  gap: 10px;
+  justify-content: space-between;
+}
+
+.os-preview-rule-list dl {
+  display: grid;
+  gap: 8px;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  margin: 0;
+}
+
+.os-preview-rule-list dd {
+  margin: 3px 0 0;
+  overflow-wrap: anywhere;
+}
+
+.os-provider-grid {
+  grid-template-columns: repeat(5, minmax(170px, 1fr));
+}
+
+.os-provider-grid article > div:last-child {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.os-template-grid {
+  grid-template-columns: repeat(2, minmax(260px, 1fr));
+}
+
+.os-action-detail {
+  display: grid;
+  gap: 14px;
+}
+
+.os-action-detail > div:first-child {
+  align-items: flex-start;
+  display: flex;
+  gap: 10px;
+  justify-content: space-between;
+}
+
+.os-action-detail h3 {
+  font-size: 18px;
+  margin: 0;
+}
+
+.os-action-detail dl {
+  display: grid;
+  gap: 10px;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  margin: 0;
+}
+
+.os-action-detail dd {
+  font-size: 18px;
+  font-weight: 850;
+  margin: 3px 0 0;
+}
+
+.os-policy-checks article {
+  display: grid;
+  gap: 6px;
+}
+
+.os-state-grid {
+  grid-template-columns: repeat(3, minmax(110px, 1fr));
+}
+
+.os-state-grid article {
+  display: grid;
+  gap: 5px;
+}
+
+.os-state-grid strong {
+  font-size: 26px;
+}
+
+.os-rule-nodes span {
+  display: grid;
+  gap: 4px;
+}
+
+.os-timeline article {
+  align-items: flex-start;
+  display: grid;
+  gap: 12px;
+  grid-template-columns: 70px 1fr;
+}
+
+.os-timeline-success {
+  border-color: rgba(117, 197, 109, 0.28);
+}
+
+.os-timeline-warning {
+  border-color: rgba(243, 161, 59, 0.34);
+}
+
+.os-timeline-danger {
+  border-color: rgba(255, 112, 93, 0.34);
 }
 
 .os-summary-stack strong,
@@ -8316,6 +8523,11 @@ tbody tr:hover td {
   .os-metric-grid,
   .os-source-grid,
   .os-agent-grid,
+  .os-level-grid,
+  .os-state-grid,
+  .os-preview-rule-list,
+  .os-provider-grid,
+  .os-template-grid,
   .os-entity-grid,
   .os-finding-list--cards,
   .os-sidebar nav {

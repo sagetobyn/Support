@@ -89,3 +89,41 @@ type SellerRuleDraft = {
 
 This first architecture increment can mock conversion. Real parsing should be added only after core rules and policy execution are stable.
 
+## Phase 8 Mock Foundation
+
+Status: implemented as frontend-safe services and mock UI.
+
+Implemented service boundaries:
+
+- `modelControlService`: provider catalog, agent-specific model rows, prompt templates, safe mode, fallback model, budgets, and provider readiness.
+- `promptToConfigService`: deterministic natural-language parser, structured rule preview, and mock apply flow.
+- `settingsService`: route-facing settings overview for brand voice, tones, profit rules, COD/RTO rules, approval rules, notifications, and applied rules.
+
+Implemented settings contracts:
+
+- Model provider abstraction with OpenAI, Anthropic, Google, local/private, and mock parser providers.
+- Agent-specific model configuration for the Phase 5 agents.
+- Prompt template settings per agent.
+- Brand voice, support tone, marketing tone, finance strictness, and language preference.
+- Profit margin rules.
+- COD/RTO rules.
+- Automation approval rules.
+- Notification preferences.
+- Structured prompt-to-config rules with `settingPath`, `operator`, `parsedValue`, affected agents, preview/apply status, and audit summary.
+
+Current mock prompt:
+
+> "Never reduce price below 18% margin and auto-block COD only if RTO risk is above 75%."
+
+The mock parser converts this into:
+
+- A profit-margin rule that sets `settings.minMarginPercent` to `18`.
+- A COD/RTO rule that sets `settings.codBlockRiskThreshold` to `75`.
+
+Current limits:
+
+- No real LLM call.
+- No provider API key lookup.
+- No persistent database write.
+- Mock apply only updates client-side preview state in the UI.
+- Real LLM parsing can be plugged into `promptToConfigService` later by preserving the same `PromptToConfigPreview` output contract.

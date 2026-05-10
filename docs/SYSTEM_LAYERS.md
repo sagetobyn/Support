@@ -40,6 +40,29 @@ The `/data-ingestion` and `/data-brain` pages render these service view models. 
 
 This is still a mock foundation. No real parser, API connector, credentials, database writes, or AI extraction from dashboards exists in this increment.
 
+## Current Phase 5/6 Boundary
+
+The AI Operations Engine and Automation Layer are also behind service-layer view models:
+
+- `aiInsightsService`, `aiFindingService`, `agentRegistryService`, and `chiefOperationsAgentService` own agent registry, structured findings, confidence, explanations, and automation draft intents.
+- `automationService` composes action queue, approval queue, rules, policy, state counts, action detail, audit logs, and recent activity for `/automation`.
+- `automationPolicyService` owns seller approval checks and safe auto-execute eligibility.
+- `automationStateMachineService` owns allowed states and mock execution results.
+- `approvalQueueService` owns approval queue derivation.
+- `automationAuditService` owns append-only mock audit and activity records.
+
+Phase 6 mock execution means local simulation only. The system does not send messages, block COD, submit claims, update listings, change ad budgets, place reorders, write marketplace settings, or call any external provider.
+
+## Current Phase 8 Boundary
+
+Settings and model control now expose structured configuration without real provider calls:
+
+- `settingsService` composes seller-facing settings for brand voice, tones, margin rules, COD/RTO rules, approval rules, notifications, and applied prompt-to-config rules.
+- `modelControlService` composes provider abstraction, agent-specific model configs, prompt templates, budgets, fallback models, and safe-mode status.
+- `promptToConfigService` parses natural-language instructions into structured setting rules with setting paths, operators, parsed values, affected agents, risk, confidence, and mock apply status.
+
+Phase 8 mock apply is not persistence. It previews the exact shape that future server actions, database writes, and real LLM parsing should use.
+
 ## Control Flow
 
 Automation levels:
