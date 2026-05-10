@@ -12,7 +12,14 @@ function getApproverRole(action: AutomationQueueItem) {
   if (action.actionType.includes("ndr") || action.actionType.includes("support")) return "CX owner";
   if (action.actionType.includes("cod")) return "Operations owner";
   if (action.actionType.includes("listing")) return "Catalog owner";
-  if (action.actionType.includes("ad")) return "Growth owner";
+  if (
+    action.actionType.includes("ad") ||
+    action.actionType.includes("seo") ||
+    action.actionType.includes("competitor") ||
+    action.actionType.includes("coupon") ||
+    action.actionType.includes("festival") ||
+    action.actionType.includes("marketing")
+  ) return "Growth owner";
   return "Workspace admin";
 }
 

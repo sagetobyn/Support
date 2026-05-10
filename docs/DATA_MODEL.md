@@ -175,6 +175,27 @@ Phase 8 adds typed settings and model-control contracts:
 - `BrandVoiceSettings`, `ProfitMarginRule`, `CodRtoRule`, `AutomationApprovalRule`, and `NotificationPreference`.
 - `StructuredSellerRule` and `PromptToConfigPreview` for natural-language instructions converted into structured settings patches.
 
+Phase 9 adds typed marketing/growth automation contracts:
+
+- `ListingOptimizationDraft` for title, bullet, and description drafts tied to listings, SKUs, returns, reviews, RTO clusters, inventory signals, confidence, and automation actions.
+- `SeoKeywordInsight` for marketplace SEO opportunities with rank, search intent, opportunity score, RTO risk, return risk, inventory fit, and recommended use.
+- `CompetitorListingIntelligence` for competitor price, rating, review count, positioning gap, margin safety, inventory warning, and response recommendation.
+- `ReviewMiningInsight` and `CustomerSentimentInsight` for review themes, sentiment, linked SKUs/returns, listing fixes, and support tone signals.
+- `AdCampaignRecommendation` for current spend, attributed revenue, ACOS, delivered profit, RTO loss, return loss, inventory risk, budget-change recommendation, approval requirement, and automation action ID.
+- `CouponProfitabilityScenario` for promotion math: gross revenue, fees, ad spend, RTO cost, return cost, contribution profit, margin percent, verdict, and guardrail.
+- `FestivalSalePlan` and `MarketingReportSection` for sale planning and report-ready growth summaries.
+- New marketing action types: `seo_keyword_update_draft`, `competitor_response_recommendation`, `loss_making_campaign_pause_draft`, `coupon_profitability_review`, `festival_sale_plan_draft`, and `marketing_report_draft`.
+
+Phase 7 adds typed dashboard and reporting contracts:
+
+- `CommandCenterOverview` as the route-facing view model for `/alerts-reports`.
+- `AiDailyBriefing` for the daily seller brief sourced from Chief Operations Agent output, automation queue state, ingestion health, and Data Brain quality.
+- `DashboardMetric` for recoverable money, money saved, money at risk, RTO risk, return loss, settlement leakage, stockout risk, and action items, each carrying source refs and a drilldown link.
+- `DashboardAlert` for high-risk findings and approval/policy-gated actions.
+- `MarketplaceComparisonRow`, `LeakageTrendPoint`, and `TopLossEntity` for comparison, trend, SKU, and pincode sections.
+- `ReportDownloadStub` for report hub rows. These are explicit stubs and do not create real files yet.
+- `AutomationStatusSummary`, `AgentHealthRow`, and `DashboardRecentActivity` for automation, agent, and activity panels.
+
 Current non-goals:
 
 - No real marketplace API calls.

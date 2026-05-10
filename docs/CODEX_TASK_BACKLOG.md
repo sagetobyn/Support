@@ -2,17 +2,17 @@
 
 ## Next Best Task
 
-Implement Phase 8.1 persisted settings adapter and server-side validation:
+Implement Phase 7.1 dashboard drilldowns and report generation adapter stubs:
 
-1. Add a frontend-safe settings adapter interface that can later swap from mock data to API/database persistence.
-2. Add server-side validation schemas for prompt-to-config previews before persistence.
-3. Add versioning/audit fields for applied setting changes.
-4. Add tests proving prompt-to-config persistence is isolated from AI execution and automation execution.
-5. Keep real LLM parsing and provider calls disabled until credentials, budgets, and audit boundaries are configured.
+1. Add query-param aware detail panels for `/alerts-reports?report=...`, `/alerts-reports?chart=...`, and `/alerts-reports?download=...`.
+2. Add reusable drilldown components that link dashboard rows to `/automation`, `/ai-operations-engine`, and `/data-brain` evidence sections.
+3. Add report-generation adapter interfaces for PDF, CSV, and XLSX without creating real files yet.
+4. Add dashboard filter state for marketplace and date range using service inputs, not page-local mock values.
+5. Keep dashboard read-only and do not generate source-of-truth business records from UI.
 
 Suggested prompt:
 
-> Continue Phase 8.1 for the AI Operations OS. Add a settings persistence adapter interface and validation layer for prompt-to-config rules. Do not call real LLM providers or execute automation; only prepare the storage boundary and tests.
+> Continue Phase 7.1 for the AI Operations OS. Add dashboard drilldown panels, report generation adapter stubs, and marketplace/date filter state for `/alerts-reports`. Keep everything service-backed and read-only; do not generate real files or create source-of-truth records from the dashboard UI.
 
 ## Phase 1 Follow-Ups
 
@@ -66,6 +66,14 @@ Suggested prompt:
 - Add policy preview controls before Phase 8 settings persistence.
 - Done in mock foundation: action queue, approval queue, safe automation levels, seller approval policy, execution state machine, rule builder UI, action detail view, audit logs, recent activity, and mock internal execution.
 
+## Phase 7 Follow-Ups
+
+- Add query-param aware report, alert, trend, action, and top-loss drilldown panels.
+- Add report generation adapter interfaces for PDF, CSV, and XLSX.
+- Add marketplace and date range filter inputs that call service-layer selectors.
+- Add dashboard feedback hooks so accepted/rejected recommendations can feed the learning system later.
+- Done in mock foundation: AI Daily Briefing, recoverable money, money saved, money at risk, RTO risk, return loss, settlement leakage, stockout risk, action items, alerts panel, reports hub, marketplace comparison, leakage trend chart, top loss-making SKUs/pincodes, automation status, agent health, recent activity, download stubs, and drilldown links.
+
 ## Phase 8 Follow-Ups
 
 - Add persistence adapter interface for settings, model configs, prompt templates, and applied structured rules.
@@ -73,6 +81,14 @@ Suggested prompt:
 - Add editable model config controls once persistence exists.
 - Add audit/version history per applied setting change.
 - Done in mock foundation: provider abstraction, agent-specific model settings, prompt templates, brand voice, support tone, marketing tone, risk appetite, profit margin rules, COD/RTO rules, approval rules, notifications, prompt-to-config preview/apply UI, and tests.
+
+## Phase 9 Follow-Ups
+
+- Add marketing action detail routing into the shared automation action detail view.
+- Add Data Brain drilldowns for listing, SKU, review, return, RTO, inventory, ad campaign, keyword, competitor, coupon, and report references.
+- Add marketing feedback loop placeholders for accepted, rejected, or modified listing, campaign, coupon, and sale-plan recommendations.
+- Add real adapter interfaces for ad reports, keyword reports, review exports, competitor snapshots, and listing content history without calling live providers yet.
+- Done in mock foundation: listing optimization workflow, title/bullet/description drafts, marketplace SEO keyword insights, competitor listing and pricing intelligence, review mining, customer sentiment, ad campaign recommendations, budget risk control, loss-making campaign detection, coupon profitability calculator, festival sale planning, marketing report sections, and shared automation handoff.
 
 ## Hard Non-Goals For Now
 

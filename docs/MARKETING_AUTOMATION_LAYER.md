@@ -64,3 +64,21 @@ Marketing agents should emit:
 
 Marketing outputs must enter the same action queue and approval policy as operations outputs. A campaign pause or price change may be high-risk and require approval. A listing FAQ draft may be low-risk and remain a draft until approved.
 
+## Implemented Mock Foundation
+
+Phase 9 now has a service-backed mock foundation:
+
+- `mockMarketingAutomation.ts` owns listing drafts, SEO keyword insights, competitor/pricing intelligence, review mining, sentiment insights, ad recommendations, coupon scenarios, festival sale plans, and report sections.
+- `marketingAutomationService` composes the `/marketing-automation` view model and joins marketing workflow IDs to the shared automation queue.
+- `AutomationActionType` now includes SEO keyword drafts, competitor response recommendations, loss-making campaign pause drafts, coupon profitability reviews, festival sale plan drafts, and marketing report drafts.
+- Marketing actions are visible in the same `AutomationQueueItem` model as claims, NDR, settlement, COD, inventory, listing, and ad budget actions.
+- Seller policy continues to block real external writes. Listing, SEO, campaign, coupon, and festival changes are drafts or recommendations only.
+
+Current non-goals:
+
+- No real listing edits.
+- No real ad budget updates.
+- No real campaign pauses.
+- No real coupon creation.
+- No real review mining, keyword provider, competitor scraper, or LLM copy generation.
+- No database persistence yet.

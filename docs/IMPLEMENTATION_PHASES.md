@@ -113,15 +113,28 @@ Current limits:
 
 ## Phase 7: Dashboard, Alerts, Reports
 
+Status: mock foundation completed in this increment.
+
 Deliverables:
 
-- AI Daily Briefing.
-- KPI cards.
-- Alerts.
-- Reports hub.
-- Marketplace filters.
-- Drilldowns.
-- Centralized data reads.
+- AI Daily Briefing. Implemented from Chief Operations Agent output, automation queue state, ingestion health, and Data Brain quality refs.
+- KPI cards. Implemented for recoverable money, money saved, money at risk, RTO risk, return loss, settlement leakage, stockout risk, and action items.
+- Alerts. Implemented from high-risk structured findings and policy/approval-gated automation actions.
+- Reports hub. Implemented with report download stubs; no real files are generated yet.
+- Marketplace comparison. Implemented as centralized mock reporting data with drilldowns to Data Brain.
+- Leakage trend chart. Implemented as service-backed trend points rendered on `/alerts-reports`.
+- Top loss-making SKUs and pincodes. Implemented with normalized entity refs and drilldown links.
+- Automation status. Implemented from `automationService` action counts, approvals, blocked actions, confidence, and impact.
+- Agent health. Implemented from AI engine registry and run state.
+- Recent activity. Implemented from automation audit/activity timeline.
+- Centralized data reads. `/alerts-reports` renders `reportingService.getCommandCenterOverview()` and owns no page-local business numbers.
+
+Current limits:
+
+- No real report generation or file downloads.
+- No live dashboard filters or database persistence.
+- Drilldown links are route-ready pointers, not full detail pages.
+- Dashboard remains a visibility layer and does not create source-of-truth records.
 
 ## Phase 8: Settings + Prompt-to-Config + Model Control
 
@@ -144,13 +157,28 @@ Current limits:
 
 ## Phase 9: Marketing Automation Integration
 
+Status: mock foundation completed in this increment.
+
 Deliverables:
 
-- Listing optimization workflow.
-- Ad recommendation workflow.
-- Competitor intelligence mock data.
-- Review and sentiment insights.
-- Profit-aware marketing recommendations.
+- Listing optimization workflow. Implemented with title, bullet, and description drafts tied to return, review, RTO, inventory, and margin guardrails.
+- Marketplace SEO keyword insights. Implemented with opportunity, rank, RTO risk, return risk, inventory fit, and recommended use.
+- Competitor intelligence mock data. Implemented with competitor listing, price delta, rating, review count, positioning gap, margin safety, and response recommendation.
+- Review and sentiment insights. Implemented with review mining themes, customer sentiment segments, listing fixes, support tone signals, and linked normalized entity IDs.
+- Ad recommendation workflow. Implemented with spend, attributed revenue, ACOS, RTO loss, return loss, delivered profit, budget-change recommendation, and approval requirement.
+- Ad budget risk control and loss-making campaign detection. Implemented through service-derived delivered profit and shared automation action drafts.
+- Coupon and promotion profitability calculator. Implemented with gross revenue, fees, ad spend, RTO cost, return cost, contribution profit, margin, verdict, and guardrail.
+- Festival sale planning foundation. Implemented with inventory constraints, RTO constraints, margin floor, planned actions, approval requirement, and linked action IDs.
+- Marketing report section. Implemented as report-ready sections with metrics and action references.
+- Automation handoff. Implemented by routing marketing actions into the same `AutomationQueueItem`, seller policy, approval, audit, and mock execution system.
+
+Current limits:
+
+- No real marketplace listing edits.
+- No real ad budget changes or campaign pauses.
+- No real coupon or promotion creation.
+- No live competitor scraping, review mining, keyword research, or LLM copy generation.
+- Marketing service uses deterministic mock data connected to normalized commerce IDs and automation queue actions.
 
 ## Phase 10: Real Integrations And Production Hardening
 

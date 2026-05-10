@@ -37,7 +37,13 @@ const knownActionTypes: AutomationActionType[] = [
   "ndr_rescue_draft",
   "reorder_recommendation",
   "customer_message_draft",
-  "cod_rule_change"
+  "cod_rule_change",
+  "seo_keyword_update_draft",
+  "competitor_response_recommendation",
+  "loss_making_campaign_pause_draft",
+  "coupon_profitability_review",
+  "festival_sale_plan_draft",
+  "marketing_report_draft"
 ];
 
 const actionTypeAliases: Partial<Record<string, AutomationActionType>> = {
@@ -57,7 +63,13 @@ const actionTitleOverrides: Partial<Record<AutomationActionType, string>> = {
   reorder_recommendation: "Create reorder review recommendation",
   return_reason_review: "Create return reason review task",
   margin_guardrail_recommendation: "Recommend margin guardrail",
-  profit_aware_growth_review: "Keep growth in profit-aware review mode"
+  profit_aware_growth_review: "Keep growth in profit-aware review mode",
+  seo_keyword_update_draft: "Draft SEO keyword update",
+  competitor_response_recommendation: "Recommend competitor response",
+  loss_making_campaign_pause_draft: "Draft campaign pause recommendation",
+  coupon_profitability_review: "Review coupon profitability",
+  festival_sale_plan_draft: "Draft festival sale plan",
+  marketing_report_draft: "Generate marketing report draft"
 };
 
 function normalizeActionType(actionType: string): AutomationActionType {

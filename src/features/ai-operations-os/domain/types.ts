@@ -33,7 +33,13 @@ export type AutomationActionType =
   | "ndr_rescue_draft"
   | "reorder_recommendation"
   | "customer_message_draft"
-  | "cod_rule_change";
+  | "cod_rule_change"
+  | "seo_keyword_update_draft"
+  | "competitor_response_recommendation"
+  | "loss_making_campaign_pause_draft"
+  | "coupon_profitability_review"
+  | "festival_sale_plan_draft"
+  | "marketing_report_draft";
 export type AutomationPolicyStatus = "recommendation_only" | "draft_only" | "approval_ready" | "auto_allowed" | "blocked";
 export type AutomationPolicyCheckStatus = "passed" | "warning" | "blocked";
 export type AutomationActivityKind = "created" | "policy_checked" | "drafted" | "approval_requested" | "approved" | "mock_executed" | "blocked" | "failed";
@@ -690,6 +696,168 @@ export interface ReportSummary {
   downloadType: "pdf" | "csv" | "xlsx";
 }
 
+export type DashboardMetricValueType = "money" | "count" | "percent";
+export type DashboardAlertStatus = "open" | "in_review" | "approval_needed" | "resolved";
+
+export interface DashboardMetric {
+  id:
+    | "recoverable_money"
+    | "money_saved"
+    | "money_at_risk"
+    | "rto_risk"
+    | "return_loss"
+    | "settlement_leakage"
+    | "stockout_risk"
+    | "action_items";
+  label: string;
+  value: number;
+  valueType: DashboardMetricValueType;
+  deltaLabel: string;
+  tone: MoneyMetric["tone"];
+  sourceRefs: string[];
+  drilldownHref: string;
+}
+
+export interface AiDailyBriefing {
+  id: string;
+  generatedAt: string;
+  headline: string;
+  summary: string;
+  recoverableMoney: number;
+  moneySaved: number;
+  moneyAtRisk: number;
+  topOpportunity: {
+    label: string;
+    amount: number;
+    href: string;
+  };
+  biggestRisk: {
+    label: string;
+    amount: number;
+    href: string;
+  };
+  focusArea: {
+    label: string;
+    count: number;
+    href: string;
+  };
+  sourceRefs: string[];
+}
+
+export interface DashboardAlert {
+  id: string;
+  title: string;
+  summary: string;
+  riskLevel: RiskLevel;
+  status: DashboardAlertStatus;
+  createdAt: string;
+  sourceFindingId?: string;
+  actionId?: string;
+  recommendedAction: string;
+  drilldownHref: string;
+}
+
+export interface MarketplaceComparisonRow {
+  id: string;
+  marketplace: MarketplaceChannel | "all";
+  label: string;
+  recoverableMoney: number;
+  moneySaved: number;
+  moneyAtRisk: number;
+  rtoRisk: number;
+  returnLoss: number;
+  settlementLeakage: number;
+  stockoutRisk: number;
+  actionItems: number;
+  drilldownHref: string;
+}
+
+export interface LeakageTrendPoint {
+  date: string;
+  rtoLoss: number;
+  returnLoss: number;
+  settlementLeakage: number;
+  stockoutRisk: number;
+  recovered: number;
+  saved: number;
+}
+
+export interface TopLossEntity {
+  id: string;
+  rank: number;
+  type: "sku" | "pincode";
+  label: string;
+  subtitle: string;
+  marketplaces: MarketplaceChannel[];
+  lossAmount: number;
+  lossPercent: number;
+  rtoRisk: number;
+  returnRisk: number;
+  stockoutRisk?: number;
+  sourceEntityRefs: AgentFindingEntityRef[];
+  actionId?: string;
+  drilldownHref: string;
+}
+
+export interface ReportDownloadStub {
+  id: string;
+  reportId: string;
+  title: string;
+  cadence: ReportSummary["cadence"];
+  status: ReportSummary["status"];
+  downloadType: ReportSummary["downloadType"];
+  generatedAt: string;
+  owner: string;
+  drilldownHref: string;
+  downloadHref: string;
+  stubbed: true;
+}
+
+export interface AgentHealthRow {
+  agentId: AgentId;
+  agentName: string;
+  status: AgentRunStatus;
+  confidence: number;
+  openFindings: number;
+  linkedActionCount: number;
+  lastRunAt: string;
+  health: "healthy" | "watching" | "needs_data";
+}
+
+export interface AutomationStatusSummary {
+  totalActions: number;
+  pendingApproval: number;
+  autoExecuted: number;
+  blocked: number;
+  avgConfidence: number;
+  potentialImpact: number;
+  recentActivityCount: number;
+}
+
+export interface DashboardRecentActivity {
+  id: string;
+  title: string;
+  detail: string;
+  occurredAt: string;
+  tone: "neutral" | "success" | "warning" | "danger";
+  href: string;
+}
+
+export interface CommandCenterOverview {
+  briefing: AiDailyBriefing;
+  metrics: DashboardMetric[];
+  alerts: DashboardAlert[];
+  reports: ReportSummary[];
+  reportDownloadStubs: ReportDownloadStub[];
+  actionItems: AutomationQueueItem[];
+  marketplaceComparison: MarketplaceComparisonRow[];
+  leakageTrend: LeakageTrendPoint[];
+  topLossEntities: TopLossEntity[];
+  automationStatus: AutomationStatusSummary;
+  agentHealth: AgentHealthRow[];
+  recentActivity: DashboardRecentActivity[];
+}
+
 export interface AgentModelConfig {
   id: string;
   agentId: string;
@@ -858,12 +1026,174 @@ export interface ModelControlOverview {
 export interface MarketingRecommendation {
   id: string;
   title: string;
-  area: "listing" | "ads" | "competitor" | "reviews" | "promotion" | "seo";
+  area: "listing" | "ads" | "competitor" | "reviews" | "promotion" | "seo" | "sentiment" | "budget" | "festival";
   summary: string;
   profitGuardrail: string;
   impactAmount: number;
   riskLevel: RiskLevel;
   approvalRequired: boolean;
+}
+
+export type MarketingWorkflowStatus = "ready" | "drafting" | "needs_review" | "blocked_by_guardrail";
+export type SentimentLabel = "positive" | "mixed" | "negative";
+
+export interface ListingOptimizationDraft {
+  id: string;
+  listingId: string;
+  skuId: string;
+  marketplace: MarketplaceChannel;
+  status: MarketingWorkflowStatus;
+  currentTitle: string;
+  titleDraft: string;
+  bulletDrafts: string[];
+  descriptionDraft: string;
+  reason: string;
+  linkedReturnIds: string[];
+  linkedReviewIds: string[];
+  linkedRtoIds: string[];
+  inventorySignal: string;
+  profitGuardrail: string;
+  automationActionId: string;
+  confidence: number;
+  approvalRequired: boolean;
+}
+
+export interface SeoKeywordInsight {
+  id: string;
+  keyword: string;
+  marketplace: MarketplaceChannel;
+  searchIntent: string;
+  currentRank: number;
+  opportunityScore: number;
+  rtoRisk: number;
+  returnRisk: number;
+  inventoryFit: number;
+  recommendedUse: string;
+  automationActionId?: string;
+}
+
+export interface CompetitorListingIntelligence {
+  id: string;
+  competitorListingId: string;
+  competitorName: string;
+  marketplace: MarketplaceChannel;
+  listingTitle: string;
+  price: number;
+  rating: number;
+  reviewCount: number;
+  pricingDeltaPercent: number;
+  positioningGap: string;
+  responseRecommendation: string;
+  marginSafe: boolean;
+  inventoryWarning: string;
+  automationActionId?: string;
+}
+
+export interface ReviewMiningInsight {
+  id: string;
+  theme: string;
+  sentiment: SentimentLabel;
+  reviewCount: number;
+  linkedSkuId: string;
+  linkedReturnIds: string[];
+  returnRiskSignal: string;
+  listingFix: string;
+  supportToneSignal: string;
+  confidence: number;
+}
+
+export interface CustomerSentimentInsight {
+  id: string;
+  segment: string;
+  sentimentScore: number;
+  topComplaint: string;
+  topPraise: string;
+  recommendedAction: string;
+  linkedWorkflowId: string;
+}
+
+export interface AdCampaignRecommendation {
+  id: string;
+  campaignId: string;
+  title: string;
+  currentSpend: number;
+  attributedRevenue: number;
+  deliveredProfit: number;
+  acos: number;
+  rtoLoss: number;
+  returnLoss: number;
+  inventoryRisk: number;
+  recommendation: string;
+  budgetChangePercent: number;
+  riskLevel: RiskLevel;
+  approvalRequired: boolean;
+  automationActionId: string;
+}
+
+export interface CouponProfitabilityScenario {
+  id: string;
+  title: string;
+  skuId: string;
+  discountPercent: number;
+  expectedOrders: number;
+  grossRevenue: number;
+  marketplaceFees: number;
+  adSpend: number;
+  rtoCost: number;
+  returnCost: number;
+  contributionProfit: number;
+  marginPercent: number;
+  verdict: "safe_to_test" | "needs_approval" | "blocked_by_margin";
+  guardrail: string;
+  automationActionId: string;
+}
+
+export interface FestivalSalePlan {
+  id: string;
+  eventName: string;
+  dateRange: string;
+  skuFocus: string[];
+  readinessScore: number;
+  inventoryConstraint: string;
+  rtoConstraint: string;
+  marginFloor: number;
+  plannedActions: string[];
+  approvalRequired: boolean;
+  automationActionIds: string[];
+}
+
+export interface MarketingReportMetric {
+  label: string;
+  value: string;
+  note: string;
+}
+
+export interface MarketingReportSection {
+  id: string;
+  title: string;
+  summary: string;
+  metrics: MarketingReportMetric[];
+  actionIds: string[];
+}
+
+export interface MarketingAutomationOverview {
+  recommendations: MarketingRecommendation[];
+  listingDrafts: ListingOptimizationDraft[];
+  keywordInsights: SeoKeywordInsight[];
+  competitorIntelligence: CompetitorListingIntelligence[];
+  reviewInsights: ReviewMiningInsight[];
+  sentimentInsights: CustomerSentimentInsight[];
+  adRecommendations: AdCampaignRecommendation[];
+  couponScenarios: CouponProfitabilityScenario[];
+  festivalPlans: FestivalSalePlan[];
+  reportSections: MarketingReportSection[];
+  automationActions: AutomationQueueItem[];
+  automationActionIds: string[];
+  totalProfitProtected: number;
+  approvalRequired: number;
+  activeWorkflows: number;
+  lossMakingCampaignCount: number;
+  averageProfitScore: number;
 }
 
 export interface LearningSignal {

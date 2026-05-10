@@ -116,6 +116,42 @@ export function getExecutionTargetForActionType(actionType: AutomationActionType
       label: "COD rule change",
       externalSystem: "Marketplace settings",
       externalWriteRequired: true
+    },
+    seo_keyword_update_draft: {
+      kind: "listing_content",
+      label: "Marketplace SEO keyword draft",
+      externalSystem: "Marketplace listing tools",
+      externalWriteRequired: true
+    },
+    competitor_response_recommendation: {
+      kind: "internal_record",
+      label: "Competitor response recommendation",
+      externalSystem: "Wembro growth queue",
+      externalWriteRequired: false
+    },
+    loss_making_campaign_pause_draft: {
+      kind: "ad_budget",
+      label: "Campaign pause draft",
+      externalSystem: "Marketplace Ads",
+      externalWriteRequired: true
+    },
+    coupon_profitability_review: {
+      kind: "internal_record",
+      label: "Coupon profitability review",
+      externalSystem: "Wembro growth queue",
+      externalWriteRequired: false
+    },
+    festival_sale_plan_draft: {
+      kind: "internal_record",
+      label: "Festival sale plan draft",
+      externalSystem: "Wembro growth queue",
+      externalWriteRequired: false
+    },
+    marketing_report_draft: {
+      kind: "internal_record",
+      label: "Marketing report draft",
+      externalSystem: "Wembro reports hub",
+      externalWriteRequired: false
     }
   };
 

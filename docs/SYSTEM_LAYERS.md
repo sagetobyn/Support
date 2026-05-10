@@ -63,6 +63,27 @@ Settings and model control now expose structured configuration without real prov
 
 Phase 8 mock apply is not persistence. It previews the exact shape that future server actions, database writes, and real LLM parsing should use.
 
+## Current Phase 9 Boundary
+
+Marketing/Growth Automation is integrated into operations, not a standalone marketing tool:
+
+- `marketingAutomationService` composes listing optimization, SEO keywords, competitor intelligence, review mining, sentiment, ads, coupon profitability, festival planning, and report sections for `/marketing-automation`.
+- Marketing data references normalized commerce IDs for listing, SKU, review, return, RTO, inventory, ad campaign, keyword, competitor listing, pincode, settlement, and report file records.
+- Marketing decisions must pass profit, inventory, return, RTO, and seller-rule context before they become a draft or recommendation.
+- Marketing action IDs join back to `automationService`, so campaign pause drafts, SEO drafts, competitor responses, coupon reviews, sale plans, and report drafts use the same approval policy, audit log, state machine, and mock execution layer.
+- Phase 9 does not call ad providers, update marketplace listings, create coupons, scrape competitors, mine live reviews, or generate copy with a real LLM.
+
+## Current Phase 7 Boundary
+
+Dashboard + Alerts + Reports is a command-center read model, not a business-data source:
+
+- `reportingService` composes `/alerts-reports` from AI findings, automation actions, Data Brain quality, ingestion health, report summaries, trend mocks, marketplace comparison mocks, and normalized entity references.
+- The page renders `CommandCenterOverview`; it does not own KPI numbers, alert rows, report rows, activity rows, top-loss entities, marketplace comparison data, or trend points.
+- Drilldown links route back toward `/automation`, `/ai-operations-engine`, and `/data-brain` so sellers can inspect the source decision or normalized evidence.
+- Report downloads are stubs only. No PDF, CSV, or XLSX files are generated in this phase.
+
+The dashboard must never extract data from its own UI. It can only display state that came from ingestion, the data brain, AI findings, automation policy/audit logs, reports, and future feedback records.
+
 ## Control Flow
 
 Automation levels:

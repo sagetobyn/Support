@@ -84,14 +84,17 @@ export const sellerApprovalPolicy: SellerApprovalPolicy = {
   minConfidenceForAutoExecute: 86,
   maxImpactWithoutApproval: 100000,
   requiresApprovalForRisk: ["medium", "high", "critical"],
-  allowedAutoActionTypes: ["settlement_reconciliation", "reorder_sku_recommendation"],
+  allowedAutoActionTypes: ["settlement_reconciliation", "reorder_sku_recommendation", "marketing_report_draft"],
   blockedExternalActionTypes: [
     "claim_draft",
     "ndr_message_draft",
     "cod_block_rule",
     "listing_optimization_draft",
     "ad_budget_recommendation",
-    "support_reply_draft"
+    "support_reply_draft",
+    "seo_keyword_update_draft",
+    "competitor_response_recommendation",
+    "loss_making_campaign_pause_draft"
   ],
   quietHours: {
     startHour: 21,
@@ -154,6 +157,16 @@ export const automationRules: AutomationRule[] = [
     condition: "Real integration execution is not enabled in this foundation",
     action: "Block execution and create a policy audit log",
     automationLevel: 5,
+    approvalRequired: true
+  },
+  {
+    id: "rule-profit-aware-marketing",
+    name: "Profit-Aware Marketing Guardrail",
+    active: true,
+    trigger: "Listing, ad, coupon, competitor, or festival sale recommendation is created",
+    condition: "Check margin floor, inventory cover, return risk, RTO risk, and seller approval policy",
+    action: "Create marketing action draft in the shared automation queue",
+    automationLevel: 2,
     approvalRequired: true
   }
 ];
@@ -307,6 +320,187 @@ export const additionalAutomationActionSeeds: AutomationActionSeed[] = [
       label: "Ad budget recommendation",
       externalSystem: "Marketplace Ads",
       externalWriteRequired: true
+    }
+  },
+  {
+    id: "action-seo-keyword-update",
+    workspaceId: "workspace-acme",
+    title: "Draft SEO keyword update for profit-safe intent",
+    sourceFindingId: "finding-marketing-skeleton-001",
+    actionType: "seo_keyword_update_draft",
+    description: "Draft marketplace SEO field changes using keywords that fit return risk, RTO risk, and inventory position.",
+    impactAmount: 52400,
+    riskLevel: "medium",
+    confidence: 83,
+    automationLevel: 2,
+    state: "drafted",
+    approvalRequired: true,
+    assignee: "Growth",
+    rollbackPlan: "Archive the keyword draft; no marketplace SEO field is changed.",
+    createdAt: "2026-05-10T09:34:00.000Z",
+    updatedAt: "2026-05-10T09:35:00.000Z",
+    targetEntityRefs: [
+      { entityId: "kw-wireless-earbuds", entityType: "keyword", title: "wireless earbuds keyword cluster" },
+      { entityId: "list-amazon-airbuds", entityType: "listing", title: "Amazon listing - Noise Air Buds Pro 2" }
+    ],
+    lineageRefs: ["lin-kw-wireless-earbuds", "lin-list-amazon-airbuds", "lin-adcamp-festival-audio"],
+    priorityScore: 68.4,
+    executionTarget: {
+      kind: "listing_content",
+      label: "Marketplace SEO keyword draft",
+      externalSystem: "Marketplace listing tools",
+      externalWriteRequired: true
+    }
+  },
+  {
+    id: "action-competitor-response",
+    workspaceId: "workspace-acme",
+    title: "Draft competitor response without unsafe price match",
+    sourceFindingId: "finding-marketing-skeleton-001",
+    actionType: "competitor_response_recommendation",
+    description: "Prepare proof-led listing and coupon guidance instead of matching a competitor price below margin rules.",
+    impactAmount: 64200,
+    riskLevel: "medium",
+    confidence: 82,
+    automationLevel: 1,
+    state: "recommended",
+    approvalRequired: true,
+    assignee: "Growth",
+    rollbackPlan: "Dismiss the competitor response recommendation; no price, coupon, or listing change is made.",
+    createdAt: "2026-05-10T09:35:00.000Z",
+    updatedAt: "2026-05-10T09:36:00.000Z",
+    targetEntityRefs: [
+      { entityId: "comp-airbuds-x", entityType: "competitor_listing", title: "Competitor Airbuds X" },
+      { entityId: "sku-airbuds-pro-black", entityType: "sku", title: "Noise Air Buds Pro 2 - Black" }
+    ],
+    lineageRefs: ["lin-comp-airbuds-x", "lin-sku-airbuds-pro-black", "lin-set-2d410"],
+    priorityScore: 66.9,
+    executionTarget: {
+      kind: "internal_record",
+      label: "Competitor response recommendation",
+      externalSystem: "Wembro growth queue",
+      externalWriteRequired: false
+    }
+  },
+  {
+    id: "action-loss-making-campaign-pause",
+    workspaceId: "workspace-acme",
+    title: "Draft pause for loss-making COD campaign cluster",
+    sourceFindingId: "finding-pricing-001",
+    actionType: "loss_making_campaign_pause_draft",
+    description: "Draft a pause/reduction recommendation for the COD-heavy ad cluster. No marketplace budget is changed.",
+    impactAmount: 87300,
+    riskLevel: "high",
+    confidence: 87,
+    automationLevel: 3,
+    state: "awaiting_approval",
+    approvalRequired: true,
+    assignee: "Growth",
+    rollbackPlan: "Cancel the pause draft; marketplace campaign budgets remain unchanged.",
+    createdAt: "2026-05-10T09:36:00.000Z",
+    updatedAt: "2026-05-10T09:37:00.000Z",
+    targetEntityRefs: [
+      { entityId: "adcamp-festival-audio", entityType: "ad_campaign", title: "Festival Audio Push" },
+      { entityId: "rto-11ab7c", entityType: "rto", title: "RTO risk cluster - 560102" }
+    ],
+    lineageRefs: ["lin-adcamp-festival-audio", "lin-rto-11ab7c", "lin-ret-11ab7c"],
+    priorityScore: 85.6,
+    executionTarget: {
+      kind: "ad_budget",
+      label: "Campaign pause draft",
+      externalSystem: "Marketplace Ads",
+      externalWriteRequired: true
+    }
+  },
+  {
+    id: "action-coupon-profitability-review",
+    workspaceId: "workspace-acme",
+    title: "Review coupon profitability scenarios",
+    sourceFindingId: "finding-pricing-001",
+    actionType: "coupon_profitability_review",
+    description: "Prepare coupon scenarios with contribution margin, RTO loss, return loss, and seller margin floor checks.",
+    impactAmount: 58600,
+    riskLevel: "medium",
+    confidence: 89,
+    automationLevel: 1,
+    state: "recommended",
+    approvalRequired: true,
+    assignee: "Finance",
+    rollbackPlan: "Archive the scenario review; no coupon or promotion is created.",
+    createdAt: "2026-05-10T09:37:00.000Z",
+    updatedAt: "2026-05-10T09:38:00.000Z",
+    targetEntityRefs: [
+      { entityId: "sku-airbuds-pro-black", entityType: "sku", title: "Noise Air Buds Pro 2 - Black" },
+      { entityId: "pin-560102", entityType: "pincode", title: "Bangalore 560102" }
+    ],
+    lineageRefs: ["lin-sku-airbuds-pro-black", "lin-pin-560102", "lin-set-2d410"],
+    priorityScore: 70.1,
+    executionTarget: {
+      kind: "internal_record",
+      label: "Coupon profitability review",
+      externalSystem: "Wembro growth queue",
+      externalWriteRequired: false
+    }
+  },
+  {
+    id: "action-festival-sale-plan",
+    workspaceId: "workspace-acme",
+    title: "Draft festival sale plan with risk constraints",
+    sourceFindingId: "finding-marketing-skeleton-001",
+    actionType: "festival_sale_plan_draft",
+    description: "Draft a sale plan that combines listing copy, ad budget, coupon profitability, inventory cover, and RTO guardrails.",
+    impactAmount: 118400,
+    riskLevel: "medium",
+    confidence: 84,
+    automationLevel: 2,
+    state: "drafted",
+    approvalRequired: true,
+    assignee: "Growth",
+    rollbackPlan: "Delete the festival plan draft; no campaign, coupon, listing, or inventory change is made.",
+    createdAt: "2026-05-10T09:38:00.000Z",
+    updatedAt: "2026-05-10T09:39:00.000Z",
+    targetEntityRefs: [
+      { entityId: "sku-airbuds-pro-black", entityType: "sku", title: "Noise Air Buds Pro 2 - Black" },
+      { entityId: "inv-312009", entityType: "inventory_item", title: "Inventory for Noise Air Buds Pro 2" },
+      { entityId: "adcamp-festival-audio", entityType: "ad_campaign", title: "Festival Audio Push" }
+    ],
+    lineageRefs: ["lin-sku-airbuds-pro-black", "lin-inv-312009", "lin-adcamp-festival-audio"],
+    priorityScore: 76.3,
+    executionTarget: {
+      kind: "internal_record",
+      label: "Festival sale plan draft",
+      externalSystem: "Wembro growth queue",
+      externalWriteRequired: false
+    }
+  },
+  {
+    id: "action-marketing-report-draft",
+    workspaceId: "workspace-acme",
+    title: "Generate profit-aware marketing report draft",
+    sourceFindingId: "finding-marketing-skeleton-001",
+    actionType: "marketing_report_draft",
+    description: "Create a report-ready summary of listing, ads, reviews, competitor, coupon, and sale-plan recommendations.",
+    impactAmount: 0,
+    riskLevel: "low",
+    confidence: 91,
+    automationLevel: 4,
+    state: "executed",
+    approvalRequired: false,
+    assignee: "System",
+    rollbackPlan: "Archive the report draft; no external report is sent.",
+    createdAt: "2026-05-10T09:39:00.000Z",
+    updatedAt: "2026-05-10T09:40:00.000Z",
+    targetEntityRefs: [
+      { entityId: "report-may-payout", entityType: "report_file", title: "Payout Summary May" },
+      { entityId: "adcamp-festival-audio", entityType: "ad_campaign", title: "Festival Audio Push" }
+    ],
+    lineageRefs: ["lin-report-may-payout", "lin-adcamp-festival-audio", "lin-review-airbuds-fit"],
+    priorityScore: 42.5,
+    executionTarget: {
+      kind: "internal_record",
+      label: "Marketing report draft",
+      externalSystem: "Wembro reports hub",
+      externalWriteRequired: false
     }
   }
 ];
