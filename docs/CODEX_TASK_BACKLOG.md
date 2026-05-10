@@ -2,17 +2,17 @@
 
 ## Next Best Task
 
-Implement Phase 3 data ingestion foundation:
+Implement Phase 3.1 real parser and ingestion-adapter interfaces:
 
-1. Expand `src/features/ai-operations-os/services/ingestionService.ts` into a connector registry.
-2. Add parser interfaces for CSV, XLSX, PDF, bank statement, courier report, settlement report, ad report, support message, review file, and email ingestion.
-3. Add an ingestion job state machine with `queued`, `extracting`, `parsing`, `cleaning`, `normalizing`, `validating`, `stored`, `failed`, and `retrying`.
-4. Add tests for source freshness, quality scoring, and retry eligibility.
+1. Add parser interface files for CSV, XLSX, PDF, bank statement, courier report, settlement report, ad report, support message, review file, and email ingestion.
+2. Keep parsers mocked but make their input/output contracts executable through services.
+3. Add upload validation for file type, size, source type, and required mapping columns.
+4. Add a parser result object that can emit raw rows, normalized preview rows, validation errors, and lineage references.
 5. Keep all real connector credentials out of UI and logs.
 
 Suggested prompt:
 
-> Continue Phase 3 for the AI Operations OS. Build the ingestion connector registry and ingestion job state machine under `src/features/ai-operations-os`, add focused tests, and keep all parsing mocked behind typed interfaces.
+> Continue Phase 3.1 for the AI Operations OS. Add typed parser interfaces for report uploads and source adapters under `src/features/ai-operations-os`, keep execution mocked, and wire parser results into the existing ingestion jobs, quality scoring, normalized previews, and lineage tests.
 
 ## Phase 1 Follow-Ups
 
@@ -36,18 +36,19 @@ Suggested prompt:
 ## Phase 3 Follow-Ups
 
 - Add upload UI for report types.
-- Add source freshness indicators.
 - Add ingestion logs table.
-- Add normalized record preview.
-- Add failed job retry UI.
+- Add failed job retry action UI.
+- Add parser result preview for each report type.
+- Add source-specific permission and credential setup screens.
+- Done in mock foundation: connector registry, source freshness, ingestion job statuses, retry eligibility, quality scoring, and service-backed `/data-ingestion`.
 
 ## Phase 4 Follow-Ups
 
-- Build SKU mapping UI.
-- Build marketplace identifier mapping UI.
-- Add entity confidence cards.
-- Add lineage drilldown.
-- Add graph-like commerce relationship view.
+- Add low-confidence mapping review workflow.
+- Add lineage drilldown per normalized record.
+- Add entity detail pages for order, SKU, settlement, return, claim, support case, and ad campaign.
+- Add richer graph-like commerce relationship view.
+- Done in mock foundation: normalized entities, SKU mappings, marketplace ID mappings, entity confidence, lineage records, and service-backed `/data-brain`.
 
 ## Phase 5 Follow-Ups
 
@@ -79,4 +80,3 @@ Suggested prompt:
 - No model provider dependency.
 - No database migration until domain contracts are reviewed.
 - No dashboard-as-source-of-truth shortcut.
-

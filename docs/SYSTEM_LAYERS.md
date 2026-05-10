@@ -24,6 +24,22 @@
 6. Dashboard renders system state, alerts, reports, and queues.
 7. Feedback loop records outcomes and seller overrides.
 
+## Current Phase 3/4 Boundary
+
+The current implementation keeps the ingestion layer and data brain behind service-layer view models:
+
+- `connectorRegistryService` owns connector definitions, capabilities, permissions, supported inputs, and mock connector results.
+- `ingestionService` owns ingestion jobs, pipeline rollups, retry eligibility, source freshness, and ingestion activity.
+- `dataQualityService` derives quality scores from mock source health, job failures, freshness, and normalized entity confidence.
+- `normalizedEntityService` owns canonical commerce entities and record previews.
+- `mappingService` owns SKU mappings, marketplace ID mappings, and confidence summaries.
+- `lineageService` owns source-to-entity lineage records.
+- `dataBrainService` composes graph, mapping, confidence, lineage, and preview data for `/data-brain`.
+
+The `/data-ingestion` and `/data-brain` pages render these service view models. They must not reintroduce page-local connector rows, entity rows, mapping rows, or quality numbers.
+
+This is still a mock foundation. No real parser, API connector, credentials, database writes, or AI extraction from dashboards exists in this increment.
+
 ## Control Flow
 
 Automation levels:
@@ -48,4 +64,3 @@ Before adding any module, answer:
 - What outcome feeds learning?
 
 If these cannot be answered, the module is not ready for implementation.
-

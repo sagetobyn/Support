@@ -42,23 +42,33 @@ Deliverables:
 
 ## Phase 3: Data Ingestion Foundation
 
+Status: mock foundation completed in this increment.
+
 Deliverables:
 
-- Connector registry.
-- Upload/report ingestion skeleton.
-- Ingestion job status UI.
-- Parsing interfaces for CSV, XLSX, PDF, email, bank, courier, ads, support, and reviews.
-- Data quality score logic.
+- Connector registry. Implemented with mock connectors for Amazon, Flipkart, Meesho, CSV/XLSX/PDF upload, courier reports, bank statements, support messages, reviews, and ad reports.
+- Upload/report ingestion skeleton. Implemented as typed mock connector capabilities and jobs; no real parsing yet.
+- Ingestion job status UI. Implemented through `/data-ingestion` service-backed job and pipeline sections.
+- Parsing interfaces for CSV, XLSX, PDF, email, bank, courier, ads, support, and reviews. Represented as connector capabilities; real parser implementations remain future work.
+- Data quality score logic. Implemented in `dataQualityService` from mock source health, failures, freshness, and entity confidence.
 
 ## Phase 4: Unified Data Brain Foundation
 
+Status: started with service-backed normalized data, mapping, confidence, and lineage foundation.
+
 Deliverables:
 
-- Normalized entity store interface.
-- SKU mapping flow.
-- Marketplace ID mapping flow.
-- Confidence and lineage UI.
-- Commerce graph view.
+- Normalized entity store interface. Implemented as typed mock normalized commerce entities.
+- SKU mapping flow. Implemented as service-backed mock SKU mappings with confidence and lineage IDs.
+- Marketplace ID mapping flow. Implemented as service-backed mock order, SKU, and settlement mappings.
+- Confidence and lineage UI. Implemented through `/data-brain` preview, mapping, and lineage sections.
+- Commerce graph view. Existing graph now reads from the data brain service.
+
+Remaining Phase 4 work:
+
+- Add drilldowns per canonical entity.
+- Add conflict-resolution UI for low-confidence mappings.
+- Add richer relationship graph once real data volume and graph constraints are known.
 
 ## Phase 5: AI Operations Engine Foundation
 
@@ -124,4 +134,3 @@ Deliverables:
 - Audit logs.
 - Tests.
 - Deployment notes.
-

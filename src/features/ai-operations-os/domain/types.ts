@@ -16,6 +16,58 @@ export type ConnectionStatus = "connected" | "syncing" | "needs_attention" | "no
 export type RiskLevel = "low" | "medium" | "high" | "critical";
 export type ConfidenceLabel = "low" | "medium" | "high";
 export type AutomationLevel = 1 | 2 | 3 | 4 | 5;
+export type IngestionInputKind = "api" | "csv" | "xlsx" | "pdf" | "email" | "webhook";
+export type ConnectorCategory = "marketplace" | "upload" | "logistics" | "finance" | "support" | "reputation" | "advertising";
+export type IngestionJobStatus =
+  | "queued"
+  | "extracting"
+  | "parsing"
+  | "cleaning"
+  | "normalizing"
+  | "validating"
+  | "stored"
+  | "failed"
+  | "retrying";
+export type CanonicalEntityType =
+  | "seller"
+  | "workspace"
+  | "marketplace_account"
+  | "product"
+  | "sku"
+  | "listing"
+  | "order"
+  | "order_item"
+  | "customer"
+  | "address"
+  | "pincode"
+  | "courier"
+  | "shipment"
+  | "ndr"
+  | "rto"
+  | "return"
+  | "refund"
+  | "settlement"
+  | "deduction"
+  | "claim"
+  | "inventory_item"
+  | "warehouse"
+  | "supplier"
+  | "purchase_order"
+  | "support_case"
+  | "warranty_case"
+  | "review"
+  | "ad_campaign"
+  | "keyword"
+  | "competitor_listing"
+  | "report_file"
+  | "automation_rule"
+  | "ai_action"
+  | "alert"
+  | "task"
+  | "model_config"
+  | "agent_config"
+  | "seller_preference"
+  | "audit_log";
 
 export type ExecutionState =
   | "recommended"
@@ -91,13 +143,102 @@ export interface IngestionSource {
   status: ConnectionStatus;
   freshnessLabel: string;
   recordCount: number;
-  supportedInputs: Array<"api" | "csv" | "xlsx" | "pdf" | "email" | "webhook">;
+  supportedInputs: IngestionInputKind[];
+}
+
+export interface ConnectorCapability {
+  inputKind: IngestionInputKind;
+  label: string;
+  supportsIncrementalSync: boolean;
+  requiresCredentials: boolean;
+  mockOnly: boolean;
+}
+
+export interface ConnectorDefinition {
+  id: string;
+  label: string;
+  channel: MarketplaceChannel;
+  category: ConnectorCategory;
+  status: ConnectionStatus;
+  accessMode: MarketplaceConnection["accessMode"];
+  supportedInputs: IngestionInputKind[];
+  capabilities: ConnectorCapability[];
+  permissions: string[];
+  dataDomains: CanonicalEntityType[];
+  freshnessLabel: string;
+  lastSuccessfulSyncAt: string;
+  recordCount: number;
+  healthScore: number;
+  canRetry: boolean;
+  notes: string;
+}
+
+export interface MockConnectorResult {
+  connectorId: string;
+  sourceRecordCount: number;
+  sampleRecordIds: string[];
+  emittedEntityTypes: CanonicalEntityType[];
+  latestRunStatus: IngestionJobStatus;
+  message: string;
+}
+
+export interface IngestionJobStage {
+  id: IngestionJobStatus;
+  label: string;
+  status: "pending" | "running" | "complete" | "failed";
+  recordsProcessed: number;
+}
+
+export interface IngestionJob {
+  id: string;
+  connectorId: string;
+  sourceLabel: string;
+  status: IngestionJobStatus;
+  currentStage: IngestionJobStatus;
+  startedAt: string;
+  completedAt?: string;
+  recordCount: number;
+  successCount: number;
+  failedCount: number;
+  retryCount: number;
+  nextRetryAt?: string;
+  message: string;
+  stages: IngestionJobStage[];
+}
+
+export interface IngestionActivity {
+  id: string;
+  connectorId: string;
+  label: string;
+  status: "success" | "warning" | "failed" | "retrying";
+  recordCount: number;
+  occurredAt: string;
+  detail: string;
+}
+
+export interface SourceFreshness {
+  connectorId: string;
+  sourceLabel: string;
+  freshnessMinutes: number;
+  freshnessLabel: string;
+  status: "fresh" | "stale" | "failed";
 }
 
 export interface DataQualityMetric {
   label: string;
   score: number;
   description: string;
+}
+
+export interface DataQualityScorecard {
+  overallScore: number;
+  duplicateRate: number;
+  missingFieldRate: number;
+  parseAccuracy: number;
+  metrics: DataQualityMetric[];
+  missingFields: string[];
+  warningCount: number;
+  failedSourceCount: number;
 }
 
 export interface UnifiedEntitySummary {
@@ -121,6 +262,69 @@ export interface EntityMappingPreview {
   canonicalId: string;
   sourceIds: Record<string, string>;
   confidence: number;
+  lastUpdated: string;
+}
+
+export interface SourceRecordReference {
+  connectorId: string;
+  sourceRecordId: string;
+  marketplace?: MarketplaceChannel;
+  reportFileId?: string;
+}
+
+export interface EntityConfidenceScore {
+  entityId: string;
+  entityType: CanonicalEntityType;
+  score: number;
+  label: ConfidenceLabel;
+  signals: string[];
+}
+
+export interface LineageRecord {
+  id: string;
+  entityId: string;
+  entityType: CanonicalEntityType;
+  source: SourceRecordReference;
+  fieldMappings: Record<string, string>;
+  transformations: string[];
+  receivedAt: string;
+  normalizedAt: string;
+  confidenceImpact: number;
+}
+
+export interface NormalizedCommerceEntity {
+  id: string;
+  workspaceId: string;
+  entityType: CanonicalEntityType;
+  title: string;
+  status: "active" | "resolved" | "at_risk" | "needs_review";
+  sourceRefs: SourceRecordReference[];
+  confidence: EntityConfidenceScore;
+  lineageIds: string[];
+  attributes: Record<string, string | number | boolean | string[]>;
+  updatedAt: string;
+}
+
+export interface SkuMapping {
+  id: string;
+  canonicalSkuId: string;
+  canonicalTitle: string;
+  sourceSkuIds: Partial<Record<MarketplaceChannel, string>>;
+  listingIds: Partial<Record<MarketplaceChannel, string>>;
+  confidenceScore: number;
+  conflictCount: number;
+  lineageIds: string[];
+  lastResolvedAt: string;
+}
+
+export interface MarketplaceIdMapping {
+  id: string;
+  entityType: CanonicalEntityType;
+  canonicalId: string;
+  marketplaceIds: Partial<Record<MarketplaceChannel, string>>;
+  sourceRecordIds: string[];
+  confidenceScore: number;
+  lineageIds: string[];
   lastUpdated: string;
 }
 
@@ -253,6 +457,15 @@ export interface AiOperationsWorkspace {
   entitySummaries: UnifiedEntitySummary[];
   graphNodes: CommerceGraphNode[];
   mappings: EntityMappingPreview[];
+  connectors?: ConnectorDefinition[];
+  ingestionJobs?: IngestionJob[];
+  ingestionActivity?: IngestionActivity[];
+  sourceFreshness?: SourceFreshness[];
+  dataQualityScorecard?: DataQualityScorecard;
+  normalizedEntities?: NormalizedCommerceEntity[];
+  skuMappings?: SkuMapping[];
+  marketplaceIdMappings?: MarketplaceIdMapping[];
+  lineageRecords?: LineageRecord[];
   agents: AgentDefinition[];
   findings: AIFinding[];
   automationActions: AutomationAction[];
@@ -262,4 +475,3 @@ export interface AiOperationsWorkspace {
   marketingRecommendations: MarketingRecommendation[];
   learningSignals: LearningSignal[];
 }
-

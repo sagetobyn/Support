@@ -1,10 +1,14 @@
 export * from "./domain/types";
 export * from "./services/aiInsightsService";
 export * from "./services/automationService";
+export { findConnectorDefinition, getConnectorDefinitions, getMockConnectorResults } from "./services/connectorRegistryService";
 export * from "./services/dataBrainService";
+export * from "./services/dataQualityService";
 export * from "./services/ingestionService";
+export * from "./services/lineageService";
 export * from "./services/marketingAutomationService";
+export * from "./services/mappingService";
+export * from "./services/normalizedEntityService";
 export * from "./services/reportingService";
 export * from "./services/sellerDataService";
 export * from "./services/settingsService";
-

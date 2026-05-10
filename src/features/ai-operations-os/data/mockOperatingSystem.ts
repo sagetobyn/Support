@@ -1,4 +1,11 @@
 import type { AiOperationsWorkspace, SellerRuleDraft } from "../domain/types";
+import { connectorDefinitions, ingestionActivity, ingestionJobs, sourceFreshness } from "./mockConnectors";
+import {
+  lineageRecords,
+  marketplaceIdMappings,
+  normalizedCommerceEntities,
+  skuMappings
+} from "./mockCommerceData";
 
 const ruleDrafts: SellerRuleDraft[] = [
   {
@@ -135,6 +142,14 @@ export const aiOperationsWorkspace: AiOperationsWorkspace = {
     { id: "map-sku-1", entityType: "SKU", canonicalId: "SKU_3c1d9e", sourceIds: { amazon: "A_SKU_11", flipkart: "FK_SKU_88", meesho: "MS_SKU_22" }, confidence: 98.9, lastUpdated: "6m ago" },
     { id: "map-order-1", entityType: "Order", canonicalId: "ORD_91aa3f", sourceIds: { amazon: "404-875", flipkart: "OD3321", meesho: "MS9876" }, confidence: 99.4, lastUpdated: "6m ago" }
   ],
+  connectors: connectorDefinitions,
+  ingestionJobs,
+  ingestionActivity,
+  sourceFreshness,
+  normalizedEntities: normalizedCommerceEntities,
+  skuMappings,
+  marketplaceIdMappings,
+  lineageRecords,
   agents: [
     {
       id: "profit-leakage-engine",
@@ -401,4 +416,3 @@ export const aiOperationsWorkspace: AiOperationsWorkspace = {
     }
   ]
 };
-

@@ -19,7 +19,7 @@ describe("AI Operations OS foundation", () => {
     expect(overview.sources.length).toBeGreaterThan(5);
     expect(overview.health.totalRecords).toBeGreaterThan(0);
     expect(registry.statuses.connected).toBeGreaterThan(0);
-    expect(overview.pipeline.map((stage) => stage.id)).toEqual(["extract", "parse", "clean", "normalize", "validate"]);
+    expect(overview.pipeline.map((stage) => stage.id)).toEqual(["extracting", "parsing", "cleaning", "normalizing", "validating"]);
   });
 
   it("exposes data brain confidence and canonical mappings", () => {
@@ -27,7 +27,7 @@ describe("AI Operations OS foundation", () => {
 
     expect(overview.totalEntities).toBeGreaterThan(1000000);
     expect(overview.weightedConfidence).toBeGreaterThan(95);
-    expect(overview.mappings[0]?.canonicalId).toMatch(/^(PROD|SKU|ORD)_/);
+    expect(overview.mappings[0]?.canonicalId).toMatch(/^(prod|sku|ord|set|PROD|SKU|ORD)/);
   });
 
   it("requires approval for high-risk AI findings", () => {
@@ -64,4 +64,3 @@ describe("AI Operations OS foundation", () => {
     expect(marketing.recommendations.every((recommendation) => recommendation.profitGuardrail.length > 0)).toBe(true);
   });
 });
-

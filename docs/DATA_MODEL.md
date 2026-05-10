@@ -146,6 +146,25 @@ The data brain must support:
 - Deduplication.
 - Anomaly detection foundation.
 
+## Implemented Mock Foundation
+
+Phase 3/4 now has typed frontend-safe contracts under `src/features/ai-operations-os/domain/types.ts` and mock adapters under `src/features/ai-operations-os/data`.
+
+Implemented mock structures:
+
+- Connector registry with Amazon, Flipkart, Meesho, CSV/XLSX/PDF upload, courier reports, bank statements, support messages, reviews, and ad reports.
+- Ingestion jobs with `queued`, `extracting`, `parsing`, `cleaning`, `normalizing`, `validating`, `stored`, `failed`, and `retrying`-ready status coverage.
+- Data quality scorecard derived from connector health, ingestion failures, source freshness, and entity confidence.
+- Normalized commerce entities for seller, workspace, marketplace account, product, SKU, listing, order, order item, customer, address, pincode, courier, shipment, NDR, RTO, return, refund, settlement, deduction, claim, inventory item, warehouse, supplier, purchase order, support case, warranty case, review, ad campaign, keyword, competitor listing, and report file.
+- SKU mappings, marketplace ID mappings, entity confidence scores, and lineage records.
+
+Current non-goals:
+
+- No real marketplace API calls.
+- No real CSV, XLSX, PDF, bank statement, email, or review parsing.
+- No database migration.
+- No AI engine, automation execution, or marketing UI behavior added in this increment.
+
 ## Canonical Record Fields
 
 Every normalized entity should carry:
@@ -216,4 +235,3 @@ When moving beyond mock adapters, prefer:
 - Relational tables for canonical entities, mappings, actions, and audits.
 - Append-only audit and feedback tables.
 - Explicit indexes on `workspace_id`, external IDs, source type, entity type, status, and timestamps.
-
