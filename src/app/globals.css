@@ -8773,6 +8773,124 @@ tbody tr:hover td {
   margin: 0;
 }
 
+.os-pill-missing,
+.os-pill-ui-only,
+.os-pill-manual,
+.os-pill-blocked {
+  background: rgba(255, 112, 93, 0.12);
+  border-color: rgba(255, 112, 93, 0.36);
+  color: #ffad9f;
+}
+
+.os-pill-mock,
+.os-pill-local-automation,
+.os-pill-ai-decision,
+.os-pill-connected-read {
+  background: rgba(243, 161, 59, 0.12);
+  border-color: rgba(243, 161, 59, 0.38);
+  color: #ffc174;
+}
+
+.os-pill-approval-execution,
+.os-pill-autonomous-execution,
+.os-pill-approval-ready,
+.os-pill-approved {
+  background: rgba(117, 197, 109, 0.13);
+  border-color: rgba(117, 197, 109, 0.34);
+  color: #a9eba3;
+}
+
+.os-truth-banner {
+  display: grid;
+  gap: 16px;
+}
+
+.os-truth-banner > strong {
+  color: #fff8ed;
+  font-size: 22px;
+  line-height: 1.35;
+}
+
+.os-loop-row {
+  display: grid;
+  gap: 10px;
+  grid-template-columns: repeat(5, minmax(120px, 1fr));
+}
+
+.os-loop-row span,
+.os-inbox-grid article,
+.os-coverage-card {
+  border: 1px solid var(--os-line-soft);
+  border-radius: 8px;
+  padding: 12px;
+}
+
+.os-loop-row span {
+  background: rgba(243, 161, 59, 0.08);
+  color: var(--os-muted);
+  display: grid;
+  gap: 4px;
+}
+
+.os-loop-row b {
+  color: var(--os-amber-bright);
+}
+
+.os-inbox-grid,
+.os-coverage-grid {
+  display: grid;
+  gap: 12px;
+}
+
+.os-inbox-grid {
+  grid-template-columns: repeat(3, minmax(120px, 1fr));
+  margin-bottom: 12px;
+}
+
+.os-inbox-grid article,
+.os-coverage-card {
+  background: rgba(255, 255, 255, 0.03);
+  display: grid;
+  gap: 8px;
+}
+
+.os-inbox-grid span,
+.os-inbox-grid small,
+.os-coverage-card p,
+.os-coverage-card small,
+.os-coverage-card > span {
+  color: var(--os-muted);
+}
+
+.os-inbox-grid strong {
+  color: #fff8ed;
+  font-size: 24px;
+}
+
+.os-coverage-grid {
+  grid-template-columns: repeat(2, minmax(260px, 1fr));
+}
+
+.os-coverage-card > div:first-child {
+  align-items: flex-start;
+  display: flex;
+  gap: 10px;
+  justify-content: space-between;
+}
+
+.os-coverage-card h3 {
+  font-size: 17px;
+  margin: 0;
+}
+
+.os-coverage-card strong {
+  color: #fff8ed;
+}
+
+.os-capability-table .os-table {
+  min-width: 1180px;
+}
+
 @media (max-width: 1180px) {
   .os-topbar {
     grid-template-columns: 1fr;
@@ -8785,7 +8903,10 @@ tbody tr:hover td {
   .os-layout-two,
   .os-layout-two--wide,
   .os-layout-three,
-  .os-marketplace-grid {
+  .os-marketplace-grid,
+  .os-loop-row,
+  .os-inbox-grid,
+  .os-coverage-grid {
     grid-template-columns: 1fr;
   }
   .os-sidebar {

@@ -15,7 +15,7 @@ export default function OnboardingPage() {
       <OsPageHeader
         eyebrow="Onboarding"
         title="Connect Your Business"
-        subtitle="Take the seller from signup to connected data with marketplace APIs, report upload fallback, and first AI diagnosis readiness."
+        subtitle="The goal is a five-minute setup: business profile, marketplace/report data, operating rules, then the first automated work queue."
       />
 
       <div className="os-layout-two">
@@ -38,13 +38,13 @@ export default function OnboardingPage() {
           <div className="os-summary-stack">
             <div>
               <span>Estimated setup time</span>
-              <strong>7-10 mins</strong>
+              <strong>5-7 mins</strong>
               <small>{onboarding.connectedCount} of {onboarding.totalConnectionCount} core sources connected</small>
             </div>
             <div>
               <span>First diagnosis unlock</span>
-              <strong>Orders + returns + settlements</strong>
-              <small>Read-only data first. Upload fallback remains available.</small>
+              <strong>Orders + returns + courier + settlements</strong>
+              <small>CSV/demo data is enough to prove the automation loop before marketplace write permissions.</small>
             </div>
           </div>
         </OsPanel>
@@ -63,7 +63,7 @@ export default function OnboardingPage() {
                 {connection.permissions.map((permission) => <li key={permission}>{permission}</li>)}
               </ul>
               <button className="os-button os-button--secondary" type="button">
-                {connection.status === "connected" ? "Manage Connection" : "Connect Now"}
+                {connection.status === "connected" ? "Manage Source" : "Connect Source"}
               </button>
             </article>
           ))}
@@ -76,7 +76,7 @@ export default function OnboardingPage() {
             <div><span>Monthly order volume</span><strong>{onboarding.seller.monthlyOrderVolume}</strong></div>
             <div><span>Primary categories</span><strong>{onboarding.seller.categories.join(", ")}</strong></div>
             <div><span>Pain points</span><strong>RTO, deductions, inventory, payout delays</strong></div>
-            <div><span>First AI trigger</span><strong>Run after minimum source coverage is met</strong></div>
+            <div><span>First automation trigger</span><strong>Create exception queue after minimum source coverage is met</strong></div>
           </div>
         </OsPanel>
 
@@ -95,4 +95,3 @@ export default function OnboardingPage() {
     </OsShell>
   );
 }
-

@@ -36,9 +36,9 @@ export default function AlertsReportsPage() {
     <OsShell active="/alerts-reports">
       <OsPageHeader
         eyebrow="Dashboard + Alerts + Reports"
-        title="Seller Command Center"
-        subtitle="AI briefing, money at risk, automation health, alerts, and report stubs from the unified data brain, AI findings, and automation logs."
-        actions={<Link className="os-button os-button--secondary" href="/automation">Review Actions</Link>}
+        title="Exception-Based Command Center"
+        subtitle="Shows only what needs attention: approvals, failures, proof, risks, and report evidence from the data brain, AI findings, and automation logs."
+        actions={<Link className="os-button os-button--secondary" href="/automation-coverage">Automation Truth</Link>}
       />
 
       <OsPanel

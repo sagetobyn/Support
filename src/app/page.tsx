@@ -76,19 +76,19 @@ export default function HomePage() {
         <div className="saas-hero__content">
           <span className="eyebrow">AI Operations OS for ecommerce sellers</span>
           <h1>
-            Stop losing money
-            <span> in ecommerce operations.</span>
+            Connect your business.
+            <span> Let Wembro run the non-physical work.</span>
           </h1>
-          <p>Wembro automatically detects, prevents, and recovers operational losses across Amazon, Flipkart, Meesho, Shopify, courier, settlement, inventory, support, and growth workflows.</p>
+          <p>Wembro is being rebuilt around the real operating loop: detect leakage, decide the next action, create execution work, record proof, and learn from outcomes across every seller workflow.</p>
           <div className="saas-actions">
-            <Link className="button" href="/onboarding">Connect marketplace</Link>
-            <Link className="button secondary play-cta" href="/ai-operations-engine">See AI engine <span aria-hidden /></Link>
+            <Link className="button" href="/onboarding">Connect business</Link>
+            <Link className="button secondary play-cta" href="/automation-coverage">See automation truth <span aria-hidden /></Link>
           </div>
           <div className="hero-trust-row" aria-label="Trust indicators">
             <div className="avatar-stack" aria-hidden>
               <span>A</span><span>N</span><span>R</span><span>S</span><strong>+28</strong>
             </div>
-            <p>Dashboard visibility is only the control room. The AI works from connected data, normalized entities, policies, and audit logs.</p>
+            <p>Dashboard visibility is only the control room. Every capability now shows whether it is missing, mock, local automation, AI decision, or execution-ready.</p>
           </div>
           <div className="segment-row" aria-label="Seller segments">
             <small>Trusted by</small>
@@ -163,7 +163,7 @@ export default function HomePage() {
               <ul>
                 {feature.bullets.map((item) => <li key={item}>{item}</li>)}
               </ul>
-              <Link href="/dashboard">Explore →</Link>
+              <Link href="/automation-coverage">Explore automation status →</Link>
             </article>
           ))}
         </div>
@@ -175,7 +175,7 @@ export default function HomePage() {
         <div className="saas-section-heading">
           <span className="eyebrow">Modules built around outcomes</span>
           <h2>Start with proof. Scale into a daily operating room.</h2>
-          <p>Every module exists to answer one specific question. You see the next layer only when you need it.</p>
+          <p>Every module exists to remove a specific manual job. You see the next layer only when it has evidence, exceptions, approvals, or proof.</p>
         </div>
         <div className="module-console">
           <div className="module-rail" aria-label="Service modules">
@@ -260,7 +260,7 @@ export default function HomePage() {
         <div className="saas-section-heading">
           <span className="eyebrow">Trust by design</span>
           <h2>Useful. Transparent. Focused.</h2>
-          <p>No invented complexity. No black-box savings claims. A product you can audit end-to-end.</p>
+          <p>No invented complexity. No black-box savings claims. No pretending a mock is full automation.</p>
         </div>
         <div className="trust-grid">
           <div className="trust-stack">
@@ -287,12 +287,12 @@ export default function HomePage() {
         <span className="cta-shield" aria-hidden>W</span>
         <div>
           <span className="eyebrow">Ready to see your real loss?</span>
-          <h2>Start with the free check. Commit only when the numbers make sense.</h2>
-          <p>Two-minute calculator → free written audit → 14-day pilot → daily operating room. You decide where to stop.</p>
+          <h2>Start by connecting the business. Wembro shows what it can automate and what is still manual.</h2>
+          <p>Five-minute setup, then an exception-first operating room: approvals, failures, proof, and uncovered manual work.</p>
         </div>
         <div className="saas-actions">
-          <Link className="button secondary" href="/dashboard">See dashboard</Link>
-          <Link className="button" href="/calculator">Free leakage check</Link>
+          <Link className="button secondary" href="/automation-coverage">See coverage</Link>
+          <Link className="button" href="/onboarding">Connect business</Link>
         </div>
       </section>
     </MarketingPage>

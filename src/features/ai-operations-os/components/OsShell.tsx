@@ -17,6 +17,7 @@ export const operationsRoutes = [
   { href: "/data-brain", label: "Data Brain" },
   { href: "/ai-operations-engine", label: "AI Engine" },
   { href: "/automation", label: "Automation" },
+  { href: "/automation-coverage", label: "Automation Truth" },
   { href: "/alerts-reports", label: "Dashboard + Reports" },
   { href: "/settings", label: "Settings" },
   { href: "/model-control", label: "Model Control" },
@@ -53,7 +54,7 @@ export function OsShell({ active, children }: { active: string; children: ReactN
         </nav>
         <div className="os-topbar__actions">
           <Link className="os-button os-button--secondary" href="/login">Log in</Link>
-          <Link className="os-button" href="/onboarding">Connect Marketplace</Link>
+          <Link className="os-button" href="/onboarding">Connect Business</Link>
         </div>
       </header>
       <div className="os-shell">
@@ -67,8 +68,8 @@ export function OsShell({ active, children }: { active: string; children: ReactN
             ))}
           </nav>
           <div className="os-status-card">
-            <span>System Status</span>
-            <strong>Healthy</strong>
+            <span>System Truth</span>
+            <strong>Coverage visible</strong>
             <small>{"Data -> Insight -> Decision -> Action -> Learning"}</small>
           </div>
         </aside>

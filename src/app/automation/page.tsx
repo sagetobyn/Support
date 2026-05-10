@@ -16,14 +16,15 @@ export default function AutomationPage() {
     <OsShell active="/automation">
       <OsPageHeader
         eyebrow="Automation / Action Layer"
-        title="Turn AI Findings Into Safe Execution"
-        subtitle="AI draft intents become action queues, approval decisions, policy checks, simulated execution, and audit logs. No external API action is executed."
+        title="Turn Decisions Into Seller Work Removed"
+        subtitle="Findings become queue items, approval requests, policy checks, local execution proof, and audit logs. External writes remain blocked until provider permissions and seller rules are ready."
+        actions={<a className="os-button os-button--secondary" href="/automation-coverage">View Automation Truth</a>}
       />
 
       <div className="os-metric-grid">
         <div className="os-metric os-tone-warning"><span>Potential Impact Open</span><strong>{formatInr(overview.potentialImpact)}</strong><small>Policy-checked queue value</small></div>
         <div className="os-metric"><span>Approval Queue</span><strong>{overview.pendingApproval}</strong><small>{overview.actions.length} total actions</small></div>
-        <div className="os-metric os-tone-success"><span>Mock Executed</span><strong>{overview.executed}</strong><small>{overview.autoExecutableCount} auto-allowed internal actions</small></div>
+        <div className="os-metric os-tone-success"><span>Local Proof Executed</span><strong>{overview.executed}</strong><small>{overview.autoExecutableCount} auto-allowed internal actions</small></div>
         <div className="os-metric"><span>Avg Confidence</span><strong>{overview.avgConfidence.toFixed(1)}%</strong><small>{overview.blocked} blocked by policy</small></div>
       </div>
 
