@@ -2,17 +2,17 @@
 
 ## Next Best Task
 
-Implement Phase 3.1 real parser and ingestion-adapter interfaces:
+Implement Phase 5.1 policy handoff and approval queue integration:
 
-1. Add parser interface files for CSV, XLSX, PDF, bank statement, courier report, settlement report, ad report, support message, review file, and email ingestion.
-2. Keep parsers mocked but make their input/output contracts executable through services.
-3. Add upload validation for file type, size, source type, and required mapping columns.
-4. Add a parser result object that can emit raw rows, normalized preview rows, validation errors, and lineage references.
-5. Keep all real connector credentials out of UI and logs.
+1. Convert `AutomationDraftIntent` records into approval-queue preview records without executing actions.
+2. Add policy handoff checks for risk level, confidence threshold, seller approval rules, and integration availability.
+3. Show blocked vs approval-ready intents in the automation/action layer.
+4. Add tests proving high-risk intents cannot auto-execute and low-risk intents still remain preview-only until Phase 6 execution.
+5. Keep all marketplace/customer/bank side effects disabled.
 
 Suggested prompt:
 
-> Continue Phase 3.1 for the AI Operations OS. Add typed parser interfaces for report uploads and source adapters under `src/features/ai-operations-os`, keep execution mocked, and wire parser results into the existing ingestion jobs, quality scoring, normalized previews, and lineage tests.
+> Continue Phase 5.1 for the AI Operations OS. Wire structured AI findings and automation draft intents into a policy handoff preview for the Automation / Action Layer. Do not execute actions; only classify approval-ready, blocked, and recommendation-only intents with tests.
 
 ## Phase 1 Follow-Ups
 
@@ -52,10 +52,11 @@ Suggested prompt:
 
 ## Phase 5 Follow-Ups
 
-- Implement agent registry and Chief Operations Agent orchestrator.
-- Add model config per agent.
-- Add structured finding schema tests.
-- Add explainability panels.
+- Add policy handoff preview from structured findings into the automation layer.
+- Add model config per agent in model-control UI.
+- Add richer entity drilldowns from each finding to the Data Brain.
+- Add historical run comparison once feedback loops exist.
+- Done in mock foundation: agent registry, Chief Operations Agent ranking, structured findings, deterministic confidence scoring, explanation summaries, recommended actions, automation draft intents, and service-backed `/ai-operations-engine`.
 
 ## Phase 6 Follow-Ups
 

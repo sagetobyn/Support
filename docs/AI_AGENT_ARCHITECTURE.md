@@ -84,3 +84,46 @@ Risky actions require seller approval unless a seller-specific automation rule e
 
 Every agent output must be represented as data. Free-form prose can explain the result, but the system must store the structured result first.
 
+## Implemented Phase 5 Mock Foundation
+
+The current implementation adds a deterministic, service-backed AI Operations Engine foundation. It does not call an LLM and does not execute actions.
+
+Implemented agents:
+
+- Chief Operations Agent
+- Profit Leakage Engine
+- RTO/NDR Engine
+- Return Intelligence Engine
+- Settlement Reconciliation Engine
+- Claims Recovery Agent
+- Inventory Intelligence Engine
+- Customer Support Agent
+- Pricing & Profitability Agent
+- Marketing/Growth Agent skeleton
+
+Implemented service boundaries:
+
+- `agentRegistryService` owns the mock agent registry, input requirements, and run status.
+- `agentConfidenceService` derives confidence from data quality, entity confidence, lineage coverage, source freshness, rule clarity, and impact clarity.
+- `aiFindingService` converts deterministic finding seeds into structured findings and automation draft intents.
+- `chiefOperationsAgentService` ranks findings using `Financial Impact x Urgency/Risk x Frequency x Confidence`.
+- `aiInsightsService` composes the route-facing engine view model.
+
+Every structured finding includes:
+
+- input entity references
+- lineage references
+- confidence signals and confidence breakdown
+- explanation summary
+- recommended action
+- automation draft intent
+- approval requirement
+
+Current hard limits:
+
+- No real LLM orchestration.
+- No marketplace write actions.
+- No customer message sending.
+- No claim submission.
+- No automation policy execution.
+- Marketing/Growth remains a skeleton until the marketing automation phase.

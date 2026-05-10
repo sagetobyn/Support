@@ -81,6 +81,17 @@ Each action stores:
 - `createdAt`
 - `updatedAt`
 
+## Current AI Engine Handoff
+
+Phase 5 emits `AutomationDraftIntent` records from structured AI findings. These records are automation-ready data, not executable work.
+
+Current rules:
+
+- `executableNow` is always `false`.
+- High-risk findings are approval-gated.
+- Draft intents may be shown in the automation layer as future queue candidates.
+- No external marketplace, customer, bank, support, inventory, pricing, or ad action is executed in Phase 5.
+
 ## Policy Checks
 
 Before execution, check:
@@ -99,4 +110,3 @@ Before execution, check:
 ## Dashboard Relationship
 
 The dashboard can approve, pause, retry, or inspect actions. It must not create hidden automation logic. All rules live in settings and automation services.
-

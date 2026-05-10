@@ -1,4 +1,7 @@
 export * from "./domain/types";
+export * from "./services/agentConfidenceService";
+export * from "./services/agentRegistryService";
+export * from "./services/aiFindingService";
 export * from "./services/aiInsightsService";
 export * from "./services/automationService";
 export { findConnectorDefinition, getConnectorDefinitions, getMockConnectorResults } from "./services/connectorRegistryService";

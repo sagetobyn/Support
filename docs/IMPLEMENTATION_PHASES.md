@@ -72,14 +72,23 @@ Remaining Phase 4 work:
 
 ## Phase 5: AI Operations Engine Foundation
 
+Status: mock foundation completed in this increment.
+
 Deliverables:
 
-- Agent registry.
-- Agent configuration.
-- Structured AI finding schema.
-- Mock engine outputs.
-- Chief Operations Agent orchestration skeleton.
-- Explainability cards.
+- Agent registry. Implemented for the requested Phase 5 agents only.
+- Agent configuration. Model config IDs are attached to registry entries; full model-control UI remains Phase 8.
+- Structured AI finding schema. Implemented with input refs, lineage refs, confidence, explanation, recommended action, and automation draft intent.
+- Mock engine outputs. Implemented as deterministic service output from existing Data Brain entities and lineage.
+- Chief Operations Agent orchestration skeleton. Implemented with ranked briefing and priority formula.
+- Explainability cards. Implemented on `/ai-operations-engine` through confidence breakdown, explanation summary, and recommended action sections.
+
+Current limits:
+
+- No real LLM calls.
+- No live marketplace/customer/bank actions.
+- No automation execution or approval queue mutation.
+- Marketing/Growth Agent is a profit-aware skeleton only.
 
 ## Phase 6: Automation / Action Layer
 

@@ -90,6 +90,20 @@ export type AgentOutputType =
   | "task"
   | "automation_event";
 
+export type AgentId =
+  | "chief-operations-agent"
+  | "profit-leakage-engine"
+  | "rto-ndr-engine"
+  | "return-intelligence-engine"
+  | "settlement-reconciliation-engine"
+  | "claims-recovery-agent"
+  | "inventory-intelligence-engine"
+  | "customer-support-agent"
+  | "pricing-profitability-agent"
+  | "marketing-growth-agent";
+
+export type AgentRunStatus = "ready" | "running" | "completed" | "needs_data" | "failed";
+
 export interface MoneyMetric {
   id: string;
   label: string;
@@ -340,6 +354,110 @@ export interface AgentDefinition {
   sevenDayImpact: number;
 }
 
+export interface AgentInputRequirement {
+  entityType: CanonicalEntityType;
+  label: string;
+  required: boolean;
+  minimumConfidence: number;
+  sourceNotes: string;
+}
+
+export interface AgentRun {
+  id: string;
+  agentId: AgentId;
+  status: AgentRunStatus;
+  startedAt: string;
+  completedAt?: string;
+  inputEntityCount: number;
+  findingCount: number;
+  message: string;
+}
+
+export interface AgentFindingEntityRef {
+  entityId: string;
+  entityType: CanonicalEntityType;
+  title: string;
+}
+
+export interface AgentConfidenceBreakdown {
+  id: string;
+  agentId: AgentId;
+  findingId?: string;
+  dataQuality: number;
+  entityConfidence: number;
+  lineageCoverage: number;
+  sourceFreshness: number;
+  ruleClarity: number;
+  impactClarity: number;
+  finalScore: number;
+  signals: string[];
+}
+
+export interface AiRecommendedAction {
+  id: string;
+  actionType: string;
+  label: string;
+  description: string;
+  owner: string;
+  expectedImpactAmount: number;
+  automationLevel: AutomationLevel;
+  approvalRequired: boolean;
+  riskLevel: RiskLevel;
+  nextStep: string;
+}
+
+export interface AutomationDraftIntent {
+  id: string;
+  findingId: string;
+  actionType: string;
+  title: string;
+  description: string;
+  targetEntityRefs: AgentFindingEntityRef[];
+  automationLevel: AutomationLevel;
+  state: Extract<ExecutionState, "recommended" | "drafted" | "awaiting_approval">;
+  approvalRequired: boolean;
+  policyChecks: string[];
+  rollbackPlan: string;
+  executableNow: false;
+}
+
+export interface StructuredAiFinding {
+  id: string;
+  workspaceId: string;
+  agentId: AgentId;
+  title: string;
+  summary: string;
+  outputType: AgentOutputType;
+  riskLevel: RiskLevel;
+  confidence: number;
+  confidenceSignals: string[];
+  confidenceBreakdown: AgentConfidenceBreakdown;
+  impactAmount: number;
+  urgencyScore: number;
+  frequencyScore: number;
+  priorityScore: number;
+  approvalRequired: boolean;
+  automationLevel: AutomationLevel;
+  inputEntityRefs: AgentFindingEntityRef[];
+  lineageRefs: string[];
+  explanationSummary: string;
+  recommendedAction: AiRecommendedAction;
+  automationIntent: AutomationDraftIntent;
+  createdAt: string;
+}
+
+export interface ChiefOperationsBriefing {
+  id: string;
+  headline: string;
+  rankingMethod: string;
+  topOpportunity: StructuredAiFinding;
+  biggestRisk: StructuredAiFinding;
+  approvalRequiredCount: number;
+  totalPotentialImpact: number;
+  rankedFindings: StructuredAiFinding[];
+  explanationSummary: string;
+}
+
 export interface AIFinding {
   id: string;
   agentId: string;
@@ -466,6 +584,9 @@ export interface AiOperationsWorkspace {
   skuMappings?: SkuMapping[];
   marketplaceIdMappings?: MarketplaceIdMapping[];
   lineageRecords?: LineageRecord[];
+  agentRuns?: AgentRun[];
+  structuredFindings?: StructuredAiFinding[];
+  chiefOperationsBriefing?: ChiefOperationsBriefing;
   agents: AgentDefinition[];
   findings: AIFinding[];
   automationActions: AutomationAction[];
