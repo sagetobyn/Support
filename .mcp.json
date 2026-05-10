@@ -1,0 +1,8 @@
+{
+  "mcpServers": {
+    "codex": {
+      "command": "C:\\Users\\akhil\\AppData\\Local\\OpenAI\\Codex\\bin\\codex.exe",
+      "args": ["mcp-server"]
+    }
+  }
+}

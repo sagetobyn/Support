@@ -1,8 +1,9 @@
 import Link from "next/link";
 import { MarketingPage } from "@/components/marketing/MarketingChrome";
+import { serviceLedOffers } from "@/features/marketing";
 import { planConfigs, type PlanId } from "@/features/plans";
 
-const pricingOrder: PlanId[] = ["free", "audit", "pilot", "starter", "growth", "pro"];
+const monthlyPlanOrder: PlanId[] = ["starter", "growth", "pro"];
 
 function money(value: number) {
   if (!value) return "Free";
@@ -17,19 +18,55 @@ function planCta(id: PlanId) {
 }
 
 export default function PricingPage() {
-  const plans = pricingOrder.map((id) => planConfigs[id]);
+  const monthlyPlans = monthlyPlanOrder.map((id) => planConfigs[id]);
 
   return (
     <MarketingPage>
       <section className="pricing-hero">
         <img className="product-hero__bg" src="/media/dashboard-control-room.png" alt="Wembro dashboard interface" />
-        <span className="eyebrow">Pricing</span>
-        <h1>Pay for the level of help you actually need.</h1>
-        <p>Start free. Move up only when the numbers prove it.</p>
+        <div className="pricing-hero__content">
+          <span className="eyebrow">Pricing</span>
+          <h1>Start service-led. Stay only when the recovery is real.</h1>
+          <p>For early customers, Wembro is packaged like a rescue team first and SaaS second: check, audit, pilot, monthly recovery plan, then software plus operator workflow.</p>
+        </div>
       </section>
 
+      <section className="saas-section service-pricing">
+        <div className="saas-section-heading">
+          <span className="eyebrow">First 20-50 customers</span>
+          <h2>Buy proof before you buy a platform.</h2>
+          <p>Each step has a clear artifact, a clear owner, and a clear reason to move forward.</p>
+        </div>
+        <div className="service-led-grid">
+          {serviceLedOffers.map((offer) => (
+            <article className="service-led-card" key={offer.id}>
+              <div>
+                <span>{offer.stage}</span>
+                <strong>{offer.priceLabel}</strong>
+              </div>
+              <h3>{offer.name}</h3>
+              <p>{offer.buyerPromise}</p>
+              <dl>
+                <dt>What we do</dt>
+                <dd>{offer.teamDoes}</dd>
+                <dt>Proof</dt>
+                <dd>{offer.proofArtifact}</dd>
+              </dl>
+              <Link className="button secondary" href={offer.route}>{offer.ctaLabel}</Link>
+            </article>
+          ))}
+        </div>
+      </section>
+
+      <section className="saas-section">
+        <div className="saas-section-heading">
+          <span className="eyebrow">Monthly recovery plans</span>
+          <h2>After the pilot, keep the operating rhythm.</h2>
+          <p>Starter, Growth, and Pro are monthly recovery systems for sellers who have already seen the leakage and want the daily workflow to continue.</p>
+        </div>
+      </section>
       <section className="pricing-grid">
-        {plans.map((plan) => {
+        {monthlyPlans.map((plan) => {
           const cta = planCta(plan.id);
           const featured = plan.id === "growth" || plan.id === "pro";
           return (

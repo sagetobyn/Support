@@ -22,13 +22,15 @@ Wembro should be presented from the client problem outward:
 2. Solution: identify leakage, prioritize daily actions, rescue NDRs, and show estimated savings.
 3. Product: use Revenue Leakage Control tools only when they support that outcome.
 
+For the first 20-50 customers, Wembro should behave like a rescue team before it behaves like pure SaaS. Charge earlier by doing the work with the seller, prove ROI, and turn repeated manual steps into product.
+
 Packaged offers:
 
-- Free RTO Leakage Check: calculator, sample report, and summary-only audit for founders who are not ready to share customer data.
-- RTO Profit Audit: anonymized CSV audit, leakage report, and pilot recommendation for founders, finance heads, and ecommerce heads.
-- 14-Day RTO Rescue Pilot: daily queue, NDR rescue, mock/manual messaging, and savings ledger for founders and ops managers.
-- Daily Execution Queue: order risk, action queue, NDR rescue, prepaid opportunities, and messaging outbox for ops, support, and warehouse teams.
-- Founder Profit Intelligence: Profit Cockpit, Weekly Founder Report, Monthly Strategy Report, Policy Simulator, and pincode/courier/SKU/campaign intelligence for higher-plan users.
+- Free Leakage Check: calculator, sample report, and summary-only estimate for founders who are not ready to share customer data.
+- Paid RTO Profit Audit: INR 999 written audit using summary or anonymized CSV data, with leakage drivers and pilot recommendation.
+- 14-Day Rescue Pilot: INR 4,999 managed/manual rescue workflow with daily queue, NDR rescue, mock/manual messaging, savings ledger, and final review.
+- Monthly Recovery Plan: Starter, Growth, or Pro monthly rhythm once the pilot shows a repeatable recovery habit.
+- Software + Operator Workflow: prioritization, proof tracking, and operator execution working together instead of a self-serve dashboard alone.
 
 ## What Changed In Version 0.2
 

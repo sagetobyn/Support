@@ -11,6 +11,7 @@ import {
   personaPages,
   recoverySteps,
   representativeProof,
+  serviceLedOffers,
   serviceModules,
   trustSignals
 } from "@/features/marketing";
@@ -204,6 +205,33 @@ export default function HomePage() {
             </div>
             <Link className="button" href={activeModule.route}>Open {activeModule.name}</Link>
           </article>
+        </div>
+      </section>
+
+      <section className="saas-section service-led-band">
+        <div className="saas-section-heading">
+          <span className="eyebrow">Service-led for early customers</span>
+          <h2>For the first 20-50 customers, we work like a rescue team.</h2>
+          <p>Do not start by buying pure SaaS. Start with a concrete leakage check, a paid audit, a 14-day rescue pilot, and a monthly recovery plan only after the ROI is visible.</p>
+        </div>
+        <div className="service-led-grid">
+          {serviceLedOffers.map((offer) => (
+            <article className="service-led-card" key={offer.id}>
+              <div>
+                <span>{offer.stage}</span>
+                <strong>{offer.priceLabel}</strong>
+              </div>
+              <h3>{offer.name}</h3>
+              <p>{offer.buyerPromise}</p>
+              <dl>
+                <dt>What we do</dt>
+                <dd>{offer.teamDoes}</dd>
+                <dt>Proof</dt>
+                <dd>{offer.proofArtifact}</dd>
+              </dl>
+              <Link className="button secondary" href={offer.route}>{offer.ctaLabel}</Link>
+            </article>
+          ))}
         </div>
       </section>
 

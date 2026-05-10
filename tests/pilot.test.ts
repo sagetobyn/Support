@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { calculatePilotOutcome, createPilotFromAudit, generatePilotFinalReview, updatePilotDay } from "@/lib/pilot";
+import { buildPilotExecutionTracker } from "@/features/pilot-execution";
 import { buildPilotHandoffPack } from "@/features/pilot-handoff";
 import { buildPilotReadiness } from "@/features/pilot-readiness";
 
@@ -114,5 +115,33 @@ describe("PilotService outcome scoring", () => {
 
     expect(pack.status).toBe("ready_to_pitch");
     expect(pack.renewalDecision).toContain("monthly control room");
+  });
+
+  it("flags missed pilot days and missing proof before mid-pilot review", () => {
+    const plan = updatePilotDay(createPilotFromAudit(undefined, 4999), 1, { ordersChecked: 80, riskyCodFound: 12 });
+    const tracker = buildPilotExecutionTracker(plan, 6);
+
+    expect(tracker.days[0].status).toBe("work_logged");
+    expect(tracker.missedDays).toBe(4);
+    expect(tracker.warnings.join(" ")).toContain("No proof day yet");
+    expect(tracker.checkpoints.find((checkpoint) => checkpoint.day === 3)?.status).toBe("needs_attention");
+  });
+
+  it("marks proof days and passes execution checkpoints when savings exist", () => {
+    let plan = createPilotFromAudit(undefined, 4999);
+    plan = {
+      ...plan,
+      checklist: plan.checklist.map((item, index) => ({ ...item, complete: index < 5 }))
+    };
+    plan = updatePilotDay(plan, 1, { ordersChecked: 120, riskyCodFound: 18 });
+    plan = updatePilotDay(plan, 4, { codConfirmationsQueued: 8, ndrCasesFound: 6, ndrsContacted: 6 });
+    plan = updatePilotDay(plan, 8, { ndrCasesFound: 10, ndrsContacted: 8, ndrsRescued: 3, estimatedSavings: 7000 });
+
+    const tracker = buildPilotExecutionTracker(plan, 10);
+
+    expect(tracker.proofDays).toBe(1);
+    expect(tracker.days[7].status).toBe("proof_captured");
+    expect(tracker.checkpoints.find((checkpoint) => checkpoint.day === 3)?.status).toBe("passed");
+    expect(tracker.checkpoints.find((checkpoint) => checkpoint.day === 10)?.status).toBe("passed");
   });
 });

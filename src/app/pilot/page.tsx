@@ -13,6 +13,7 @@ import {
   type PilotPlan
 } from "@/lib/pilot";
 import { buildPilotHandoffFromPlan } from "@/features/pilot-handoff";
+import { buildPilotExecutionTracker } from "@/features/pilot-execution";
 import { formatCurrency, formatNumber, formatPercent } from "@/lib/reporting";
 
 const pilotStorageKey = "wembro:pilot-plan";
@@ -56,6 +57,7 @@ export default function PilotPage() {
   const progress = useMemo(() => calculatePilotProgress(plan), [plan]);
   const finalReview = plan.finalReview || generatePilotFinalReview(plan);
   const handoffPack = useMemo(() => buildPilotHandoffFromPlan(plan, progress, finalReview), [plan, progress, finalReview]);
+  const executionTracker = useMemo(() => buildPilotExecutionTracker(plan, currentDay), [plan, currentDay]);
   const dayProgressPercent = Math.round((currentDay / 14) * 100);
   const todayMetrics = plan.days[currentDay - 1] || plan.days[0];
   const completedActions = plan.checklist.filter((c) => c.complete).length + plan.days.filter((d) => d.ordersChecked > 0).length;
@@ -145,6 +147,46 @@ export default function PilotPage() {
         <div className="split">
           <span className="muted">{dayProgressPercent}% of pilot complete · {completedActions} of {totalActions} actions done</span>
           <span className="muted">Estimated savings so far: <strong>{formatCurrency(progress.estimatedSavings)}</strong></span>
+        </div>
+      </section>
+
+      <section className="panel wide-section pilot-execution">
+        <div className="split">
+          <div>
+            <p className="eyebrow">Pilot execution tracker</p>
+            <h2>{executionTracker.today?.label || `Day ${executionTracker.currentDay}`}: {executionTracker.currentInstruction}</h2>
+            <p className="muted">{executionTracker.warnings.join(" ")}</p>
+          </div>
+          <div className="pilot-execution__score">
+            <strong>{executionTracker.completionPercent}%</strong>
+            <span>{executionTracker.loggedDays}/14 days logged</span>
+          </div>
+        </div>
+        <div className="pilot-execution__stats">
+          <Metric label="Proof days" value={formatNumber(executionTracker.proofDays)} />
+          <Metric label="Missed days" value={formatNumber(executionTracker.missedDays)} />
+          <Metric label="Current phase" value={executionTracker.today?.phase || "Pilot"} />
+          <Metric label="Today savings" value={formatCurrency(todayMetrics.estimatedSavings)} />
+        </div>
+        <div className="pilot-day-grid" aria-label="14-day pilot status">
+          {executionTracker.days.map((day) => (
+            <button className={`pilot-day-card ${day.status} ${day.day === currentDay ? "selected" : ""}`} key={day.day} onClick={() => setCurrentDay(day.day)}>
+              <span>{day.day}</span>
+              <strong>{day.phase}</strong>
+              <small>{day.status.replaceAll("_", " ")}</small>
+              {day.estimatedSavings > 0 ? <em>{formatCurrency(day.estimatedSavings)}</em> : null}
+            </button>
+          ))}
+        </div>
+        <div className="pilot-checkpoint-grid">
+          {executionTracker.checkpoints.map((checkpoint) => (
+            <div className={`pilot-checkpoint ${checkpoint.status}`} key={checkpoint.day}>
+              <span>Day {checkpoint.day}</span>
+              <strong>{checkpoint.label}</strong>
+              <p>{checkpoint.criteria}</p>
+              <small>{checkpoint.decision}</small>
+            </div>
+          ))}
         </div>
       </section>
 

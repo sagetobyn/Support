@@ -1446,6 +1446,159 @@ th {
   padding: 12px;
 }
 
+.pilot-execution {
+  display: grid;
+  gap: 14px;
+}
+
+.pilot-execution__score {
+  align-items: flex-end;
+  display: grid;
+  gap: 2px;
+  min-width: 130px;
+  text-align: right;
+}
+
+.pilot-execution__score strong {
+  color: var(--text);
+  font-size: 32px;
+  line-height: 1;
+}
+
+.pilot-execution__score span {
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 800;
+}
+
+.pilot-execution__stats {
+  display: grid;
+  gap: 10px;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+
+.pilot-day-grid {
+  display: grid;
+  gap: 8px;
+  grid-template-columns: repeat(14, minmax(0, 1fr));
+}
+
+.pilot-day-card {
+  background: #ffffff;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  color: var(--text);
+  display: grid;
+  gap: 5px;
+  min-height: 104px;
+  min-width: 0;
+  padding: 9px;
+  text-align: left;
+}
+
+.pilot-day-card:hover,
+.pilot-day-card.selected {
+  border-color: #93c5fd;
+  box-shadow: var(--shadow-soft);
+}
+
+.pilot-day-card span {
+  align-items: center;
+  background: #eef2f7;
+  border-radius: 999px;
+  color: #334155;
+  display: inline-flex;
+  font-size: 11px;
+  font-weight: 900;
+  height: 24px;
+  justify-content: center;
+  width: 24px;
+}
+
+.pilot-day-card strong {
+  font-size: 12px;
+  line-height: 1.25;
+}
+
+.pilot-day-card small,
+.pilot-day-card em {
+  color: var(--muted);
+  font-size: 11px;
+  font-style: normal;
+  font-weight: 800;
+  overflow-wrap: anywhere;
+}
+
+.pilot-day-card.today {
+  background: #eff6ff;
+  border-color: #bfdbfe;
+}
+
+.pilot-day-card.work_logged {
+  background: #fff7ed;
+  border-color: #fed7aa;
+}
+
+.pilot-day-card.proof_captured {
+  background: #f0fdf4;
+  border-color: #bbf7d0;
+}
+
+.pilot-day-card.missed {
+  background: #fef2f2;
+  border-color: #fecaca;
+}
+
+.pilot-day-card.proof_captured span {
+  background: #dcfce7;
+  color: var(--green);
+}
+
+.pilot-day-card.missed span {
+  background: #fee2e2;
+  color: var(--red);
+}
+
+.pilot-checkpoint-grid {
+  display: grid;
+  gap: 10px;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+
+.pilot-checkpoint {
+  background: #ffffff;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  display: grid;
+  gap: 6px;
+  min-width: 0;
+  padding: 12px;
+}
+
+.pilot-checkpoint.passed {
+  background: #f0fdf4;
+  border-color: #bbf7d0;
+}
+
+.pilot-checkpoint.needs_attention {
+  background: #fff7ed;
+  border-color: #fed7aa;
+}
+
+.pilot-checkpoint span {
+  color: var(--muted);
+  font-size: 11px;
+  font-weight: 900;
+  text-transform: uppercase;
+}
+
+.pilot-checkpoint p,
+.pilot-checkpoint small {
+  color: var(--muted);
+  line-height: 1.45;
+  margin: 0;
+}
+
 .upload-dropzone {
   align-items: center;
   background: #f8fafc;
@@ -3313,7 +3466,8 @@ tbody tr:hover td {
 .saas-panel,
 .product-module-card,
 .persona-card,
-.pricing-card {
+.pricing-card,
+.service-led-card {
   background: #fffefa;
   border: 1px solid rgba(217, 226, 220, 0.95);
   border-radius: 8px;
@@ -3345,6 +3499,7 @@ tbody tr:hover td {
 .module-detail p,
 .product-module-card p,
 .persona-card p,
+.service-led-card p,
 .trust-signal p,
 .proof-story p,
 .pricing-card p,
@@ -3631,6 +3786,12 @@ tbody tr:hover td {
   max-width: 760px;
 }
 
+.pricing-hero__content {
+  display: grid;
+  gap: 10px;
+  max-width: 780px;
+}
+
 .product-hero .button.secondary,
 .persona-hero .button.secondary,
 .pricing-hero .button.secondary {
@@ -3796,7 +3957,8 @@ tbody tr:hover td {
 .persona-card,
 .trust-grid,
 .pricing-card,
-.product-module-card {
+.product-module-card,
+.service-led-card {
   animation: saasFadeUp 520ms ease both;
 }
 
@@ -3807,7 +3969,8 @@ tbody tr:hover td {
   .persona-card,
   .trust-grid,
   .pricing-card,
-  .product-module-card {
+  .product-module-card,
+  .service-led-card {
     animation: none;
   }
 }
@@ -3868,7 +4031,9 @@ tbody tr:hover td {
   .trust-grid,
   .product-hero,
   .product-module-grid,
+  .service-led-grid,
   .persona-hero,
+  .pricing-hero,
   .persona-grid,
   .pricing-grid,
   .pricing-guidance,
@@ -3954,6 +4119,9 @@ tbody tr:hover td {
   .pilot-handoff__grid,
   .pilot-workstream-grid,
   .pilot-handoff__risks,
+  .pilot-execution__stats,
+  .pilot-day-grid,
+  .pilot-checkpoint-grid,
   .founder-story-grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
@@ -4084,6 +4252,9 @@ tbody tr:hover td {
   .pilot-handoff__grid,
   .pilot-workstream-grid,
   .pilot-handoff__risks,
+  .pilot-execution__stats,
+  .pilot-day-grid,
+  .pilot-checkpoint-grid,
   .atlas-grid,
   .plan-grid,
   .founder-story-grid {
@@ -6609,6 +6780,80 @@ tbody tr:hover td {
 
 .login-card__alert {
   margin: 0;
+}
+
+.service-led-band,
+.service-pricing {
+  display: grid;
+  gap: 24px;
+}
+
+.service-led-grid {
+  display: grid;
+  gap: 14px;
+  grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
+}
+
+.service-led-card {
+  align-content: space-between;
+  display: grid;
+  gap: 14px;
+  min-height: 390px;
+}
+
+.service-led-card > div {
+  align-items: center;
+  display: flex;
+  gap: 10px;
+  justify-content: space-between;
+}
+
+.service-led-card > div span {
+  align-items: center;
+  background: #edf5ff;
+  border-radius: 999px;
+  color: #1f58d8;
+  display: inline-flex;
+  font-size: 13px;
+  font-weight: 900;
+  height: 34px;
+  justify-content: center;
+  width: 34px;
+}
+
+.service-led-card > div strong {
+  color: #0f766e;
+  font-size: 13px;
+  font-weight: 900;
+  text-align: right;
+}
+
+.service-led-card h3 {
+  font-size: 24px;
+  line-height: 1.12;
+  margin: 0;
+}
+
+.service-led-card dl {
+  border-left: 4px solid rgba(15, 118, 110, 0.34);
+  display: grid;
+  gap: 6px;
+  margin: 0;
+  padding-left: 12px;
+}
+
+.service-led-card dt {
+  color: #151815;
+  font-size: 12px;
+  font-weight: 900;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.service-led-card dd {
+  color: #4b5563;
+  line-height: 1.45;
+  margin: 0 0 8px;
 }
 
 .login-card__alert--error {

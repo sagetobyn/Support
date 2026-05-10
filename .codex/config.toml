@@ -1,0 +1,5 @@
+sandbox_mode = "danger-full-access"
+approval_policy = "never"
+[mcp_servers.codex]
+args = ["mcp-server"]
+command = 'C:\Users\akhil\AppData\Local\OpenAI\Codex\bin\codex.exe'

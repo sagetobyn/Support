@@ -23,39 +23,63 @@ Secondary niches:
 
 ## Offer
 
-Free profit leakage audit plus 14-day RTO/NDR profit recovery pilot.
+For the first 20-50 customers, do not behave like pure SaaS. Behave like a rescue team that uses software to diagnose, prioritize, operate, and prove recovery.
+
+The service-led path:
+
+1. Free Leakage Check.
+2. Paid RTO Profit Audit.
+3. 14-Day Rescue Pilot.
+4. Monthly Recovery Plan.
+5. Software + Operator Workflow.
+
+This lets Wembro charge earlier, learn faster, and prove ROI before the product is fully automated.
+
+Leakage check promise:
+
+> Share only summary numbers first. We will show whether COD/RTO/NDR leakage is large enough to deserve attention before asking for customer-level data.
 
 Audit promise:
 
-> Share your last 30 days order/shipment/NDR CSV. We will show where profit leakage is coming from, which pincodes/couriers/SKUs are leaking money, which COD orders should be converted to prepaid, and what can be saved.
+> Share summary or anonymized last 30 days order/shipment/NDR data. We will show where profit leakage is coming from, which pincodes/couriers/SKUs are leaking money, which COD orders should be converted to prepaid, and what can be saved.
 
 Pilot promise:
 
 > For 14 days, we help your ops team work a daily profit action queue: confirm risky COD orders, correct weak addresses, push prepaid offers, rescue NDR cases, review courier/pincode leakage, and report estimated savings.
 
+Monthly recovery promise:
+
+> If the pilot proves a repeatable habit, we turn it into a monthly recovery plan with software, operator workflow, weekly savings proof, and founder-ready decisions.
+
 ## Pricing
 
-- Free:
-  - Free RTO Leakage Check.
-  - Fictional sample audit report.
+- Free Leakage Check:
+  - Free.
+  - Calculator, fictional sample audit report, and summary-only estimate.
 
-- Audit:
+- Paid RTO Profit Audit:
+  - INR 999.
   - RTO Profit Audit.
   - Summary-number audit.
   - Anonymized CSV audit.
   - Privacy-safe leakage estimate and recommended action preview.
 
-- Pilot:
+- 14-Day Rescue Pilot:
+  - INR 4,999.
   - 14-Day RTO Rescue Pilot.
   - Daily Execution Queue.
   - Savings ledger.
   - Final savings review and monthly plan recommendation.
 
-- Audit: free or INR 999.
-- Pilot: INR 4,999.
-- Starter: INR 2,999/month.
-- Growth: INR 7,999/month.
-- Pro: INR 14,999/month.
+- Monthly Recovery Plan:
+  - Starter: INR 2,999/month.
+  - Growth: INR 7,999/month.
+  - Pro: INR 14,999/month.
+
+- Software + Operator Workflow:
+  - Included through the pilot and monthly recovery plans.
+  - Software prioritizes work and tracks proof; operators handle human delivery rescue steps.
+
 - Performance add-on: INR 20 to INR 50 per saved order.
 
 ## Plan Shape
@@ -121,17 +145,17 @@ Best for sellers up to 5,000 orders/month.
 
 Hi {{name}}, I noticed {{brand}} sells COD orders. Are you currently facing RTO or failed delivery issues?
 
-I am running a free profit leakage audit for Indian e-commerce sellers. We analyze your last 30 days COD/RTO/NDR data and show where leakage is coming from, which pincodes/couriers/products cause losses, which COD orders can be nudged prepaid, and how much can be saved through COD risk control and NDR rescue.
+I am running a free leakage check for Indian e-commerce sellers. It starts with summary numbers only, then a paid RTO profit audit if the loss is real, and a 14-day rescue pilot if there is enough ROI to prove.
 
-No integration needed. CSV is enough.
+No integration needed. Summary numbers are enough to start, and anonymized CSV is enough for the audit.
 
 ## Call Script
 
-I am not selling you shipping. I am checking how much money you are losing because of operational leakage, starting with COD RTO and NDR.
+I am not selling you shipping, a chatbot, or pure SaaS. For early customers, we work like a rescue team for operational leakage, starting with COD RTO and NDR.
 
-I need only your last 30 days order/shipment data. I will show your real COD RTO rate, top pincodes causing RTO, top couriers causing RTO, top products causing RTO, prepaid conversion opportunities, estimated money lost, and what can be saved through COD confirmation and NDR rescue.
+First, we can run a free leakage check from summary numbers. If the loss is meaningful, the paid audit shows your real COD RTO rate, top pincodes causing RTO, top couriers causing RTO, top products causing RTO, prepaid conversion opportunities, estimated money lost, and what can be saved through COD confirmation and NDR rescue.
 
-If the audit shows a clear opportunity, we can run a 14-day pilot where your team gets a daily action queue: which orders to confirm, convert to prepaid, hold, correct, call, reattempt, review by courier/pincode, or cancel.
+If the audit shows a clear opportunity, we run a 14-day rescue pilot where your team gets a daily action queue: which orders to confirm, convert to prepaid, hold, correct, call, reattempt, review by courier/pincode, or cancel. After that, only continue monthly if the savings proof makes sense.
 
 ## Demo Flow
 
@@ -195,7 +219,7 @@ We start with a baseline and show weekly numbers: orders held, cancellations bef
 
 Days 1 to 3:
 
-- Finalize offer, landing copy, and sample audit report.
+- Finalize service-led offer, landing copy, sample audit report, and audit/pilot checklist.
 - Prepare sample CSV and demo data.
 
 Days 4 to 10:
@@ -203,11 +227,12 @@ Days 4 to 10:
 - Send 100 outreach messages.
 - Target fashion/footwear Shopify and Instagram brands.
 - Book 10 to 15 calls.
+- Run free leakage checks from summary numbers.
 
 Days 11 to 20:
 
 - Collect 5 to 10 CSV samples.
-- Run audits.
+- Convert clear losses into paid RTO profit audits.
 - Convert 2 to 3 pilots.
 
 Days 21 to 30:
@@ -215,7 +240,8 @@ Days 21 to 30:
 - Run daily action reports for pilots.
 - Record savings events.
 - Produce weekly review.
-- Turn repeated manual steps into software.
+- Convert successful pilots into monthly recovery plans.
+- Turn repeated manual operator steps into software.
 
 ## GTM Principle
 

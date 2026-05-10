@@ -9,6 +9,18 @@ export interface ServiceModule {
   route: MarketingRoute;
 }
 
+export interface ServiceLedOffer {
+  id: string;
+  name: string;
+  stage: string;
+  priceLabel: string;
+  buyerPromise: string;
+  teamDoes: string;
+  proofArtifact: string;
+  ctaLabel: string;
+  route: MarketingRoute;
+}
+
 export interface RecoveryStep {
   label: string;
   title: string;
@@ -128,6 +140,64 @@ export const serviceModules: ServiceModule[] = [
     problem: "Teams can't act on numbers they don't understand.",
     outcome: "Every metric has a plain-English explanation, formula, and operating playbook inside the app.",
     proof: "In-product glossary, training tracks, and worked examples.",
+    route: "/dashboard"
+  }
+];
+
+export const serviceLedOffers: ServiceLedOffer[] = [
+  {
+    id: "free-leakage-check",
+    name: "Free Leakage Check",
+    stage: "01",
+    priceLabel: "Free",
+    buyerPromise: "Find out if failed COD deliveries are a real profit leak before sharing customer data.",
+    teamDoes: "We use the calculator, sample report, and summary numbers to size the monthly loss.",
+    proofArtifact: "Two-minute leakage estimate and privacy-safe next step.",
+    ctaLabel: "Run free check",
+    route: "/calculator"
+  },
+  {
+    id: "paid-rto-profit-audit",
+    name: "Paid RTO Profit Audit",
+    stage: "02",
+    priceLabel: "INR 999",
+    buyerPromise: "See the exact couriers, pincodes, products, and COD patterns causing the leak.",
+    teamDoes: "We review summary or anonymized CSV data and turn it into a ranked recovery plan.",
+    proofArtifact: "Written audit with top leakage drivers and pilot recommendation.",
+    ctaLabel: "Start audit",
+    route: "/audit"
+  },
+  {
+    id: "rescue-pilot",
+    name: "14-Day Rescue Pilot",
+    stage: "03",
+    priceLabel: "INR 4,999",
+    buyerPromise: "Turn the audit into daily rescue work with your ops team for two weeks.",
+    teamDoes: "We help work risky COD orders, NDR cases, address fixes, prepaid nudges, and courier/pincode reviews.",
+    proofArtifact: "Daily action log, savings ledger, and final pilot review.",
+    ctaLabel: "Plan pilot",
+    route: "/pilot"
+  },
+  {
+    id: "monthly-recovery-plan",
+    name: "Monthly Recovery Plan",
+    stage: "04",
+    priceLabel: "From INR 2,999/month",
+    buyerPromise: "Keep the recovery habit running after the pilot instead of returning to spreadsheets.",
+    teamDoes: "We package the winning pilot actions into a monthly rhythm for Starter, Growth, or Pro.",
+    proofArtifact: "Weekly savings report and monthly recovery decision.",
+    ctaLabel: "View pricing",
+    route: "/pricing"
+  },
+  {
+    id: "software-operator-workflow",
+    name: "Software + Operator Workflow",
+    stage: "05",
+    priceLabel: "Pilot to Growth",
+    buyerPromise: "Use software for prioritization and proof while operators handle the human rescue work.",
+    teamDoes: "We keep the work queue, mock/manual messaging, response capture, and savings proof in one operating loop.",
+    proofArtifact: "Auditable workflow from order risk to verified savings.",
+    ctaLabel: "Preview workflow",
     route: "/dashboard"
   }
 ];
