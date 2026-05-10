@@ -7,7 +7,7 @@ export function MarketingHeader({ variant = "light" }: { variant?: "light" | "da
         <span>W</span>
         <strong>
           Wembro
-          <small>Profit Recovery Control Room</small>
+          <small>AI Operations OS</small>
         </strong>
       </Link>
       <nav className="saas-nav" aria-label="Main navigation">
@@ -15,6 +15,8 @@ export function MarketingHeader({ variant = "light" }: { variant?: "light" | "da
           <Link href="/product">Product <span>v</span></Link>
           <div className="saas-nav-popover">
             <Link href="/product">Product overview</Link>
+            <Link href="/ai-operations-engine">AI Operations Engine</Link>
+            <Link href="/data-brain">Unified Data Brain</Link>
             <Link href="/dashboard">Dashboard preview</Link>
             <Link href="/pilot">Pilot workflow</Link>
           </div>
@@ -35,12 +37,13 @@ export function MarketingHeader({ variant = "light" }: { variant?: "light" | "da
             <Link href="/sample-report">Sample report</Link>
           </div>
         </div>
+        <Link href="/data-ingestion">Integrations</Link>
         <Link href="/pricing">Pricing</Link>
-        <Link href="/calculator">Calculator</Link>
+        <Link href="/alerts-reports">Reports</Link>
       </nav>
       <div className="saas-header__actions">
         <Link className="button secondary" href="/login">Sign in</Link>
-        <Link className="button" href="/calculator">Check leakage <span aria-hidden>→</span></Link>
+        <Link className="button" href="/onboarding">Connect marketplace <span aria-hidden>→</span></Link>
       </div>
     </header>
   );
@@ -54,10 +57,13 @@ export function MarketingFooter() {
           <span>W</span>
           <strong>Wembro</strong>
         </Link>
-        <p>Wembro helps ecommerce sellers recover profit after checkout by focusing on COD, NDR, RTO, and savings proof.</p>
+        <p>Wembro is becoming an AI Operations OS that detects, prevents, and recovers operational losses across ecommerce marketplaces.</p>
       </div>
       <div className="saas-footer__links">
         <Link href="/product">Product</Link>
+        <Link href="/onboarding">Onboarding</Link>
+        <Link href="/data-ingestion">Data Ingestion</Link>
+        <Link href="/ai-operations-engine">AI Engine</Link>
         <Link href="/pricing">Pricing</Link>
         <Link href="/audit">Profit Audit</Link>
         <Link href="/pilot">Pilot Workflow</Link>

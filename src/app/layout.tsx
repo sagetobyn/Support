@@ -2,8 +2,8 @@ import type { Metadata } from "next";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "Wembro — Profit Recovery for D2C Sellers",
-  description: "Recover profit after checkout by fixing COD risk, NDR rescue, RTO leakage, and savings proof — without spreadsheets."
+  title: "Wembro — AI Operations OS for Ecommerce Sellers",
+  description: "Automatically detect, prevent, and recover operational losses across ecommerce marketplaces with connected data, AI agents, automation policies, and clear audit trails."
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {

@@ -65,6 +65,29 @@ export function buildProfitMissions(orders: Order[], brand: BrandSettings, ndrCa
       const urgencyLabel = ndrUrgency || (order.riskBucket === "Critical" ? "Critical COD risk" : order.riskBucket === "High" ? "High risk order" : "Recoverable action");
       const estimatedLeakage = estimatedLeakageForOrder(order, brand);
       const frequency = matchingSignalCount(order, orders);
+      const priorityFactors: ProfitMission["priorityFactors"] = [
+        {
+          label: "Impact",
+          value: formatRs(estimatedLeakage),
+          detail: "Estimated leakage this action can protect or recover."
+        },
+        {
+          label: "Urgency",
+          value: slaHoursLeft !== undefined ? `${slaHoursLeft}h left` : urgencyLabel,
+          detail: slaHoursLeft !== undefined ? "NDR rescue window is time-sensitive." : "Risk bucket controls daily queue order."
+        },
+        {
+          label: "Frequency",
+          value: `${frequency} signal${frequency === 1 ? "" : "s"}`,
+          detail: "Similar open orders share pincode, courier, SKU, campaign, or risk signals."
+        },
+        {
+          label: "Confidence",
+          value: order.confidenceLabel || order.riskBucket,
+          detail: "Based on imported fields and the visible risk reason trail."
+        }
+      ];
+
       return {
         order,
         priority: missionPriority(order.riskBucket),
@@ -74,28 +97,7 @@ export function buildProfitMissions(orders: Order[], brand: BrandSettings, ndrCa
         why: isNdrOrder(order)
           ? `NDR rescue window is active. ${order.recommendedActionReason}`
           : order.recommendedActionReason,
-        priorityFactors: [
-          {
-            label: "Impact",
-            value: formatRs(estimatedLeakage),
-            detail: "Estimated leakage this action can protect or recover."
-          },
-          {
-            label: "Urgency",
-            value: slaHoursLeft !== undefined ? `${slaHoursLeft}h left` : urgencyLabel,
-            detail: slaHoursLeft !== undefined ? "NDR rescue window is time-sensitive." : "Risk bucket controls daily queue order."
-          },
-          {
-            label: "Frequency",
-            value: `${frequency} signal${frequency === 1 ? "" : "s"}`,
-            detail: "Similar open orders share pincode, courier, SKU, campaign, or risk signals."
-          },
-          {
-            label: "Confidence",
-            value: order.confidenceLabel || order.riskBucket,
-            detail: "Based on imported fields and the visible risk reason trail."
-          }
-        ]
+        priorityFactors
       };
     })
     .sort((a, b) => {

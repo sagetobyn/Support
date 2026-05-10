@@ -74,21 +74,21 @@ export default function HomePage() {
         <div className="hero-signal-grid" aria-hidden />
         <div className="hero-orbit" aria-hidden />
         <div className="saas-hero__content">
-          <span className="eyebrow">For Indian D2C and ecommerce brands</span>
+          <span className="eyebrow">AI Operations OS for ecommerce sellers</span>
           <h1>
-            Stop losing profit
-            <span> to failed deliveries.</span>
+            Stop losing money
+            <span> in ecommerce operations.</span>
           </h1>
-          <p>Wembro shows you exactly how much money returns and failed deliveries cost you — and helps your team recover it, one order at a time.</p>
+          <p>Wembro automatically detects, prevents, and recovers operational losses across Amazon, Flipkart, Meesho, Shopify, courier, settlement, inventory, support, and growth workflows.</p>
           <div className="saas-actions">
-            <Link className="button" href="/calculator">See my loss in 2 minutes</Link>
-            <Link className="button secondary play-cta" href="/product">How it works <span aria-hidden /></Link>
+            <Link className="button" href="/onboarding">Connect marketplace</Link>
+            <Link className="button secondary play-cta" href="/ai-operations-engine">See AI engine <span aria-hidden /></Link>
           </div>
           <div className="hero-trust-row" aria-label="Trust indicators">
             <div className="avatar-stack" aria-hidden>
               <span>A</span><span>N</span><span>R</span><span>S</span><strong>+28</strong>
             </div>
-            <p>Built for teams that want clear numbers — not another bloated dashboard.</p>
+            <p>Dashboard visibility is only the control room. The AI works from connected data, normalized entities, policies, and audit logs.</p>
           </div>
           <div className="segment-row" aria-label="Seller segments">
             <small>Trusted by</small>
@@ -151,8 +151,8 @@ export default function HomePage() {
 
       <section className="saas-section feature-command">
         <div className="saas-section-heading center">
-          <span className="eyebrow">Everything you need</span>
-          <h2>Stop the leak. Recover the money. Without burning out your team.</h2>
+          <span className="eyebrow">AI Operations OS modules</span>
+          <h2>Detect, decide, act, and learn across the seller business.</h2>
         </div>
         <div className="feature-grid">
           {featureCards.map((feature) => (
