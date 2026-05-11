@@ -1,7 +1,13 @@
 import { MarketingPage } from '@/components/marketing/MarketingChrome'
+import { isLoginBypassEnabledForTesting } from '@/lib/auth/testing-bypass'
+import { redirect } from 'next/navigation'
 import { LoginAuthPanel } from './LoginAuthPanel'
 
 export default function LoginPage() {
+  if (isLoginBypassEnabledForTesting()) {
+    redirect('/dashboard')
+  }
+
   return (
     <MarketingPage tone="dark">
       <section className="login-section">

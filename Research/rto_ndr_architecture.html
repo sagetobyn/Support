@@ -1,0 +1,1477 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>RTO/NDR SaaS — Architecture & System Design</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=Syne:wght@400;500;600;700&family=Inter:wght@400;500&display=swap');
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --bg: #0a0a0b;
+    --bg2: #111114;
+    --bg3: #18181d;
+    --border: #2a2a35;
+    --border2: #3a3a48;
+    --text: #e8e8f0;
+    --text2: #9090a8;
+    --text3: #5a5a72;
+    --amber: #f5a623;
+    --amber2: #d4831a;
+    --amber-dim: rgba(245,166,35,0.1);
+    --teal: #2dd4bf;
+    --teal-dim: rgba(45,212,191,0.08);
+    --red: #f87171;
+    --red-dim: rgba(248,113,113,0.08);
+    --green: #4ade80;
+    --green-dim: rgba(74,222,128,0.08);
+    --blue: #60a5fa;
+    --blue-dim: rgba(96,165,250,0.08);
+    --purple: #a78bfa;
+    --purple-dim: rgba(167,139,250,0.08);
+    --coral: #fb923c;
+  }
+
+  body {
+    font-family: 'Inter', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    font-size: 14px;
+    line-height: 1.6;
+    min-height: 100vh;
+  }
+
+  /* HEADER */
+  .masthead {
+    border-bottom: 1px solid var(--border);
+    padding: 3rem 3rem 2rem;
+    position: relative;
+    overflow: hidden;
+  }
+  .masthead::before {
+    content: '';
+    position: absolute;
+    top: -60px; right: -60px;
+    width: 300px; height: 300px;
+    background: radial-gradient(circle, rgba(245,166,35,0.12) 0%, transparent 70%);
+    pointer-events: none;
+  }
+  .badge {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 11px;
+    color: var(--amber);
+    border: 1px solid var(--amber2);
+    background: var(--amber-dim);
+    padding: 3px 10px;
+    border-radius: 3px;
+    display: inline-block;
+    margin-bottom: 1rem;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+  }
+  h1 {
+    font-family: 'Syne', sans-serif;
+    font-size: 2.6rem;
+    font-weight: 700;
+    line-height: 1.1;
+    color: #fff;
+    margin-bottom: 0.5rem;
+  }
+  h1 span { color: var(--amber); }
+  .masthead p {
+    color: var(--text2);
+    font-size: 15px;
+    max-width: 540px;
+    margin-top: 0.5rem;
+  }
+  .meta-row {
+    display: flex;
+    gap: 2rem;
+    margin-top: 1.5rem;
+  }
+  .meta-item { font-family: 'IBM Plex Mono', monospace; font-size: 12px; }
+  .meta-item .label { color: var(--text3); margin-bottom: 2px; }
+  .meta-item .val { color: var(--amber); }
+
+  /* NAV */
+  .nav {
+    border-bottom: 1px solid var(--border);
+    padding: 0 3rem;
+    display: flex;
+    gap: 0;
+    overflow-x: auto;
+    position: sticky;
+    top: 0;
+    background: rgba(10,10,11,0.95);
+    backdrop-filter: blur(8px);
+    z-index: 100;
+  }
+  .nav-item {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 12px;
+    color: var(--text3);
+    padding: 1rem 1.2rem;
+    cursor: pointer;
+    border-bottom: 2px solid transparent;
+    white-space: nowrap;
+    transition: all 0.2s;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+  }
+  .nav-item:hover { color: var(--text2); }
+  .nav-item.active { color: var(--amber); border-bottom-color: var(--amber); }
+
+  /* CONTENT */
+  .content { padding: 3rem; }
+  .section { display: none; }
+  .section.active { display: block; }
+
+  /* SECTION HEADER */
+  .section-header {
+    display: flex;
+    align-items: baseline;
+    gap: 1rem;
+    margin-bottom: 2rem;
+    padding-bottom: 1rem;
+    border-bottom: 1px solid var(--border);
+  }
+  .section-num {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 11px;
+    color: var(--amber);
+    letter-spacing: 0.1em;
+  }
+  h2 {
+    font-family: 'Syne', sans-serif;
+    font-size: 1.5rem;
+    font-weight: 600;
+    color: #fff;
+  }
+  h3 {
+    font-family: 'Syne', sans-serif;
+    font-size: 1rem;
+    font-weight: 600;
+    color: #fff;
+    margin-bottom: 0.5rem;
+  }
+
+  /* GRID */
+  .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
+  .grid-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1rem; }
+  .grid-4 { display: grid; grid-template-columns: repeat(4, 1fr); gap: 0.75rem; }
+
+  /* CARDS */
+  .card {
+    background: var(--bg2);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 1.25rem;
+  }
+  .card.amber { border-color: var(--amber2); background: var(--amber-dim); }
+  .card.teal { border-color: var(--teal); background: var(--teal-dim); }
+  .card.red { border-color: var(--red); background: var(--red-dim); }
+  .card.green { border-color: var(--green); background: var(--green-dim); }
+  .card.blue { border-color: var(--blue); background: var(--blue-dim); }
+  .card.purple { border-color: var(--purple); background: var(--purple-dim); }
+
+  .card p { color: var(--text2); font-size: 13px; margin-top: 0.4rem; }
+  .card-label {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    margin-bottom: 0.4rem;
+  }
+
+  /* ARCH DIAGRAM */
+  .arch {
+    background: var(--bg2);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    overflow: hidden;
+    margin-bottom: 1.5rem;
+  }
+  .arch-row {
+    display: grid;
+    grid-template-columns: 120px 1fr;
+    border-bottom: 1px solid var(--border);
+  }
+  .arch-row:last-child { border-bottom: none; }
+  .arch-layer {
+    padding: 1rem;
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 11px;
+    color: var(--text3);
+    display: flex;
+    align-items: center;
+    border-right: 1px solid var(--border);
+    writing-mode: horizontal-tb;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+  }
+  .arch-content {
+    padding: 1rem;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    align-items: center;
+  }
+
+  /* TECH PILLS */
+  .pill {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 11px;
+    padding: 3px 10px;
+    border-radius: 4px;
+    border: 1px solid var(--border2);
+    background: var(--bg3);
+    color: var(--text2);
+  }
+  .pill.amber { border-color: var(--amber2); color: var(--amber); background: var(--amber-dim); }
+  .pill.teal { border-color: var(--teal); color: var(--teal); background: var(--teal-dim); }
+  .pill.blue { border-color: var(--blue); color: var(--blue); background: var(--blue-dim); }
+  .pill.green { border-color: var(--green); color: var(--green); background: var(--green-dim); }
+  .pill.purple { border-color: var(--purple); color: var(--purple); background: var(--purple-dim); }
+  .pill.red { border-color: var(--red); color: var(--red); background: var(--red-dim); }
+  .pill.coral { border-color: var(--coral); color: var(--coral); background: rgba(251,146,60,0.08); }
+
+  /* FLOW DIAGRAM */
+  .flow { display: flex; align-items: center; flex-wrap: wrap; gap: 0.5rem; margin: 1rem 0; }
+  .flow-node {
+    background: var(--bg3);
+    border: 1px solid var(--border2);
+    border-radius: 6px;
+    padding: 0.4rem 0.75rem;
+    font-size: 12px;
+    color: var(--text);
+  }
+  .flow-arrow {
+    color: var(--text3);
+    font-size: 16px;
+    font-weight: 300;
+  }
+  .flow-node.highlight { border-color: var(--amber2); color: var(--amber); background: var(--amber-dim); }
+
+  /* TABLES */
+  table { width: 100%; border-collapse: collapse; }
+  thead tr { border-bottom: 1px solid var(--border2); }
+  th {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 11px;
+    color: var(--text3);
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    text-align: left;
+    padding: 0.5rem 0.75rem;
+    font-weight: 400;
+  }
+  td { padding: 0.6rem 0.75rem; font-size: 13px; color: var(--text2); border-bottom: 1px solid var(--border); }
+  td:first-child { color: var(--text); font-weight: 500; }
+  tr:last-child td { border-bottom: none; }
+  tr:hover td { background: var(--bg3); }
+
+  /* SCORE BAR */
+  .score-bar { height: 4px; border-radius: 2px; background: var(--border); margin-top: 6px; }
+  .score-fill { height: 100%; border-radius: 2px; transition: width 0.3s; }
+
+  /* MODULE CARDS */
+  .module {
+    background: var(--bg2);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 1.25rem;
+    position: relative;
+    overflow: hidden;
+  }
+  .module::before {
+    content: attr(data-num);
+    position: absolute;
+    top: -8px; right: 12px;
+    font-family: 'Syne', sans-serif;
+    font-size: 4rem;
+    font-weight: 700;
+    color: var(--border);
+    line-height: 1;
+    pointer-events: none;
+  }
+  .module-title { font-family: 'Syne', sans-serif; font-size: 0.95rem; font-weight: 600; color: #fff; margin-bottom: 0.3rem; }
+  .module p { font-size: 12px; color: var(--text2); }
+  .module .tags { display: flex; flex-wrap: wrap; gap: 4px; margin-top: 0.75rem; }
+
+  /* AGENT CARDS */
+  .agent {
+    background: var(--bg2);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 1rem 1.25rem;
+    display: flex;
+    gap: 1rem;
+    align-items: flex-start;
+    margin-bottom: 0.5rem;
+  }
+  .agent-icon {
+    width: 36px; height: 36px;
+    border-radius: 6px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 18px;
+    flex-shrink: 0;
+  }
+  .agent h4 { font-size: 13px; font-weight: 600; color: #fff; margin-bottom: 2px; }
+  .agent p { font-size: 12px; color: var(--text2); }
+  .agent .status {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 10px;
+    padding: 2px 6px;
+    border-radius: 3px;
+    display: inline-block;
+    margin-top: 4px;
+  }
+  .status.mvp { color: var(--green); background: var(--green-dim); border: 1px solid var(--green); }
+  .status.later { color: var(--text3); background: var(--bg3); border: 1px solid var(--border2); }
+
+  /* PRICING */
+  .pricing-card {
+    background: var(--bg2);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 1.5rem;
+  }
+  .pricing-card.featured {
+    border-color: var(--amber2);
+    background: linear-gradient(135deg, var(--bg2) 0%, rgba(245,166,35,0.05) 100%);
+  }
+  .price-amount { font-family: 'Syne', sans-serif; font-size: 1.8rem; font-weight: 700; color: #fff; }
+  .price-unit { font-size: 12px; color: var(--text3); margin-left: 4px; }
+  .price-name { font-family: 'IBM Plex Mono', monospace; font-size: 11px; text-transform: uppercase; letter-spacing: 0.1em; margin-bottom: 0.5rem; }
+  .price-feature { font-size: 12px; color: var(--text2); padding: 4px 0; border-bottom: 1px solid var(--border); display: flex; align-items: center; gap: 6px; }
+  .price-feature:last-child { border-bottom: none; }
+  .price-feature::before { content: '—'; color: var(--amber); }
+
+  /* PHASE TIMELINE */
+  .timeline { position: relative; padding-left: 2rem; }
+  .timeline::before {
+    content: '';
+    position: absolute;
+    left: 7px; top: 8px; bottom: 0;
+    width: 1px;
+    background: var(--border);
+  }
+  .phase {
+    position: relative;
+    margin-bottom: 1.5rem;
+  }
+  .phase::before {
+    content: '';
+    position: absolute;
+    left: -28px; top: 6px;
+    width: 14px; height: 14px;
+    border-radius: 50%;
+    border: 2px solid var(--amber);
+    background: var(--bg);
+  }
+  .phase.done::before { background: var(--amber); }
+  .phase-label {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 10px;
+    color: var(--amber);
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    margin-bottom: 2px;
+  }
+  .phase h4 { font-size: 14px; font-weight: 600; color: #fff; margin-bottom: 4px; }
+  .phase p { font-size: 12px; color: var(--text2); }
+  .phase .duration {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 10px;
+    color: var(--text3);
+    margin-top: 4px;
+  }
+
+  /* DATABASE */
+  .db-table {
+    background: var(--bg2);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    overflow: hidden;
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 12px;
+  }
+  .db-table-header {
+    padding: 0.6rem 1rem;
+    background: var(--bg3);
+    border-bottom: 1px solid var(--border);
+    font-weight: 500;
+    color: var(--amber);
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
+  .db-field {
+    display: grid;
+    grid-template-columns: 1fr 80px 60px;
+    padding: 0.4rem 1rem;
+    border-bottom: 1px solid var(--border);
+    font-size: 11px;
+    gap: 0.5rem;
+    align-items: center;
+  }
+  .db-field:last-child { border-bottom: none; }
+  .db-field .fname { color: var(--text); }
+  .db-field .ftype { color: var(--teal); }
+  .db-field .ftag {
+    font-size: 9px;
+    padding: 1px 5px;
+    border-radius: 3px;
+    text-align: center;
+  }
+  .ftag.pk { background: var(--amber-dim); color: var(--amber); border: 1px solid var(--amber2); }
+  .ftag.fk { background: var(--blue-dim); color: var(--blue); border: 1px solid var(--blue); }
+  .ftag.idx { background: var(--green-dim); color: var(--green); border: 1px solid var(--green); }
+
+  /* RISK MATRIX */
+  .risk-row {
+    display: grid;
+    grid-template-columns: 60px 1fr 120px;
+    gap: 1rem;
+    padding: 0.75rem 0;
+    border-bottom: 1px solid var(--border);
+    align-items: center;
+  }
+  .risk-row:last-child { border-bottom: none; }
+  .risk-score {
+    font-family: 'Syne', sans-serif;
+    font-size: 1.2rem;
+    font-weight: 700;
+    text-align: center;
+  }
+  .risk-action {
+    font-size: 12px;
+    padding: 4px 10px;
+    border-radius: 4px;
+    text-align: center;
+  }
+
+  /* GTM STEPS */
+  .gtm-step {
+    display: flex;
+    gap: 1rem;
+    margin-bottom: 1.25rem;
+    align-items: flex-start;
+  }
+  .gtm-num {
+    font-family: 'Syne', sans-serif;
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: var(--border2);
+    min-width: 32px;
+    line-height: 1;
+    padding-top: 2px;
+  }
+  .gtm-step h4 { font-size: 14px; font-weight: 600; color: #fff; margin-bottom: 3px; }
+  .gtm-step p { font-size: 12px; color: var(--text2); }
+
+  /* FOOTER */
+  footer {
+    border-top: 1px solid var(--border);
+    padding: 1.5rem 3rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+  footer p { font-family: 'IBM Plex Mono', monospace; font-size: 11px; color: var(--text3); }
+  footer span { color: var(--amber); }
+
+  /* RESPONSIVE */
+  @media (max-width: 768px) {
+    .masthead, .content { padding: 1.5rem; }
+    .nav { padding: 0 1.5rem; }
+    .grid-2, .grid-3, .grid-4 { grid-template-columns: 1fr; }
+    h1 { font-size: 1.8rem; }
+    footer { flex-direction: column; gap: 0.5rem; text-align: center; }
+  }
+</style>
+</head>
+<body>
+
+<div class="masthead">
+  <div class="badge">System Architecture v1.0</div>
+  <h1>RTO / <span>NDR</span> Control<br>Platform</h1>
+  <p>AI-powered COD failure prevention and delivery rescue for Indian D2C brands. Prevent → Rescue → Learn.</p>
+  <div class="meta-row">
+    <div class="meta-item"><div class="label">Market</div><div class="val">India D2C / COD</div></div>
+    <div class="meta-item"><div class="label">Model</div><div class="val">SaaS + Per-save</div></div>
+    <div class="meta-item"><div class="label">Core Stack</div><div class="val">Next.js · FastAPI · PostgreSQL</div></div>
+    <div class="meta-item"><div class="label">Target TAM</div><div class="val">$60B GMV → $170B by 2030</div></div>
+  </div>
+</div>
+
+<nav class="nav">
+  <div class="nav-item active" onclick="showSection('overview')">Overview</div>
+  <div class="nav-item" onclick="showSection('architecture')">Architecture</div>
+  <div class="nav-item" onclick="showSection('modules')">Modules</div>
+  <div class="nav-item" onclick="showSection('database')">Database</div>
+  <div class="nav-item" onclick="showSection('agents')">AI Agents</div>
+  <div class="nav-item" onclick="showSection('workflows')">Workflows</div>
+  <div class="nav-item" onclick="showSection('pricing')">Business Model</div>
+  <div class="nav-item" onclick="showSection('roadmap')">Roadmap</div>
+  <div class="nav-item" onclick="showSection('gtm')">Go-to-Market</div>
+</nav>
+
+<main class="content">
+
+  <!-- OVERVIEW -->
+  <section class="section active" id="overview">
+    <div class="section-header">
+      <span class="section-num">01</span>
+      <h2>Company Overview</h2>
+    </div>
+
+    <div class="grid-3" style="margin-bottom:2rem">
+      <div class="card amber">
+        <div class="card-label" style="color:var(--amber)">Core Problem</div>
+        <h3>COD Orders Fail</h3>
+        <p>Customer unavailability, refusal, wrong addresses, unreachable phones — each failed delivery costs ₹255–₹1,050 in direct losses alone.</p>
+      </div>
+      <div class="card teal">
+        <div class="card-label" style="color:var(--teal)">Core Solution</div>
+        <h3>Prevent · Rescue · Learn</h3>
+        <p>Risk-score orders before dispatch. WhatsApp rescue after NDR. Analytics that prove ROI and identify root causes.</p>
+      </div>
+      <div class="card blue">
+        <div class="card-label" style="color:var(--blue)">Positioning</div>
+        <h3>AI RTO-Control Layer</h3>
+        <p>Not a shipping platform. Works across Shiprocket, NimbusPost, Delhivery, Shopify, WooCommerce — and raw CSV.</p>
+      </div>
+    </div>
+
+    <h3 style="margin-bottom:1rem">Cost of a Single Failed COD Order</h3>
+    <div class="arch" style="margin-bottom:2rem">
+      <div class="arch-row">
+        <div class="arch-layer">Direct</div>
+        <div class="arch-content" style="gap:1.5rem">
+          <div><div style="font-size:11px;color:var(--text3);margin-bottom:2px">Forward Shipping</div><div style="color:var(--red);font-family:'IBM Plex Mono',monospace;font-size:14px">₹60–120</div></div>
+          <div><div style="font-size:11px;color:var(--text3);margin-bottom:2px">Return Shipping</div><div style="color:var(--red);font-family:'IBM Plex Mono',monospace;font-size:14px">₹60–120</div></div>
+          <div><div style="font-size:11px;color:var(--text3);margin-bottom:2px">Packaging</div><div style="color:var(--red);font-family:'IBM Plex Mono',monospace;font-size:14px">₹15–60</div></div>
+          <div><div style="font-size:11px;color:var(--text3);margin-bottom:2px">COD Fee</div><div style="color:var(--red);font-family:'IBM Plex Mono',monospace;font-size:14px">₹20–50</div></div>
+        </div>
+      </div>
+      <div class="arch-row">
+        <div class="arch-layer">Hidden</div>
+        <div class="arch-content" style="gap:1.5rem">
+          <div><div style="font-size:11px;color:var(--text3);margin-bottom:2px">Ad CAC Wasted</div><div style="color:var(--coral);font-family:'IBM Plex Mono',monospace;font-size:14px">₹100–700+</div></div>
+          <div><div style="font-size:11px;color:var(--text3);margin-bottom:2px">Inventory Blocked</div><div style="color:var(--coral);font-family:'IBM Plex Mono',monospace;font-size:14px">7–20 days</div></div>
+          <div><div style="font-size:11px;color:var(--text3);margin-bottom:2px">Revenue Lost</div><div style="color:var(--coral);font-family:'IBM Plex Mono',monospace;font-size:14px">₹0 collected</div></div>
+          <div><div style="font-size:11px;color:var(--text3);margin-bottom:2px">Support Cost</div><div style="color:var(--coral);font-family:'IBM Plex Mono',monospace;font-size:14px">Manual work</div></div>
+        </div>
+      </div>
+    </div>
+
+    <h3 style="margin-bottom:1rem">The Three-Job Framework</h3>
+    <div class="flow" style="justify-content:center;margin:1.5rem 0">
+      <div class="flow-node highlight" style="font-size:14px;padding:0.75rem 1.25rem;font-weight:600">📦 Order Received</div>
+      <div class="flow-arrow">→</div>
+      <div class="flow-node highlight" style="font-size:14px;padding:0.75rem 1.25rem;background:var(--green-dim);border-color:var(--green);color:var(--green)">🛡 PREVENT<br><span style="font-size:11px;font-weight:400">Risk Score Before Dispatch</span></div>
+      <div class="flow-arrow">→</div>
+      <div class="flow-node highlight" style="font-size:14px;padding:0.75rem 1.25rem">🚚 In Transit</div>
+      <div class="flow-arrow">→</div>
+      <div class="flow-node highlight" style="font-size:14px;padding:0.75rem 1.25rem;background:var(--blue-dim);border-color:var(--blue);color:var(--blue)">🔔 RESCUE<br><span style="font-size:11px;font-weight:400">WhatsApp NDR Recovery</span></div>
+      <div class="flow-arrow">→</div>
+      <div class="flow-node highlight" style="font-size:14px;padding:0.75rem 1.25rem;background:var(--purple-dim);border-color:var(--purple);color:var(--purple)">📊 LEARN<br><span style="font-size:11px;font-weight:400">Analytics & Root Cause</span></div>
+    </div>
+
+    <h3 style="margin-bottom:1rem;margin-top:2rem">RTO Risk Signals</h3>
+    <table>
+      <thead><tr><th>Signal</th><th>Why It Matters</th><th>Risk Weight</th></tr></thead>
+      <tbody>
+        <tr><td>Payment Mode (COD)</td><td>Customer has no financial commitment upfront</td><td><span class="pill red">High</span></td></tr>
+        <tr><td>Pincode History</td><td>Some zones have 30–40% endemic RTO rates</td><td><span class="pill red">High</span></td></tr>
+        <tr><td>Address Quality</td><td>Missing house number, landmark, wrong pincode</td><td><span class="pill amber">Medium</span></td></tr>
+        <tr><td>Customer History</td><td>Repeat RTO customer is a strong predictor</td><td><span class="pill red">High</span></td></tr>
+        <tr><td>Phone Validity</td><td>Invalid/unreachable phone = no rescue possible</td><td><span class="pill amber">Medium</span></td></tr>
+        <tr><td>Order Value</td><td>High-value impulse COD has lower intent</td><td><span class="pill amber">Medium</span></td></tr>
+        <tr><td>Discount Level</td><td>Extreme discount buyers show lower intent</td><td><span class="pill green">Low</span></td></tr>
+        <tr><td>Duplicate Detection</td><td>Same phone/address used across multiple orders</td><td><span class="pill red">High</span></td></tr>
+        <tr><td>Order Timing</td><td>Very late-night impulse orders have higher refusal</td><td><span class="pill green">Low</span></td></tr>
+        <tr><td>Product Category</td><td>Fashion/accessories have structurally higher RTO</td><td><span class="pill amber">Medium</span></td></tr>
+      </tbody>
+    </table>
+  </section>
+
+  <!-- ARCHITECTURE -->
+  <section class="section" id="architecture">
+    <div class="section-header">
+      <span class="section-num">02</span>
+      <h2>System Architecture</h2>
+    </div>
+
+    <h3 style="margin-bottom:1rem">Layer Architecture</h3>
+    <div class="arch" style="margin-bottom:2rem">
+      <div class="arch-row">
+        <div class="arch-layer" style="color:var(--blue)">Client Layer</div>
+        <div class="arch-content">
+          <span class="pill blue">Next.js 14 (App Router)</span>
+          <span class="pill blue">Tailwind CSS</span>
+          <span class="pill blue">shadcn/ui</span>
+          <span class="pill blue">Recharts</span>
+          <span class="pill blue">React Query</span>
+        </div>
+      </div>
+      <div class="arch-row">
+        <div class="arch-layer" style="color:var(--teal)">API Layer</div>
+        <div class="arch-content">
+          <span class="pill teal">FastAPI (Python 3.12)</span>
+          <span class="pill teal">Pydantic v2</span>
+          <span class="pill teal">JWT Auth</span>
+          <span class="pill teal">REST + Webhooks</span>
+          <span class="pill teal">OpenAPI docs</span>
+        </div>
+      </div>
+      <div class="arch-row">
+        <div class="arch-layer" style="color:var(--purple)">AI / ML Layer</div>
+        <div class="arch-content">
+          <span class="pill purple">OpenAI / Gemini API</span>
+          <span class="pill purple">Rule Engine (MVP)</span>
+          <span class="pill purple">Intent Classifier</span>
+          <span class="pill purple">Address NLP</span>
+          <span class="pill purple">Pincode Risk Model</span>
+        </div>
+      </div>
+      <div class="arch-row">
+        <div class="arch-layer" style="color:var(--amber)">Messaging</div>
+        <div class="arch-content">
+          <span class="pill amber">Meta Cloud API</span>
+          <span class="pill amber">Gupshup BSP</span>
+          <span class="pill amber">WATI / Interakt</span>
+          <span class="pill amber">SMS Fallback</span>
+          <span class="pill amber">AI Voice (Later)</span>
+        </div>
+      </div>
+      <div class="arch-row">
+        <div class="arch-layer" style="color:var(--green)">Data Layer</div>
+        <div class="arch-content">
+          <span class="pill green">PostgreSQL 16</span>
+          <span class="pill green">Redis (Cache/Queue)</span>
+          <span class="pill green">Celery Workers</span>
+          <span class="pill green">Cloudflare R2</span>
+          <span class="pill green">Supabase Auth</span>
+        </div>
+      </div>
+      <div class="arch-row">
+        <div class="arch-layer" style="color:var(--coral)">Integrations</div>
+        <div class="arch-content">
+          <span class="pill coral">Shopify Webhooks</span>
+          <span class="pill coral">WooCommerce REST</span>
+          <span class="pill coral">Shiprocket API</span>
+          <span class="pill coral">NimbusPost API</span>
+          <span class="pill coral">Delhivery API</span>
+          <span class="pill coral">Razorpay / Cashfree</span>
+        </div>
+      </div>
+      <div class="arch-row">
+        <div class="arch-layer" style="color:var(--text3)">DevOps</div>
+        <div class="arch-content">
+          <span class="pill">Docker + Compose</span>
+          <span class="pill">Render / Fly.io</span>
+          <span class="pill">GitHub Actions</span>
+          <span class="pill">Sentry</span>
+          <span class="pill">PostHog</span>
+        </div>
+      </div>
+    </div>
+
+    <h3 style="margin-bottom:1rem">Data Flow Architecture</h3>
+    <div class="arch">
+      <div class="arch-row">
+        <div class="arch-layer" style="color:var(--amber)">Ingest</div>
+        <div class="arch-content">
+          <div class="flow" style="flex-wrap:wrap">
+            <div class="flow-node">CSV Upload</div>
+            <div class="flow-arrow">|</div>
+            <div class="flow-node">Shopify Webhook</div>
+            <div class="flow-arrow">|</div>
+            <div class="flow-node">WooCommerce API</div>
+            <div class="flow-arrow">|</div>
+            <div class="flow-node">Courier API Poll</div>
+            <div class="flow-arrow">→</div>
+            <div class="flow-node highlight">Field Normalizer</div>
+            <div class="flow-arrow">→</div>
+            <div class="flow-node highlight">Orders Table</div>
+          </div>
+        </div>
+      </div>
+      <div class="arch-row">
+        <div class="arch-layer" style="color:var(--green)">Process</div>
+        <div class="arch-content">
+          <div class="flow" style="flex-wrap:wrap">
+            <div class="flow-node highlight">New Order Event</div>
+            <div class="flow-arrow">→</div>
+            <div class="flow-node">Risk Scorer</div>
+            <div class="flow-arrow">→</div>
+            <div class="flow-node">Risk Bucket</div>
+            <div class="flow-arrow">→</div>
+            <div class="flow-node">WhatsApp Queue</div>
+            <div class="flow-arrow">→</div>
+            <div class="flow-node">Celery Worker</div>
+            <div class="flow-arrow">→</div>
+            <div class="flow-node highlight">Message Sent</div>
+          </div>
+        </div>
+      </div>
+      <div class="arch-row">
+        <div class="arch-layer" style="color:var(--blue)">Respond</div>
+        <div class="arch-content">
+          <div class="flow" style="flex-wrap:wrap">
+            <div class="flow-node">Customer Reply</div>
+            <div class="flow-arrow">→</div>
+            <div class="flow-node">Webhook Receiver</div>
+            <div class="flow-arrow">→</div>
+            <div class="flow-node">Intent Classifier</div>
+            <div class="flow-arrow">→</div>
+            <div class="flow-node highlight">Action Engine</div>
+            <div class="flow-arrow">→</div>
+            <div class="flow-node">Ops Dashboard</div>
+            <div class="flow-arrow">|</div>
+            <div class="flow-node">Courier API</div>
+          </div>
+        </div>
+      </div>
+      <div class="arch-row">
+        <div class="arch-layer" style="color:var(--purple)">Analyse</div>
+        <div class="arch-content">
+          <div class="flow" style="flex-wrap:wrap">
+            <div class="flow-node">Outcome Data</div>
+            <div class="flow-arrow">→</div>
+            <div class="flow-node">Pincode Stats</div>
+            <div class="flow-arrow">+</div>
+            <div class="flow-node">SKU Stats</div>
+            <div class="flow-arrow">+</div>
+            <div class="flow-node">Campaign Stats</div>
+            <div class="flow-arrow">→</div>
+            <div class="flow-node highlight">ROI Dashboard</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- MODULES -->
+  <section class="section" id="modules">
+    <div class="section-header">
+      <span class="section-num">03</span>
+      <h2>MVP Product Modules</h2>
+    </div>
+    <p style="color:var(--text2);margin-bottom:1.5rem">Six core modules compose the MVP. Everything else is Phase 2+.</p>
+
+    <div class="grid-2" style="margin-bottom:1.5rem">
+      <div class="module" data-num="1">
+        <div class="module-title">Order Import & Normalization</div>
+        <p>CSV upload as the entry point. Normalizes 12+ fields from any source into a unified schema. Later: Shopify, WooCommerce, Shiprocket webhooks.</p>
+        <div class="tags">
+          <span class="pill amber">MVP Priority</span>
+          <span class="pill">CSV Parser</span>
+          <span class="pill">Field Mapper</span>
+          <span class="pill">Validation</span>
+        </div>
+      </div>
+      <div class="module" data-num="2">
+        <div class="module-title">RTO Risk Scoring Engine</div>
+        <p>Rule-based scoring (0–100) across 10 signals. Buckets orders into Low / Medium / High / Critical. Triggers downstream actions automatically.</p>
+        <div class="tags">
+          <span class="pill amber">MVP Priority</span>
+          <span class="pill">Rules Engine</span>
+          <span class="pill">Score: 0–100</span>
+          <span class="pill">4 Buckets</span>
+        </div>
+      </div>
+      <div class="module" data-num="3">
+        <div class="module-title">WhatsApp Confirmation Flow</div>
+        <p>The core value driver. Sends structured confirmation messages for COD orders above risk threshold. Captures 4 intents: confirm, change address, convert prepaid, cancel.</p>
+        <div class="tags">
+          <span class="pill amber">MVP Priority</span>
+          <span class="pill teal">WhatsApp API</span>
+          <span class="pill">Template Manager</span>
+          <span class="pill">Multi-language</span>
+        </div>
+      </div>
+      <div class="module" data-num="4">
+        <div class="module-title">Customer Response Capture</div>
+        <p>Webhook receiver for WhatsApp replies. Intent classifier maps free text or button clicks to 6 canonical intents. All responses logged with timestamp.</p>
+        <div class="tags">
+          <span class="pill amber">MVP Priority</span>
+          <span class="pill">Intent Classifier</span>
+          <span class="pill">6 Intents</span>
+          <span class="pill">Response Log</span>
+        </div>
+      </div>
+      <div class="module" data-num="5">
+        <div class="module-title">Courier Action Dashboard</div>
+        <p>Minimal ops interface showing: Order · Risk Score · NDR Reason · Customer Response · Recommended Action. Human approves in Phase 1; automation in Phase 3.</p>
+        <div class="tags">
+          <span class="pill amber">MVP Priority</span>
+          <span class="pill">Ops Interface</span>
+          <span class="pill">Recommended Action</span>
+          <span class="pill">Human-in-Loop</span>
+        </div>
+      </div>
+      <div class="module" data-num="6">
+        <div class="module-title">ROI Report Dashboard</div>
+        <p>The product's sales pitch: total COD orders, risk detections, confirmed saves, RTO avoided, estimated ₹ saved, WhatsApp cost, net savings. This dashboard sells renewals.</p>
+        <div class="tags">
+          <span class="pill amber">MVP Priority</span>
+          <span class="pill green">ROI Proof</span>
+          <span class="pill">Recharts</span>
+          <span class="pill">Exportable</span>
+        </div>
+      </div>
+    </div>
+
+    <h3 style="margin-bottom:1rem">Risk Score → Action Matrix</h3>
+    <div style="background:var(--bg2);border:1px solid var(--border);border-radius:8px;padding:1.25rem">
+      <div class="risk-row">
+        <div class="risk-score" style="color:var(--green)">0–30</div>
+        <div>
+          <div style="font-size:13px;font-weight:600;color:#fff;margin-bottom:2px">Low Risk</div>
+          <div style="font-size:12px;color:var(--text2)">Normal indicators, COD or prepaid, clean address</div>
+          <div class="score-bar"><div class="score-fill" style="width:30%;background:var(--green)"></div></div>
+        </div>
+        <div class="risk-action" style="background:var(--green-dim);color:var(--green)">Ship Normally</div>
+      </div>
+      <div class="risk-row">
+        <div class="risk-score" style="color:var(--amber)">31–60</div>
+        <div>
+          <div style="font-size:13px;font-weight:600;color:#fff;margin-bottom:2px">Medium Risk</div>
+          <div style="font-size:12px;color:var(--text2)">Some signals present — high-value COD, risky pincode</div>
+          <div class="score-bar"><div class="score-fill" style="width:60%;background:var(--amber)"></div></div>
+        </div>
+        <div class="risk-action" style="background:var(--amber-dim);color:var(--amber)">WhatsApp Confirm</div>
+      </div>
+      <div class="risk-row">
+        <div class="risk-score" style="color:var(--coral)">61–80</div>
+        <div>
+          <div style="font-size:13px;font-weight:600;color:#fff;margin-bottom:2px">High Risk</div>
+          <div style="font-size:12px;color:var(--text2)">Multiple signals — bad address + COD + risky pincode</div>
+          <div class="score-bar"><div class="score-fill" style="width:80%;background:var(--coral)"></div></div>
+        </div>
+        <div class="risk-action" style="background:rgba(251,146,60,0.1);color:var(--coral)">Confirm + Address Fix</div>
+      </div>
+      <div class="risk-row">
+        <div class="risk-score" style="color:var(--red)">81–100</div>
+        <div>
+          <div style="font-size:13px;font-weight:600;color:#fff;margin-bottom:2px">Critical Risk</div>
+          <div style="font-size:12px;color:var(--text2)">Likely fake/duplicate order, known bad actor</div>
+          <div class="score-bar"><div class="score-fill" style="width:100%;background:var(--red)"></div></div>
+        </div>
+        <div class="risk-action" style="background:var(--red-dim);color:var(--red)">Hold / Partial Prepaid</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- DATABASE -->
+  <section class="section" id="database">
+    <div class="section-header">
+      <span class="section-num">04</span>
+      <h2>Core Database Design</h2>
+    </div>
+    <p style="color:var(--text2);margin-bottom:1.5rem">PostgreSQL 16. Multi-brand workspace with strict brand isolation. Row-level security via Supabase Auth.</p>
+
+    <div class="grid-2" style="gap:1rem;margin-bottom:1rem">
+      <!-- ORDERS -->
+      <div class="db-table">
+        <div class="db-table-header">📦 orders</div>
+        <div class="db-field"><span class="fname">order_id</span><span class="ftype">uuid</span><span class="ftag pk">PK</span></div>
+        <div class="db-field"><span class="fname">brand_id</span><span class="ftype">uuid</span><span class="ftag fk">FK</span></div>
+        <div class="db-field"><span class="fname">customer_id</span><span class="ftype">uuid</span><span class="ftag fk">FK</span></div>
+        <div class="db-field"><span class="fname">payment_mode</span><span class="ftype">enum</span><span class="ftag idx">IDX</span></div>
+        <div class="db-field"><span class="fname">order_value</span><span class="ftype">numeric</span><span></span></div>
+        <div class="db-field"><span class="fname">sku_list</span><span class="ftype">jsonb</span><span></span></div>
+        <div class="db-field"><span class="fname">shipment_awb</span><span class="ftype">text</span><span class="ftag idx">IDX</span></div>
+        <div class="db-field"><span class="fname">courier</span><span class="ftype">text</span><span class="ftag idx">IDX</span></div>
+        <div class="db-field"><span class="fname">risk_score</span><span class="ftype">smallint</span><span></span></div>
+        <div class="db-field"><span class="fname">risk_bucket</span><span class="ftype">enum</span><span class="ftag idx">IDX</span></div>
+        <div class="db-field"><span class="fname">confirmation_status</span><span class="ftype">enum</span><span></span></div>
+        <div class="db-field"><span class="fname">status</span><span class="ftype">enum</span><span class="ftag idx">IDX</span></div>
+        <div class="db-field"><span class="fname">order_date</span><span class="ftype">timestamptz</span><span class="ftag idx">IDX</span></div>
+        <div class="db-field"><span class="fname">created_at</span><span class="ftype">timestamptz</span><span></span></div>
+      </div>
+
+      <!-- NDR CASES -->
+      <div class="db-table">
+        <div class="db-table-header">⚠️ ndr_cases</div>
+        <div class="db-field"><span class="fname">ndr_id</span><span class="ftype">uuid</span><span class="ftag pk">PK</span></div>
+        <div class="db-field"><span class="fname">order_id</span><span class="ftype">uuid</span><span class="ftag fk">FK</span></div>
+        <div class="db-field"><span class="fname">awb</span><span class="ftype">text</span><span class="ftag idx">IDX</span></div>
+        <div class="db-field"><span class="fname">courier</span><span class="ftype">text</span><span></span></div>
+        <div class="db-field"><span class="fname">ndr_reason_raw</span><span class="ftype">text</span><span></span></div>
+        <div class="db-field"><span class="fname">ndr_reason_norm</span><span class="ftype">enum</span><span class="ftag idx">IDX</span></div>
+        <div class="db-field"><span class="fname">attempt_count</span><span class="ftype">smallint</span><span></span></div>
+        <div class="db-field"><span class="fname">customer_response</span><span class="ftype">text</span><span></span></div>
+        <div class="db-field"><span class="fname">customer_intent</span><span class="ftype">enum</span><span></span></div>
+        <div class="db-field"><span class="fname">recommended_action</span><span class="ftype">enum</span><span></span></div>
+        <div class="db-field"><span class="fname">action_taken</span><span class="ftype">enum</span><span></span></div>
+        <div class="db-field"><span class="fname">final_status</span><span class="ftype">enum</span><span class="ftag idx">IDX</span></div>
+        <div class="db-field"><span class="fname">saved_or_rto</span><span class="ftype">boolean</span><span></span></div>
+        <div class="db-field"><span class="fname">created_at</span><span class="ftype">timestamptz</span><span></span></div>
+      </div>
+
+      <!-- CUSTOMERS -->
+      <div class="db-table">
+        <div class="db-table-header">👤 customers</div>
+        <div class="db-field"><span class="fname">customer_id</span><span class="ftype">uuid</span><span class="ftag pk">PK</span></div>
+        <div class="db-field"><span class="fname">phone_hash</span><span class="ftype">text</span><span class="ftag idx">IDX</span></div>
+        <div class="db-field"><span class="fname">phone_masked</span><span class="ftype">text</span><span></span></div>
+        <div class="db-field"><span class="fname">name</span><span class="ftype">text</span><span></span></div>
+        <div class="db-field"><span class="fname">total_orders</span><span class="ftype">integer</span><span></span></div>
+        <div class="db-field"><span class="fname">rto_count</span><span class="ftype">integer</span><span></span></div>
+        <div class="db-field"><span class="fname">rto_rate</span><span class="ftype">numeric</span><span></span></div>
+        <div class="db-field"><span class="fname">trust_score</span><span class="ftype">smallint</span><span></span></div>
+        <div class="db-field"><span class="fname">last_order_at</span><span class="ftype">timestamptz</span><span></span></div>
+      </div>
+
+      <!-- PINCODE STATS -->
+      <div class="db-table">
+        <div class="db-table-header">📍 pincode_stats</div>
+        <div class="db-field"><span class="fname">pincode</span><span class="ftype">varchar(6)</span><span class="ftag pk">PK</span></div>
+        <div class="db-field"><span class="fname">state</span><span class="ftype">text</span><span></span></div>
+        <div class="db-field"><span class="fname">city</span><span class="ftype">text</span><span></span></div>
+        <div class="db-field"><span class="fname">total_shipments</span><span class="ftype">integer</span><span></span></div>
+        <div class="db-field"><span class="fname">rto_count</span><span class="ftype">integer</span><span></span></div>
+        <div class="db-field"><span class="fname">rto_rate</span><span class="ftype">numeric</span><span class="ftag idx">IDX</span></div>
+        <div class="db-field"><span class="fname">risk_tier</span><span class="ftype">enum</span><span></span></div>
+        <div class="db-field"><span class="fname">updated_at</span><span class="ftype">timestamptz</span><span></span></div>
+      </div>
+
+      <!-- WHATSAPP MESSAGES -->
+      <div class="db-table">
+        <div class="db-table-header">💬 whatsapp_messages</div>
+        <div class="db-field"><span class="fname">msg_id</span><span class="ftype">uuid</span><span class="ftag pk">PK</span></div>
+        <div class="db-field"><span class="fname">order_id</span><span class="ftype">uuid</span><span class="ftag fk">FK</span></div>
+        <div class="db-field"><span class="fname">ndr_id</span><span class="ftype">uuid</span><span class="ftag fk">FK</span></div>
+        <div class="db-field"><span class="fname">phone_hash</span><span class="ftype">text</span><span></span></div>
+        <div class="db-field"><span class="fname">template_name</span><span class="ftype">text</span><span></span></div>
+        <div class="db-field"><span class="fname">message_type</span><span class="ftype">enum</span><span></span></div>
+        <div class="db-field"><span class="fname">wa_msg_id</span><span class="ftype">text</span><span></span></div>
+        <div class="db-field"><span class="fname">status</span><span class="ftype">enum</span><span></span></div>
+        <div class="db-field"><span class="fname">sent_at</span><span class="ftype">timestamptz</span><span></span></div>
+        <div class="db-field"><span class="fname">delivered_at</span><span class="ftype">timestamptz</span><span></span></div>
+        <div class="db-field"><span class="fname">read_at</span><span class="ftype">timestamptz</span><span></span></div>
+      </div>
+
+      <!-- BRANDS -->
+      <div class="db-table">
+        <div class="db-table-header">🏷 brands</div>
+        <div class="db-field"><span class="fname">brand_id</span><span class="ftype">uuid</span><span class="ftag pk">PK</span></div>
+        <div class="db-field"><span class="fname">name</span><span class="ftype">text</span><span></span></div>
+        <div class="db-field"><span class="fname">wa_sender_id</span><span class="ftype">text</span><span></span></div>
+        <div class="db-field"><span class="fname">plan</span><span class="ftype">enum</span><span></span></div>
+        <div class="db-field"><span class="fname">fwd_shipping_cost</span><span class="ftype">numeric</span><span></span></div>
+        <div class="db-field"><span class="fname">rev_shipping_cost</span><span class="ftype">numeric</span><span></span></div>
+        <div class="db-field"><span class="fname">packaging_cost</span><span class="ftype">numeric</span><span></span></div>
+        <div class="db-field"><span class="fname">cod_fee</span><span class="ftype">numeric</span><span></span></div>
+        <div class="db-field"><span class="fname">avg_gross_margin</span><span class="ftype">numeric</span><span></span></div>
+        <div class="db-field"><span class="fname">api_key_hash</span><span class="ftype">text</span><span></span></div>
+        <div class="db-field"><span class="fname">created_at</span><span class="ftype">timestamptz</span><span></span></div>
+      </div>
+    </div>
+
+    <p style="font-size:12px;color:var(--text3);margin-top:0.5rem">Additional tables: addresses · risk_scores · courier_partners · sku_stats · campaign_stats · billing_events · audit_logs</p>
+  </section>
+
+  <!-- AI AGENTS -->
+  <section class="section" id="agents">
+    <div class="section-header">
+      <span class="section-num">05</span>
+      <h2>AI Agent Architecture</h2>
+    </div>
+    <p style="color:var(--text2);margin-bottom:0.5rem">All agents are <strong>recommendation agents</strong> in Phase 1 — humans approve actions. Automation comes in Phase 3+.</p>
+    <div style="margin-bottom:1.5rem;padding:0.75rem 1rem;background:var(--amber-dim);border:1px solid var(--amber2);border-radius:6px;font-size:12px;color:var(--amber)">
+      ⚡ Rule-based engines first. LLM agents only where rules fail — NLP-heavy tasks like address parsing, intent classification, and insight generation.
+    </div>
+
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:0.5rem">
+      <div class="agent">
+        <div class="agent-icon" style="background:var(--amber-dim);border:1px solid var(--amber2)">🎯</div>
+        <div>
+          <h4>Order Risk Agent</h4>
+          <p>Scores COD orders 0–100 across 10 weighted signals. MVP is pure rules. Phase 4 adds ML trained on historical outcomes.</p>
+          <span class="status mvp">MVP · Rules First</span>
+        </div>
+      </div>
+      <div class="agent">
+        <div class="agent-icon" style="background:var(--blue-dim);border:1px solid var(--blue)">🗺️</div>
+        <div>
+          <h4>Address Quality Agent</h4>
+          <p>Detects missing house numbers, bad pincodes, ambiguous localities. Uses regex rules + optional LLM for edge cases.</p>
+          <span class="status mvp">MVP · Regex + LLM</span>
+        </div>
+      </div>
+      <div class="agent">
+        <div class="agent-icon" style="background:var(--teal-dim);border:1px solid var(--teal)">📋</div>
+        <div>
+          <h4>NDR Reason Agent</h4>
+          <p>Normalizes courier-specific reason strings ("Customer Not Available", "CNR", "CN", etc.) into 8 canonical categories.</p>
+          <span class="status mvp">MVP · LLM Classifier</span>
+        </div>
+      </div>
+      <div class="agent">
+        <div class="agent-icon" style="background:var(--purple-dim);border:1px solid var(--purple)">💬</div>
+        <div>
+          <h4>Customer Messaging Agent</h4>
+          <p>Selects and personalizes WhatsApp template based on NDR reason, customer language preference, and order details.</p>
+          <span class="status mvp">MVP · Template Engine</span>
+        </div>
+      </div>
+      <div class="agent">
+        <div class="agent-icon" style="background:var(--green-dim);border:1px solid var(--green)">🧠</div>
+        <div>
+          <h4>Intent Detection Agent</h4>
+          <p>Classifies free-text or button replies into 6 intents: confirm_delivery, change_address, reschedule, cancel, convert_prepaid, unknown.</p>
+          <span class="status mvp">MVP · LLM + Rules</span>
+        </div>
+      </div>
+      <div class="agent">
+        <div class="agent-icon" style="background:var(--coral-dim);border:1px solid var(--coral)">🚚</div>
+        <div>
+          <h4>Courier Action Agent</h4>
+          <p>Given risk score + NDR reason + customer intent, recommends one of 7 actions: ship, hold, reattempt, update_address, call_customer, convert_prepaid, mark_rto.</p>
+          <span class="status mvp">MVP · Decision Tree</span>
+        </div>
+      </div>
+      <div class="agent">
+        <div class="agent-icon" style="background:var(--bg3);border:1px solid var(--border2)">📊</div>
+        <div>
+          <h4>Analytics Agent</h4>
+          <p>Explains RTO trends in natural language: "RTO increased 4% this week — 70% from pincode 201301, likely due to courier change."</p>
+          <span class="status later">Phase 4 · LLM Insights</span>
+        </div>
+      </div>
+      <div class="agent">
+        <div class="agent-icon" style="background:var(--bg3);border:1px solid var(--border2)">💰</div>
+        <div>
+          <h4>Finance Agent</h4>
+          <p>Calculates real-time ROI: money saved per order, cost per WhatsApp message, net savings after platform fee.</p>
+          <span class="status mvp">MVP · Calculation</span>
+        </div>
+      </div>
+      <div class="agent">
+        <div class="agent-icon" style="background:var(--bg3);border:1px solid var(--border2)">🗓️</div>
+        <div>
+          <h4>Ops Manager Agent</h4>
+          <p>Creates a prioritized daily task list for the human operator: "12 NDRs need action today — 3 critical, 5 high risk."</p>
+          <span class="status later">Phase 3 · Automation</span>
+        </div>
+      </div>
+      <div class="agent">
+        <div class="agent-icon" style="background:var(--bg3);border:1px solid var(--border2)">📈</div>
+        <div>
+          <h4>Growth Agent</h4>
+          <p>Suggests seller campaigns: COD→prepaid conversion offers, reorder reminders, delivery timing nudges based on order behavior.</p>
+          <span class="status later">Phase 4 · Strategic</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- WORKFLOWS -->
+  <section class="section" id="workflows">
+    <div class="section-header">
+      <span class="section-num">06</span>
+      <h2>Core Workflows</h2>
+    </div>
+
+    <div style="display:grid;gap:1.5rem">
+      <!-- W1 -->
+      <div class="card">
+        <div style="display:flex;align-items:center;gap:0.5rem;margin-bottom:0.75rem">
+          <span class="pill amber">Workflow 1</span>
+          <h3 style="margin:0">COD Confirmation Before Dispatch</h3>
+        </div>
+        <div class="flow" style="flex-wrap:wrap">
+          <div class="flow-node">New COD Order</div>
+          <div class="flow-arrow">→</div>
+          <div class="flow-node highlight">Risk Score</div>
+          <div class="flow-arrow">→</div>
+          <div class="flow-node" style="color:var(--green)">Low Risk?</div>
+          <div class="flow-arrow">→</div>
+          <div class="flow-node" style="color:var(--green)">Ship Normally</div>
+        </div>
+        <div class="flow" style="flex-wrap:wrap;margin-top:0.5rem">
+          <div class="flow-node">Medium/High Risk</div>
+          <div class="flow-arrow">→</div>
+          <div class="flow-node highlight">WhatsApp Sent</div>
+          <div class="flow-arrow">→</div>
+          <div class="flow-node">Confirms</div>
+          <div class="flow-arrow">→</div>
+          <div class="flow-node" style="color:var(--green)">Ship ✓</div>
+        </div>
+        <div class="flow" style="flex-wrap:wrap;margin-top:0.5rem">
+          <div class="flow-node" style="opacity:0.4">Medium/High Risk</div>
+          <div class="flow-arrow">→</div>
+          <div class="flow-node" style="opacity:0.4">WhatsApp Sent</div>
+          <div class="flow-arrow">→</div>
+          <div class="flow-node">Cancels / No Reply</div>
+          <div class="flow-arrow">→</div>
+          <div class="flow-node" style="color:var(--amber)">Hold / Cancel</div>
+        </div>
+      </div>
+
+      <!-- W2 -->
+      <div class="card">
+        <div style="display:flex;align-items:center;gap:0.5rem;margin-bottom:0.75rem">
+          <span class="pill blue">Workflow 2</span>
+          <h3 style="margin:0">NDR Rescue Flow</h3>
+        </div>
+        <div class="flow" style="flex-wrap:wrap">
+          <div class="flow-node">Courier Marks Failed</div>
+          <div class="flow-arrow">→</div>
+          <div class="flow-node highlight">NDR Case Created</div>
+          <div class="flow-arrow">→</div>
+          <div class="flow-node">Reason Normalized</div>
+          <div class="flow-arrow">→</div>
+          <div class="flow-node highlight">WhatsApp Sent (0 min)</div>
+        </div>
+        <div class="flow" style="flex-wrap:wrap;margin-top:0.5rem">
+          <div class="flow-node">Customer Responds</div>
+          <div class="flow-arrow">→</div>
+          <div class="flow-node">Intent Classified</div>
+          <div class="flow-arrow">→</div>
+          <div class="flow-node highlight">Recommended Action</div>
+          <div class="flow-arrow">→</div>
+          <div class="flow-node" style="color:var(--green)">Delivered / RTO</div>
+        </div>
+        <div style="margin-top:0.75rem;display:grid;grid-template-columns:repeat(4,1fr);gap:0.5rem">
+          <div style="background:var(--bg3);border-radius:6px;padding:0.5rem;font-size:11px;text-align:center"><div style="color:var(--text3);margin-bottom:2px">Customer unavailable</div><div style="color:var(--amber)">Slot picker</div></div>
+          <div style="background:var(--bg3);border-radius:6px;padding:0.5rem;font-size:11px;text-align:center"><div style="color:var(--text3);margin-bottom:2px">Wrong address</div><div style="color:var(--amber)">Address capture</div></div>
+          <div style="background:var(--bg3);border-radius:6px;padding:0.5rem;font-size:11px;text-align:center"><div style="color:var(--text3);margin-bottom:2px">Cash issue</div><div style="color:var(--amber)">UPI link sent</div></div>
+          <div style="background:var(--bg3);border-radius:6px;padding:0.5rem;font-size:11px;text-align:center"><div style="color:var(--text3);margin-bottom:2px">Phone unreachable</div><div style="color:var(--amber)">SMS + AI call</div></div>
+        </div>
+      </div>
+
+      <!-- W3 -->
+      <div class="card">
+        <div style="display:flex;align-items:center;gap:0.5rem;margin-bottom:0.75rem">
+          <span class="pill purple">Workflow 3</span>
+          <h3 style="margin:0">COD → Prepaid Conversion</h3>
+        </div>
+        <div class="flow" style="flex-wrap:wrap">
+          <div class="flow-node highlight">High-Risk COD Order</div>
+          <div class="flow-arrow">→</div>
+          <div class="flow-node">Offer: "Pay now, get ₹50 off + priority dispatch"</div>
+          <div class="flow-arrow">→</div>
+          <div class="flow-node">Razorpay / Cashfree Link</div>
+          <div class="flow-arrow">→</div>
+          <div class="flow-node" style="color:var(--green)">Risk drops → Ship ✓</div>
+        </div>
+      </div>
+
+      <!-- W4 -->
+      <div class="card">
+        <div style="display:flex;align-items:center;gap:0.5rem;margin-bottom:0.75rem">
+          <span class="pill teal">Workflow 4</span>
+          <h3 style="margin:0">Courier Recommendation Engine</h3>
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:0.5rem;font-size:12px">
+          <div style="background:var(--bg3);border-radius:6px;padding:0.75rem"><div style="color:var(--text3);margin-bottom:4px">Pincode 201xxx</div><div style="color:#fff;margin-bottom:4px;font-weight:600">Courier A</div><div style="color:var(--red)">28% NDR rate</div></div>
+          <div style="background:var(--bg3);border-radius:6px;padding:0.75rem"><div style="color:var(--text3);margin-bottom:4px">Pincode 201xxx</div><div style="color:#fff;margin-bottom:4px;font-weight:600">Courier B</div><div style="color:var(--green)">12% NDR rate</div></div>
+          <div style="background:var(--amber-dim);border:1px solid var(--amber2);border-radius:6px;padding:0.75rem"><div style="color:var(--amber);margin-bottom:4px;font-size:11px">Recommendation</div><div style="color:#fff;font-weight:600">Use Courier B</div><div style="color:var(--text2)">for this pincode</div></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- PRICING / BUSINESS MODEL -->
+  <section class="section" id="pricing">
+    <div class="section-header">
+      <span class="section-num">07</span>
+      <h2>Business Model</h2>
+    </div>
+
+    <div class="grid-3" style="margin-bottom:2rem">
+      <div class="pricing-card">
+        <div class="price-name" style="color:var(--text3)">Starter</div>
+        <div><span class="price-amount">₹2,999</span><span class="price-unit">/month</span></div>
+        <div style="margin:1rem 0;font-size:12px;color:var(--text3);border-bottom:1px solid var(--border);padding-bottom:0.75rem">Up to 500 shipments/month</div>
+        <div class="price-feature">CSV upload & order import</div>
+        <div class="price-feature">COD confirmation flow</div>
+        <div class="price-feature">Basic NDR dashboard</div>
+        <div class="price-feature">ROI report</div>
+        <div class="price-feature">Email support</div>
+      </div>
+      <div class="pricing-card featured">
+        <div style="display:flex;align-items:center;justify-content:space-between">
+          <div class="price-name" style="color:var(--amber)">Growth</div>
+          <span style="font-size:10px;background:var(--amber-dim);color:var(--amber);border:1px solid var(--amber2);padding:2px 8px;border-radius:3px;font-family:'IBM Plex Mono',monospace">BEST FIT</span>
+        </div>
+        <div><span class="price-amount">₹7,999</span><span class="price-unit">/month</span></div>
+        <div style="margin:1rem 0;font-size:12px;color:var(--text3);border-bottom:1px solid var(--amber2);padding-bottom:0.75rem">Up to 2,000 shipments/month</div>
+        <div class="price-feature">Everything in Starter</div>
+        <div class="price-feature">AI risk scoring</div>
+        <div class="price-feature">NDR rescue automation</div>
+        <div class="price-feature">WhatsApp automation</div>
+        <div class="price-feature">Analytics dashboard</div>
+        <div class="price-feature">Priority support</div>
+      </div>
+      <div class="pricing-card">
+        <div class="price-name" style="color:var(--text3)">Pro</div>
+        <div><span class="price-amount">₹14,999</span><span class="price-unit">/month</span></div>
+        <div style="margin:1rem 0;font-size:12px;color:var(--text3);border-bottom:1px solid var(--border);padding-bottom:0.75rem">Up to 5,000 shipments/month</div>
+        <div class="price-feature">Everything in Growth</div>
+        <div class="price-feature">Shopify integration</div>
+        <div class="price-feature">Pincode & SKU analytics</div>
+        <div class="price-feature">Courier recommendation</div>
+        <div class="price-feature">API access</div>
+        <div class="price-feature">Dedicated success manager</div>
+      </div>
+    </div>
+
+    <div class="card amber" style="margin-bottom:1.5rem">
+      <h3 style="color:var(--amber)">Performance Add-on</h3>
+      <p>₹10–₹30 per saved order. Stacks on top of base plan. High-volume brands prefer this — aligned incentives mean the platform fights for every order.</p>
+    </div>
+
+    <div class="grid-2">
+      <div class="card">
+        <h3>Monthly Cost Structure (MVP)</h3>
+        <table style="margin-top:0.75rem">
+          <thead><tr><th>Item</th><th>Cost</th></tr></thead>
+          <tbody>
+            <tr><td>Hosting (Render/Fly.io)</td><td>₹1,000–₹5,000</td></tr>
+            <tr><td>Database + Storage</td><td>₹500–₹3,000</td></tr>
+            <tr><td>WhatsApp BSP</td><td>Variable (per message)</td></tr>
+            <tr><td>LLM API (OpenAI/Gemini)</td><td>₹1,000–₹10,000</td></tr>
+            <tr><td>Domain + Email</td><td>₹1,000–₹2,000</td></tr>
+            <tr><td>Monitoring (Sentry + PostHog)</td><td>Free tier initially</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="card">
+        <h3>Revenue Potential by Phase</h3>
+        <table style="margin-top:0.75rem">
+          <thead><tr><th>Phase</th><th>MRR Target</th></tr></thead>
+          <tbody>
+            <tr><td>Phase 1 (Concierge)</td><td><span style="color:var(--amber)">₹10,000–₹50,000</span></td></tr>
+            <tr><td>Phase 2 (MVP SaaS, 5 brands)</td><td><span style="color:var(--amber)">₹40,000–₹100,000</span></td></tr>
+            <tr><td>Phase 3 (Integrations, 20 brands)</td><td><span style="color:var(--amber)">₹160,000–₹400,000</span></td></tr>
+            <tr><td>Phase 4 (AI Layer, 50 brands)</td><td><span style="color:var(--amber)">₹400,000–₹1,000,000</span></td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </section>
+
+  <!-- ROADMAP -->
+  <section class="section" id="roadmap">
+    <div class="section-header">
+      <span class="section-num">08</span>
+      <h2>Build Roadmap</h2>
+    </div>
+    <div class="grid-2">
+      <div class="timeline">
+        <div class="phase done">
+          <div class="phase-label">Phase 0</div>
+          <h4>Validation</h4>
+          <p>Talk to 30 sellers. Collect real CSV data. Get 5 pilots and 2 paid commitments. No code yet.</p>
+          <div class="duration">⏱ 7 days</div>
+          <div style="margin-top:0.5rem;display:flex;flex-wrap:wrap;gap:4px">
+            <span class="pill" style="font-size:10px">30 seller conversations</span>
+            <span class="pill" style="font-size:10px">10 data samples</span>
+            <span class="pill" style="font-size:10px">5 pilots</span>
+          </div>
+        </div>
+        <div class="phase done">
+          <div class="phase-label">Phase 1</div>
+          <h4>Concierge MVP</h4>
+          <p>Manual ops with Google Sheets, Retool dashboard, WATI/Gupshup, and n8n automation. No SaaS yet. Proves value and generates first revenue.</p>
+          <div class="duration">⏱ 2 weeks</div>
+          <div style="margin-top:0.5rem;display:flex;flex-wrap:wrap;gap:4px">
+            <span class="pill amber" style="font-size:10px">₹10k–₹50k MRR</span>
+            <span class="pill" style="font-size:10px">Google Sheets</span>
+            <span class="pill" style="font-size:10px">n8n automation</span>
+          </div>
+        </div>
+        <div class="phase">
+          <div class="phase-label">Phase 2</div>
+          <h4>MVP SaaS</h4>
+          <p>Proper web app: Login, brand setup, CSV upload, orders table, risk scoring, NDR cases, WhatsApp templates, response inbox, analytics, billing.</p>
+          <div class="duration">⏱ 4–6 weeks</div>
+          <div style="margin-top:0.5rem;display:flex;flex-wrap:wrap;gap:4px">
+            <span class="pill" style="font-size:10px">Next.js frontend</span>
+            <span class="pill" style="font-size:10px">FastAPI backend</span>
+            <span class="pill" style="font-size:10px">PostgreSQL</span>
+          </div>
+        </div>
+        <div class="phase">
+          <div class="phase-label">Phase 3</div>
+          <h4>Integrations</h4>
+          <p>Shopify webhooks → Shiprocket API → NimbusPost → WooCommerce → Razorpay payment links → Courier reattempt APIs.</p>
+          <div class="duration">⏱ 6–10 weeks</div>
+          <div style="margin-top:0.5rem;display:flex;flex-wrap:wrap;gap:4px">
+            <span class="pill coral" style="font-size:10px">Shopify</span>
+            <span class="pill coral" style="font-size:10px">Shiprocket</span>
+            <span class="pill coral" style="font-size:10px">Razorpay</span>
+          </div>
+        </div>
+        <div class="phase">
+          <div class="phase-label">Phase 4</div>
+          <h4>Intelligence Layer</h4>
+          <p>Pincode risk ML model, customer RTO history AI, courier performance model, SKU-level RTO detection, LLM insight reports.</p>
+          <div class="duration">⏱ 3–6 months</div>
+          <div style="margin-top:0.5rem;display:flex;flex-wrap:wrap;gap:4px">
+            <span class="pill purple" style="font-size:10px">ML Risk Model</span>
+            <span class="pill purple" style="font-size:10px">LLM Insights</span>
+            <span class="pill purple" style="font-size:10px">Fraud Detection</span>
+          </div>
+        </div>
+        <div class="phase">
+          <div class="phase-label">Phase 5</div>
+          <h4>Defensibility / Moat</h4>
+          <p>Cross-brand pincode risk index, category RTO benchmarks, courier reliability scoring, COD buyer trust score, address quality engine.</p>
+          <div class="duration">⏱ 6–12 months</div>
+          <div style="margin-top:0.5rem;display:flex;flex-wrap:wrap;gap:4px">
+            <span class="pill amber" style="font-size:10px">Data Moat</span>
+            <span class="pill amber" style="font-size:10px">Network Effects</span>
+            <span class="pill amber" style="font-size:10px">Benchmarks</span>
+          </div>
+        </div>
+      </div>
+      <div>
+        <h3 style="margin-bottom:1rem">Build Order (Strict Priority)</h3>
+        <table>
+          <thead><tr><th>#</th><th>What to Build</th><th>When</th></tr></thead>
+          <tbody>
+            <tr><td>1</td><td>RTO audit service (manual)</td><td><span class="pill green" style="font-size:10px">Now</span></td></tr>
+            <tr><td>2</td><td>CSV COD confirmation</td><td><span class="pill green" style="font-size:10px">Now</span></td></tr>
+            <tr><td>3</td><td>CSV NDR rescue</td><td><span class="pill green" style="font-size:10px">Now</span></td></tr>
+            <tr><td>4</td><td>WhatsApp automation</td><td><span class="pill amber" style="font-size:10px">Phase 1</span></td></tr>
+            <tr><td>5</td><td>ROI dashboard</td><td><span class="pill amber" style="font-size:10px">Phase 2</span></td></tr>
+            <tr><td>6</td><td>Shopify integration</td><td><span class="pill" style="font-size:10px">Phase 3</span></td></tr>
+            <tr><td>7</td><td>Shiprocket / NimbusPost</td><td><span class="pill" style="font-size:10px">Phase 3</span></td></tr>
+            <tr><td>8</td><td>AI risk model</td><td><span class="pill purple" style="font-size:10px">Phase 4</span></td></tr>
+            <tr><td>9</td><td>Courier recommendation</td><td><span class="pill purple" style="font-size:10px">Phase 4</span></td></tr>
+          </tbody>
+        </table>
+
+        <h3 style="margin-top:2rem;margin-bottom:1rem">What NOT to Build First</h3>
+        <div style="display:flex;flex-wrap:wrap;gap:0.5rem">
+          <span class="pill red" style="font-size:11px">Shipping label generation</span>
+          <span class="pill red" style="font-size:11px">Warehouse management</span>
+          <span class="pill red" style="font-size:11px">Mobile app</span>
+          <span class="pill red" style="font-size:11px">AI voice agent</span>
+          <span class="pill red" style="font-size:11px">Full CRM</span>
+          <span class="pill red" style="font-size:11px">ML model (Day 1)</span>
+          <span class="pill red" style="font-size:11px">Marketplace</span>
+          <span class="pill red" style="font-size:11px">Enterprise RBAC</span>
+          <span class="pill red" style="font-size:11px">Generic chatbot</span>
+          <span class="pill red" style="font-size:11px">Full logistics platform</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- GO-TO-MARKET -->
+  <section class="section" id="gtm">
+    <div class="section-header">
+      <span class="section-num">09</span>
+      <h2>Go-to-Market Plan</h2>
+    </div>
+
+    <div class="grid-2" style="margin-bottom:2rem">
+      <div>
+        <h3 style="margin-bottom:1rem">Target Segments</h3>
+        <table>
+          <thead><tr><th>Category</th><th>Why</th></tr></thead>
+          <tbody>
+            <tr><td>Fashion / Apparel</td><td>High COD, size/impulse risk</td></tr>
+            <tr><td>Footwear</td><td>Fit issues + COD refusal</td></tr>
+            <tr><td>Beauty / Skincare</td><td>Repeat purchase potential</td></tr>
+            <tr><td>Accessories</td><td>Impulse COD risk</td></tr>
+            <tr><td>Gadgets</td><td>Fake/low-intent COD</td></tr>
+            <tr><td>Ayurvedic / Wellness</td><td>COD-heavy + trust-sensitive</td></tr>
+          </tbody>
+        </table>
+
+        <div style="margin-top:1rem;padding:0.75rem 1rem;background:var(--red-dim);border:1px solid var(--red);border-radius:6px;font-size:12px;color:var(--text2)">
+          <span style="color:var(--red);font-weight:600">Avoid initially: </span>
+          Very large enterprise · Food/grocery · Marketplace-only sellers · Under 100 orders/month
+        </div>
+      </div>
+
+      <div>
+        <h3 style="margin-bottom:1rem">30-Day Action Plan</h3>
+        <div style="font-size:12px">
+          <div style="padding:0.5rem 0;border-bottom:1px solid var(--border);display:flex;gap:0.5rem;align-items:flex-start">
+            <span style="font-family:'IBM Plex Mono',monospace;color:var(--amber);min-width:70px">Days 1–3</span>
+            <span style="color:var(--text2)">Create landing page, RTO calculator, sample audit report, WhatsApp templates, Google Sheet MVP, sales message</span>
+          </div>
+          <div style="padding:0.5rem 0;border-bottom:1px solid var(--border);display:flex;gap:0.5rem;align-items:flex-start">
+            <span style="font-family:'IBM Plex Mono',monospace;color:var(--amber);min-width:70px">Days 4–10</span>
+            <span style="color:var(--text2)">100 outreach messages · 30 conversations · 10 data samples · 5 pilots committed</span>
+          </div>
+          <div style="padding:0.5rem 0;border-bottom:1px solid var(--border);display:flex;gap:0.5rem;align-items:flex-start">
+            <span style="font-family:'IBM Plex Mono',monospace;color:var(--amber);min-width:70px">Days 11–20</span>
+            <span style="color:var(--text2)">Manual pilots: import CSV daily, flag risks, send WhatsApp, track NDR, record saves, send daily summary to brand</span>
+          </div>
+          <div style="padding:0.5rem 0;display:flex;gap:0.5rem;align-items:flex-start">
+            <span style="font-family:'IBM Plex Mono',monospace;color:var(--amber);min-width:70px">Days 21–30</span>
+            <span style="color:var(--text2)">Automate only what you did repeatedly: CSV upload, risk score, WhatsApp send, response capture, ROI dashboard</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="gtm-step">
+      <div class="gtm-num">01</div>
+      <div>
+        <h4>Find 100 Sellers</h4>
+        <p>Instagram fashion brands · Indian Shopify stores · Facebook groups (Shopify India, D2C founders) · LinkedIn (D2C founder, e-commerce manager) · Sellers complaining about RTO on Shiprocket community · Shopify agencies managing brands.</p>
+      </div>
+    </div>
+    <div class="gtm-step">
+      <div class="gtm-num">02</div>
+      <div>
+        <h4>The Pitch</h4>
+        <p style="background:var(--bg2);border-left:3px solid var(--amber);padding:0.75rem;border-radius:0 6px 6px 0;font-size:13px;color:var(--text);margin-top:0.5rem;font-style:italic">"You're losing money on COD orders that fail delivery. We help D2C brands reduce RTO by confirming risky COD orders before dispatch and rescuing failed deliveries through WhatsApp automation. 14-day pilot using your existing CSV. No integration. Pay only if we show real savings."</p>
+      </div>
+    </div>
+    <div class="gtm-step">
+      <div class="gtm-num">03</div>
+      <div>
+        <h4>Free RTO Audit (The Trojan Horse)</h4>
+        <p>Ask for last 30-day data. Return a report showing: COD%, RTO%, RTO by pincode/courier/product, estimated loss, estimated savings if reduced 10%/20%/30%. This audit itself closes deals.</p>
+      </div>
+    </div>
+    <div class="gtm-step">
+      <div class="gtm-num">04</div>
+      <div>
+        <h4>Paid Pilot Offer</h4>
+        <p>₹4,999 for 14 days — OR — ₹0 setup + ₹25 per saved order. The second option removes all risk for the seller and proves confidence in the product.</p>
+      </div>
+    </div>
+    <div class="gtm-step">
+      <div class="gtm-num">05</div>
+      <div>
+        <h4>Convert to Subscription</h4>
+        <p>After demonstrating savings: ₹7,999/month + WhatsApp charges. ROI dashboard makes the renewal conversation easy — the data speaks for itself.</p>
+      </div>
+    </div>
+  </section>
+
+</main>
+
+<footer>
+  <p>RTO/NDR Management SaaS — <span>Architecture Document v1.0</span></p>
+  <p>Stack: <span>Next.js · FastAPI · PostgreSQL · Redis · Celery · Cloudflare R2</span></p>
+</footer>
+
+<script>
+function showSection(id) {
+  document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  event.target.classList.add('active');
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+</script>
+</body>
+</html>

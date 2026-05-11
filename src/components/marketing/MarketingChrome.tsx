@@ -1,6 +1,10 @@
 import Link from "next/link";
 import type { ReactNode } from "react";
+import { isLoginBypassEnabledForTesting } from "@/lib/auth/testing-bypass";
+
 export function MarketingHeader({ variant = "light" }: { variant?: "light" | "dark" }) {
+  const isLoginBypassed = isLoginBypassEnabledForTesting();
+
   return (
     <header className={`saas-header ${variant === "dark" ? "saas-header--dark" : ""}`}>
       <Link className="saas-brand" href="/" aria-label="Wembro home">
@@ -42,7 +46,9 @@ export function MarketingHeader({ variant = "light" }: { variant?: "light" | "da
         <Link href="/alerts-reports">Reports</Link>
       </nav>
       <div className="saas-header__actions">
-        <Link className="button secondary" href="/login">Sign in</Link>
+        <Link className="button secondary" href={isLoginBypassed ? "/dashboard" : "/login"}>
+          {isLoginBypassed ? "Open dashboard" : "Sign in"}
+        </Link>
         <Link className="button" href="/onboarding">Connect marketplace <span aria-hidden>→</span></Link>
       </div>
     </header>

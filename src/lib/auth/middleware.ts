@@ -1,5 +1,6 @@
 import { createServerClient } from '@supabase/ssr'
 import { NextResponse, type NextRequest } from 'next/server'
+import { isLoginBypassEnabledForTesting } from './testing-bypass'
 
 // True when real Supabase credentials are configured. When false (e.g. fresh
 // local dev with no .env), the auth gate is bypassed so protected routes like
@@ -11,9 +12,21 @@ const isAuthConfigured =
   !process.env.NEXT_PUBLIC_SUPABASE_URL.includes('placeholder')
 
 export async function updateSession(request: NextRequest) {
+  const pathname = request.nextUrl.pathname
+
   let supabaseResponse = NextResponse.next({
     request,
   })
+
+  if (isLoginBypassEnabledForTesting()) {
+    if (pathname === '/login') {
+      const url = request.nextUrl.clone()
+      url.pathname = '/dashboard'
+      return NextResponse.redirect(url)
+    }
+
+    return supabaseResponse
+  }
 
   // Dev bypass: if Supabase isn't configured, let every request through so
   // local development isn't blocked behind a non-existent auth provider.
@@ -41,8 +54,6 @@ export async function updateSession(request: NextRequest) {
       },
     }
   )
-
-  const pathname = request.nextUrl.pathname
 
   // Public marketing pages — no auth required
   const PUBLIC_EXACT = ['/', '/product', '/pricing', '/calculator', '/audit', '/sample-report', '/demo', '/pilot', '/login']
