@@ -1,109 +1,134 @@
 # AI Operations OS Architecture
 
-## Company Pivot
+## Product Timing Law
 
-Wembro is moving from a website plus dashboard into an AI Operations OS for ecommerce sellers. The system must automatically detect, prevent, and recover operational losses across marketplaces while explaining every decision clearly.
+Wembro's current customer promise is not a broad AI Operations OS.
 
-The company promise:
+The active product wedge is:
 
-> We automatically detect, prevent, and recover operational losses across ecommerce marketplaces.
+> A CSV-first COD/RTO/NDR profit recovery control room for Indian D2C sellers.
 
-The product is not an AI dashboard. The dashboard is only the control room. The operating system works from real seller data sources, normalized entities, agent outputs, automation policies, and audit logs.
+The current product helps a seller import recent order, shipment, and NDR data, diagnose post-checkout leakage, decide what to fix today, run a manual or mock-assisted rescue workflow, and track estimated or verified savings. This is the seller-facing promise until the wedge has stronger pilot proof.
+
+AI Operations OS is the future architecture direction. It should guide sequencing, data contracts, and internal boundaries, but it must not be presented as the live product promise before proof exists.
+
+## Active Wedge First
+
+The active wedge remains the Revenue Leakage Control Center:
+
+- CSV upload for seller order, shipment, and NDR exports.
+- Data quality checks, normalization, and low-sample warnings.
+- Rule-based COD/RTO/NDR risk explanation.
+- NDR rescue queue and daily profit action queue.
+- Mock/provider-agnostic WhatsApp outbox and manual response capture.
+- Placeholder payment links for COD-to-prepaid recommendations.
+- Savings ledger with estimated and verified states.
+- Audit trail and privacy controls.
+
+This wedge is narrow on purpose. It is painful, measurable, and action-oriented. It creates the proof needed before Wembro earns the right to expand.
+
+## Not Current Scope
+
+Do not describe these as active product capabilities:
+
+- Real WhatsApp sending without provider integration, template approval, webhook handling, opt-out rules, and audit proof.
+- Real courier API pushes without provider integration, action receipts, failure handling, and audit proof.
+- Real Shopify or WooCommerce sync without implemented ingestion, webhooks, reconciliation, and tests.
+- ML prediction without trained data, evaluation, calibration, and clear labeling.
+- Guaranteed ROI or verified savings without seller outcome evidence.
+- Broad modules such as inventory, returns, settlement, marketplace health, cashflow, or chatbot workflows.
+
+These may exist as future architecture candidates only after the Revenue Leakage Control Center proves repeatable value.
 
 ## Current Repository Reality
 
 The current repo is a Next.js App Router application with:
 
 - Public website routes: `/`, `/product`, `/pricing`, `/calculator`, `/audit`, `/sample-report`, `/demo`, `/pilot`, `/personas/*`.
-- A large dashboard route at `/dashboard` with many local-first revenue leakage workflows.
+- A large dashboard route at `/dashboard` with local-first revenue leakage workflows.
 - Prisma schema for Brand, User, Order, NDRCase, Action, SavingsEvent, AuditLog, and Integration.
 - Supabase SSR auth middleware with public marketing routes and protected app/API surfaces.
-- Existing feature modules under `src/features/*` for imports, integrations, actions, reports, savings, risk, rules, onboarding, pilot workflows, and the current operations OS boundary.
+- Feature modules under `src/features/*` for imports, integrations, actions, reports, savings, risk, rules, onboarding, pilot workflows, and the current operations OS boundary.
 - Local/mock adapter patterns that are useful and should be preserved.
 
-This foundation should be extended, not replaced.
+This foundation should be extended in sequence, not replaced by broad AI language.
 
-## Target System Flow
+## Proof Gates Before AI Or Automation
+
+AI, live integrations, and automation can graduate from architecture into product scope only when these gates are satisfied:
+
+1. Seller proof: real pilot users have worked the CSV-first daily queue and NDR rescue flow.
+2. Data proof: imported data has lineage, validation, data quality warnings, and repeatable mappings.
+3. Action proof: recommendations lead to clear human actions with owner, status, reason, and confidence.
+4. Savings proof: outcomes are recorded as estimated or verified with formulas and before/after evidence.
+5. Trust proof: audit logs, privacy controls, export governance, and seller-visible disclaimers are in place.
+6. Integration proof: every live provider has implemented auth, webhook or polling behavior, retries, failure states, and tests.
+7. Model proof: any ML system has labeled training data, evaluation, calibration checks, and rule-based fallback.
+8. Automation proof: execution starts with approval-based drafts, logs every decision, supports rollback or correction, and never bypasses seller policy.
+
+If a capability fails these gates, it stays future architecture.
+
+## Future Architecture Sequence
 
 The long-term system sequence is:
 
-1. Website
-2. Onboarding + Marketplace Connection
-3. Data Ingestion Layer
-4. Unified Seller Data Brain
-5. AI Operations Engine
-6. Automation / Action Layer
-7. Dashboard + Alerts + Reports
-8. Settings + Customization + Model Control
-9. Feedback Loop / Learning System
+1. Proven Revenue Leakage Control Center
+2. Production trust layer
+3. Provider-backed ingestion and reply capture
+4. Unified seller data brain
+5. AI operations engine
+6. Approval-based automation and action layer
+7. Dashboard, alerts, and reports
+8. Settings, customization, and model control
+9. Feedback loop and learning system
 
 The internal product rhythm stays:
 
 `DATA -> INSIGHT -> DECISION -> ACTION -> LEARNING`
 
-No module should bypass this order.
+No module should bypass this order. AI can assist insight and draft action only after trusted data and seller-visible decision logic exist.
 
-## Core Principle
-
-AI must never extract truth from the dashboard. The dashboard reads from system state. AI and automation read from:
-
-- Marketplace APIs.
-- CSV, XLSX, and PDF uploads.
-- Settlement reports.
-- Return reports.
-- Order reports.
-- Inventory reports.
-- Courier and NDR reports.
-- Bank statements.
-- Email reports.
-- Support messages.
-- Customer conversations.
-- Reviews.
-- Ad reports.
-- Supplier files.
-- Accounting and GST files.
-
-## System Boundaries
+## Future System Boundaries
 
 ### Website / Seller Acquisition
 
-Explains operational leakage, converts sellers, and positions Wembro as an AI Operations OS. It should support the current calculator and trust ladder while expanding the product story beyond RTO/NDR.
+Current website language must lead with the COD/RTO/NDR profit recovery wedge. Future AI OS language can explain the long-term direction only after the current wedge is stated first.
 
 ### Onboarding + Marketplace Connection
 
-Captures business profile, marketplace mix, permissions, upload fallback, categories, pain points, tools, and first diagnosis trigger.
+Future onboarding may capture business profile, marketplace mix, permissions, upload fallback, categories, pain points, tools, and first diagnosis trigger. In the active wedge, CSV upload and privacy-safe audit flow remain enough.
 
 ### Data Ingestion
 
-Owns connector registry, report parsing interfaces, ingestion jobs, validation, freshness, source health, retries, and logs.
+Future ingestion owns connector registry, report parsing interfaces, ingestion jobs, validation, freshness, source health, retries, and logs. Current ingestion remains CSV-first unless a specific provider integration is implemented and tested.
 
 ### Unified Seller Data Brain
 
-Normalizes fragmented marketplace records into one commerce graph with lineage, confidence, mapping, deduplication, and anomaly foundations.
+Future data brain normalizes fragmented seller records into one commerce graph with lineage, confidence, mapping, deduplication, and anomaly foundations. It should begin with order, shipment, NDR, action, savings, and audit records before expanding to other domains.
 
 ### AI Operations Engine
 
-Runs orchestrated agents. Every output becomes structured data: insight, recommendation, draft action, executable action, alert, report, task, or automation event.
+Future AI agents may produce structured insights, recommendations, draft actions, alerts, reports, tasks, or automation events. Every output must include source data, confidence, reason, approval requirement, and seller-visible risk.
 
 ### Automation / Action Layer
 
-Converts findings into work under policy checks, approval queues, execution state machines, audit logs, retry logic, and human override.
+Future automation converts approved findings into work under policy checks, approval queues, execution state machines, audit logs, retry logic, and human override. The first live version should be approval-based, not autonomous.
 
 ### Dashboard + Alerts + Reports
 
-Shows what the system found, what it did, what is risky, what needs approval, and what money was saved or recovered.
+The dashboard reads from system state. It should show what was found, what should be done, what needs approval, what happened, and what money was saved or protected.
 
 ### Settings + Model Control
 
-Stores seller rules, risk appetite, notification preferences, approval rules, prompt templates, brand voice, and model choices per agent.
+Future settings may store seller rules, risk appetite, notification preferences, approval rules, prompt templates, brand voice, and model choices per agent. These settings are not a substitute for proof gates.
 
 ### Feedback Loop
 
-Tracks outcomes, seller overrides, action acceptance, rejected recommendations, claim success, RTO outcomes, listing changes, and marketing profitability.
+Future learning tracks outcomes, seller overrides, action acceptance, rejected recommendations, claim success, RTO outcomes, and delivery results. Learning must come from recorded outcomes, not claims.
 
-## Recommended Code Shape
+## Future Code Shape
 
-The repo should evolve toward these boundaries:
+The repo may evolve toward these boundaries after proof gates are satisfied:
 
 ```text
 src/features/
@@ -118,18 +143,17 @@ src/features/
   automation/
   model-control/
   seller-settings/
-  marketing-automation/
 ```
 
-For this first increment, the new foundation lives under `src/features/ai-operations-os/*` so it does not disrupt existing production-like dashboard flows. Later phases can split that vertical into separate modules once contracts are proven.
+For early increments, experimental AI OS foundations should remain behind clear service/module boundaries so they do not disrupt the production-like RTO/NDR dashboard flows or leak into seller-facing promises.
 
 ## First Increment Guardrails
 
 - Preserve the existing dashboard and RTO/NDR workflows.
+- State the active CSV-first wedge before any future OS ambition.
 - Do not add risky live automation.
 - Keep mock data in adapter/service files only.
 - Keep business logic out of route components.
-- Keep routes thin and mostly composed from reusable OS shell components.
+- Keep routes thin and mostly composed from reusable components.
 - Add docs before expanding code.
 - Treat database migrations as a later, explicit phase.
-

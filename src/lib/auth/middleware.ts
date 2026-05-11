@@ -11,6 +11,31 @@ const isAuthConfigured =
   !!process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY &&
   !process.env.NEXT_PUBLIC_SUPABASE_URL.includes('placeholder')
 
+// Public routes are limited to the seller trust ladder: marketing proof,
+// privacy-safe estimates, fictional demo data, pilot planning, and login.
+// Everything else is an authenticated control-room, API, or future-locked
+// architecture surface until the product proof gates say otherwise.
+export const PUBLIC_TRUST_ROUTES = [
+  '/',
+  '/product',
+  '/pricing',
+  '/calculator',
+  '/audit',
+  '/sample-report',
+  '/demo',
+  '/pilot',
+  '/login',
+] as const
+
+export const PUBLIC_TRUST_PREFIXES = ['/personas/', '/auth/', '/api/public'] as const
+
+export function isPublicTrustRoute(pathname: string) {
+  return (
+    PUBLIC_TRUST_ROUTES.includes(pathname as (typeof PUBLIC_TRUST_ROUTES)[number]) ||
+    PUBLIC_TRUST_PREFIXES.some((prefix) => pathname.startsWith(prefix))
+  )
+}
+
 export async function updateSession(request: NextRequest) {
   const pathname = request.nextUrl.pathname
 
@@ -55,15 +80,7 @@ export async function updateSession(request: NextRequest) {
     }
   )
 
-  // Public marketing pages — no auth required
-  const PUBLIC_EXACT = ['/', '/product', '/pricing', '/calculator', '/audit', '/sample-report', '/demo', '/pilot', '/login']
-  const PUBLIC_PREFIX = ['/personas/', '/auth/', '/api/public']
-
-  const isPublic =
-    PUBLIC_EXACT.includes(pathname) ||
-    PUBLIC_PREFIX.some((p) => pathname.startsWith(p))
-
-  if (isPublic) return supabaseResponse
+  if (isPublicTrustRoute(pathname)) return supabaseResponse
 
   // IMPORTANT: Avoid writing any logic between createServerClient and
   // supabase.auth.getUser(). A simple mistake could make it very hard to debug

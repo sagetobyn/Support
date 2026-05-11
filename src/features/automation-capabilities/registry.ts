@@ -24,13 +24,14 @@ const statusDefinitions: AutomationCapabilityMatrix["statusDefinitions"] = [
   {
     status: "mock",
     label: "Mock",
-    description: "A deterministic sample or demo exists, but it is not wired to real seller data and execution proof.",
+    description: "A deterministic sample, demo, or static service exists, but it is not wired to real seller data and execution proof.",
     canClaimAutomated: false
   },
   {
     status: "local_automation",
-    label: "Local automation",
-    description: "CSV/demo data can trigger deterministic decisions, work items, audit proof, or local state changes.",
+    label: "Local workflow proof",
+    description:
+      "CSV/demo/browser data can create deterministic recommendations, local work items, local audit records, or local state changes. It is not external execution.",
     canClaimAutomated: false
   },
   {
@@ -48,13 +49,15 @@ const statusDefinitions: AutomationCapabilityMatrix["statusDefinitions"] = [
   {
     status: "approval_execution",
     label: "Approval execution",
-    description: "The system prepares a real action and executes only after seller approval, with audit proof.",
+    description:
+      "The system prepares a real action and executes only after seller approval, with provider execution proof, audit proof, and failure handling.",
     canClaimAutomated: true
   },
   {
     status: "autonomous_execution",
     label: "Autonomous execution",
-    description: "The system executes under seller rules, caps, monitoring, audit, and rollback.",
+    description:
+      "The system executes under seller rules, caps, monitoring, provider execution proof, audit, and rollback.",
     canClaimAutomated: true
   }
 ];
@@ -492,7 +495,7 @@ function evidenceForStatus(status: AutomationCapabilityStatus): AutomationEviden
       tests: true,
       externalExecution: false,
       learningLoop: true,
-      notes: ["CSV/demo data can produce deterministic work, proof, and local learning signals."]
+      notes: ["CSV/demo/browser data can produce deterministic local work, proof, and learning signals. External execution is still absent."]
     };
   }
 
@@ -533,7 +536,7 @@ function evidenceForStatus(status: AutomationCapabilityStatus): AutomationEviden
     tests: true,
     externalExecution: status === "approval_execution" || status === "autonomous_execution",
     learningLoop: true,
-    notes: ["This is allowed to claim automation only when real execution proof exists."]
+    notes: ["This is allowed to claim automation only when seller approval rules and real provider execution proof exist."]
   };
 }
 
@@ -622,11 +625,11 @@ function currentImplementationFor(status: AutomationCapabilityStatus) {
     missing: "Not implemented yet.",
     ui_only: "Mentioned or represented in UI only.",
     mock: "Mock or static service layer exists.",
-    local_automation: "Local deterministic automation exists against CSV/demo/browser workspace data.",
+    local_automation: "Local deterministic workflow support exists against CSV/demo/browser workspace data. No external action is performed.",
     connected_read: "Read connector exists without execution.",
     ai_decision: "Structured decision or draft exists without real execution.",
-    approval_execution: "Approval-gated execution with proof exists.",
-    autonomous_execution: "Autonomous execution with seller rules, audit, monitoring, and rollback exists."
+    approval_execution: "Approval-gated execution with seller approval, provider response, audit proof, and failure handling exists.",
+    autonomous_execution: "Trusted-rule execution with seller rules, provider proof, audit, monitoring, and rollback exists."
   };
   return copy[status];
 }
@@ -636,7 +639,7 @@ function nextImplementationFor(status: AutomationCapabilityStatus) {
     missing: "Add source data contract, normalized entity mapping, decision rule, and first queue action.",
     ui_only: "Replace UI claim with a service-backed capability and explicit proof state.",
     mock: "Wire the mock to seller data, audit event, and deterministic work item generation.",
-    local_automation: "Add connected reads or approval-gated execution where provider permissions allow.",
+    local_automation: "Add connected reads or approval-based execution only where provider permissions and proof allow.",
     connected_read: "Add action drafting, seller approval, audit proof, and failure handling.",
     ai_decision: "Convert the decision into approval-ready execution with rollback and provider guardrails.",
     approval_execution: "Harden caps, quiet hours, retries, kill switch, and learning outcomes.",
@@ -667,13 +670,13 @@ function buildCapability(seed: WorkstreamSeed, task: string, index: number): Aut
     sellerWorkRemoved:
       status === "missing" || status === "ui_only"
         ? "None yet. This task remains manual."
-        : status === "mock"
-          ? "Demo-only reduction. Seller still needs a real workflow."
-          : status === "local_automation"
-            ? "Manual analysis and prioritization are reduced for CSV/demo data."
-            : status === "ai_decision"
-              ? "Manual diagnosis is reduced; seller still approves or executes."
-              : "Manual execution is reduced with proof.",
+      : status === "mock"
+        ? "Demo-only reduction. Seller still needs a real workflow."
+      : status === "local_automation"
+        ? "Manual analysis and prioritization are reduced for CSV/demo data; external execution remains manual or export-only."
+      : status === "ai_decision"
+        ? "Manual diagnosis is reduced; seller still approves or executes."
+        : "Manual execution is reduced only with approval, provider response, and audit proof.",
     dataSources: dataSourcesFor(seed.id),
     normalizedEntities: entitiesFor(seed.id),
     decisionService: decisionServiceFor(seed.id),
@@ -703,6 +706,7 @@ export function evidenceIsComplete(evidence: AutomationEvidence) {
     evidence.actionOutput &&
     evidence.auditEvent &&
     evidence.tests &&
+    evidence.externalExecution &&
     evidence.learningLoop
   );
 }
@@ -769,10 +773,10 @@ export function getAutomationCapabilityMatrix(): AutomationCapabilityMatrix {
 
   return {
     objective:
-      "Seller connects the business once, then Wembro removes non-physical ecommerce work through detection, decision, action, proof, and learning.",
+      "Truth map for future Wembro automation capability. The current customer promise remains CSV-first COD/RTO/NDR profit recovery with local workflows, manual/export-only execution, and proof-led savings.",
     operatingLoop: ["DATA", "INSIGHT", "DECISION", "ACTION", "LEARNING"],
     honestyRule:
-      "No capability may claim automation unless it has source data, normalized entities, decision logic, action output, audit proof, tests, and a learning signal.",
+      "No capability may claim automation unless it has source data, normalized entities, decision logic, action output, audit proof, tests, external execution proof, and a learning signal.",
     statusDefinitions,
     workstreams,
     capabilities,

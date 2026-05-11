@@ -21,6 +21,9 @@ const statusOrder: AutomationCapabilityStatus[] = [
 ];
 
 function statusLabel(status: AutomationCapabilityStatus) {
+  if (status === "local_automation") return "local workflow proof";
+  if (status === "approval_execution") return "approval execution";
+  if (status === "autonomous_execution") return "trusted-rule execution";
   return status.replaceAll("_", " ");
 }
 
@@ -37,7 +40,7 @@ export default function AutomationCoveragePage() {
       <OsPageHeader
         eyebrow="Automation Truth Layer"
         title="Total Automation Coverage"
-        subtitle="Every seller task is labeled honestly: missing, UI-only, mock, local automation, AI decision, approval execution, or autonomous execution."
+        subtitle="Every seller task is labeled honestly: missing, UI-only, mock, local workflow proof, AI decision draft, approval execution, or trusted-rule execution."
         actions={<Link className="os-button os-button--secondary" href="/automation">Open Action Layer</Link>}
       />
 
@@ -60,7 +63,7 @@ export default function AutomationCoveragePage() {
         <div className="os-metric os-tone-warning"><span>Coverage</span><strong>{pct(matrix.summary.coveragePercent)}</strong><small>{matrix.summary.totalCapabilities} seller tasks mapped</small></div>
         <div className="os-metric os-tone-success"><span>Local Proof Today</span><strong>{inbox.summary.autoResolvedLocal}</strong><small>{formatInr(inbox.summary.moneyProtected)} protected locally</small></div>
         <div className="os-metric os-tone-danger"><span>Manual Work Exposed</span><strong>{matrix.summary.missingOrUiOnlyCount}</strong><small>Cannot be called automated</small></div>
-        <div className="os-metric"><span>Honest Full Automation Claims</span><strong>{matrix.summary.automatedClaimCount}</strong><small>Full autonomous: {matrix.summary.statusCounts.autonomous_execution}</small></div>
+        <div className="os-metric"><span>Automation Claims Allowed</span><strong>{matrix.summary.automatedClaimCount}</strong><small>Trusted-rule execution: {matrix.summary.statusCounts.autonomous_execution}</small></div>
       </div>
 
       <div className="os-layout-two os-layout-two--wide">
@@ -112,7 +115,7 @@ export default function AutomationCoveragePage() {
         </OsPanel>
       </div>
 
-      <OsPanel title="14 Workstreams" eyebrow="Where Wembro stands right now">
+      <OsPanel title="14 Workstreams" eyebrow="Future capability map, not the current product promise">
         <div className="os-coverage-grid">
           {view.workstreams.map((workstream) => (
             <article className="os-coverage-card" key={workstream.id}>
@@ -142,7 +145,7 @@ export default function AutomationCoveragePage() {
                   <OsStatusPill value={definition.canClaimAutomated ? "approval_ready" : definition.status} />
                 </div>
                 <span>{definition.description}</span>
-                <small>{definition.canClaimAutomated ? "Can claim automation only with complete proof" : "Must not be sold as full automation"}</small>
+                <small>{definition.canClaimAutomated ? "Can claim automation only with complete proof" : "Must not be sold as automation"}</small>
               </article>
             ))}
           </div>
@@ -160,7 +163,7 @@ export default function AutomationCoveragePage() {
         </OsPanel>
       </div>
 
-      <OsPanel title="Capability Matrix" eyebrow="Every manual seller task from the automation vision">
+      <OsPanel title="Capability Matrix" eyebrow="Every manual seller task from the future capability vision">
         <div className="os-table-wrap os-capability-table">
           <table className="os-table">
             <thead>

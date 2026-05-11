@@ -256,7 +256,7 @@ export interface SavingsEvent {
   actualSaving?: number;
   formulaNote?: string;
   confidence?: number | "high" | "medium" | "low";
-  status?: "estimated" | "verified" | "rejected" | "adjusted";
+  status?: "pending" | "estimated" | "verified" | "rejected" | "adjusted";
   note?: string;
   calculation: Record<string, unknown>;
   createdAt: string;

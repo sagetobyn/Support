@@ -111,7 +111,10 @@ describe("premium profit recovery dashboard", () => {
     expect(boundary.active.map((module) => module.id)).toEqual(["revenue-leakage-control"]);
     expect(boundary.locked.map((module) => module.id)).toEqual(expect.arrayContaining(["profit-control-tower", "settlement-recovery", "ai-operations-agent"]));
     expect(boundary.proofGates).toHaveLength(5);
+    expect(boundary.boundaryRule).toContain("inventory");
     expect(boundary.boundaryRule).toContain("current wedge");
+    expect(boundary.locked.every((module) => module.decisionOutput.startsWith("Locked future candidate"))).toBe(true);
+    expect(boundary.locked.every((module) => module.unlockAfter.startsWith("LOCKED"))).toBe(true);
     expect(boundary.locked.every((module) => module.unlockAfter && module.status === "future_locked")).toBe(true);
   });
 });
