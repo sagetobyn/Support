@@ -1,9 +1,9 @@
 import Link from "next/link";
 import type { ReactNode } from "react";
-import { isLoginBypassEnabledForTesting } from "@/lib/auth/testing-bypass";
+import { isPublicLoginBypassEnabledForTesting } from "@/lib/auth/testing-bypass";
 
 export function MarketingHeader({ variant = "light" }: { variant?: "light" | "dark" }) {
-  const isLoginBypassed = isLoginBypassEnabledForTesting();
+  const isLoginBypassed = isPublicLoginBypassEnabledForTesting();
 
   return (
     <header className={`saas-header ${variant === "dark" ? "saas-header--dark" : ""}`}>

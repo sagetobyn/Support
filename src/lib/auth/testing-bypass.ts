@@ -10,3 +10,7 @@ export function isLoginBypassEnabledForTesting() {
     isTruthy(process.env.NEXT_PUBLIC_BYPASS_LOGIN_FOR_TESTING)
   )
 }
+
+export function isPublicLoginBypassEnabledForTesting() {
+  return isTruthy(process.env.NEXT_PUBLIC_BYPASS_LOGIN_FOR_TESTING)
+}
