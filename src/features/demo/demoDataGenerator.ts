@@ -52,7 +52,6 @@ const pincodeDirectory = [
 ];
 
 const names = ["Aarav Sharma", "Diya Verma", "Kabir Khan", "Ananya Iyer", "Riya Patel", "Vivaan Rao", "Meera Singh", "Ishaan Gupta", "Sara Ali", "Nisha Nair"];
-const couriers = ["Shiprocket", "Delhivery", "Xpressbees", "Bluedart", "DTDC", "Ekart", "Shadowfax"];
 const ndrReasons = ["Customer not available", "Incorrect address", "No response on phone", "Door locked", "Customer refused delivery", "Cash not ready", "Customer requested future delivery"];
 
 export const demoProfiles: Record<DemoProfileId, DemoBusinessProfile> = {

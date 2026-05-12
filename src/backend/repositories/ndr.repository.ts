@@ -1,5 +1,4 @@
 import prisma from '@/lib/db/prisma'
-import { Prisma } from '@prisma/client'
 
 export class NDRCaseRepository {
   /**

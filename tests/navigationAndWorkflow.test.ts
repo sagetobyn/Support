@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { existsSync } from "node:fs";
+import { existsSync, readFileSync } from "node:fs";
 import type { Order, SavingsEvent } from "@/types/domain";
 import { buildActionGroups } from "@/lib/actionGroups";
 import { estimatedRecoverableLeakage } from "@/lib/profitRecovery";
@@ -83,5 +83,27 @@ describe("Navigation and workflow smoke coverage", () => {
   it("shows low-sample report warnings", () => {
     const report = generateAuditReport(seedOrders.slice(0, 8) as Order[], defaultBrand);
     expect(report.lowSampleSize).toBe(true);
+    expect(report.executiveSummary.topLeak.description).toContain("Top leak");
+    expect(report.executiveSummary.rankedActions[0].rank).toBe(1);
+    expect(report.executiveSummary.limitations.join(" ")).toContain("Weak data caveat");
+  });
+
+  it("documents anonymized audit CSV field coverage from the upload flow", () => {
+    expect(existsSync("docs/SAMPLE_CSV_FIELD_COVERAGE.md")).toBe(true);
+    expect(existsSync("sample-data/anonymized-audit-field-coverage-sample.csv")).toBe(true);
+
+    const doc = readFileSync("docs/SAMPLE_CSV_FIELD_COVERAGE.md", "utf8");
+    const sample = readFileSync("sample-data/anonymized-audit-field-coverage-sample.csv", "utf8");
+    const auditPage = readFileSync("src/app/audit/page.tsx", "utf8");
+
+    expect(doc).toContain("which anonymized CSV fields unlock which Wembro profit-audit insights");
+    expect(doc).toContain("`pincode`");
+    expect(doc).toContain("`courier`");
+    expect(doc).toContain("`ndr_reason`");
+    expect(doc).toContain("Do not share real customer-level data");
+    expect(sample).toContain("order_id,pincode,payment_mode,order_value,courier,shipment_status,ndr_reason,final_status");
+    expect(sample).not.toMatch(/phone|email|address|customer_name/i);
+    expect(auditPage).toContain("SAMPLE_CSV_FIELD_COVERAGE_DOC_PATH");
+    expect(auditPage).toContain("csv-field-coverage");
   });
 });

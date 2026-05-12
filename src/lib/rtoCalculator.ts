@@ -5,6 +5,7 @@ import {
   defaultCalculatorInputs,
   type CalculatorInputs
 } from "@/lib/calculator";
+import { calculateRtoLossPerOrder, calculateSavingsAtReduction } from "@/features/calculator";
 
 export interface RtoCalculatorInputs {
   monthlyOrders: number;
@@ -85,11 +86,11 @@ function toCalculatorInputs(input: RtoCalculatorInputs): CalculatorInputs {
 }
 
 export function rtoLossPerOrder(input: Pick<RtoCalculatorInputs, "forwardShippingCost" | "returnShippingCost" | "packagingCost" | "estimatedCac" | "codFee"> & { supportOpsCost?: number }) {
-  return input.forwardShippingCost + input.returnShippingCost + input.packagingCost + input.estimatedCac + input.codFee + (input.supportOpsCost || 0);
+  return calculateRtoLossPerOrder(input);
 }
 
 export function savingsForReduction(monthlyLeakage: number, reductionPercentage: number) {
-  return monthlyLeakage * (reductionPercentage / 100);
+  return calculateSavingsAtReduction(monthlyLeakage, reductionPercentage);
 }
 
 export function netBenefit(savings: number, pilotSoftwareCost: number) {

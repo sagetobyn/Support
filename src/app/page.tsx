@@ -74,24 +74,24 @@ export default function HomePage() {
         <div className="hero-signal-grid" aria-hidden />
         <div className="hero-orbit" aria-hidden />
         <div className="saas-hero__content">
-          <span className="eyebrow">AI Operations OS for ecommerce sellers</span>
+          <span className="eyebrow">Post-checkout profit recovery for Indian D2C</span>
           <h1>
-            Connect your business.
-            <span> Let Wembro run the non-physical work.</span>
+            Find the COD, RTO, and NDR leakage eating post-checkout profit.
           </h1>
-          <p>Wembro is being rebuilt around the real operating loop: detect leakage, decide the next action, create execution work, record proof, and learn from outcomes across every seller workflow.</p>
+          <p>Start CSV-first. Use summary numbers or recent order, shipment, and NDR exports to see where failed COD deliveries, weak addresses, courier/pincode issues, and slow NDR action are costing money.</p>
           <div className="saas-actions">
-            <Link className="button" href="/onboarding">Connect business</Link>
-            <Link className="button secondary play-cta" href="/automation-coverage">See automation truth <span aria-hidden /></Link>
+            <Link className="button" href="/calculator">Run Free Leakage Check</Link>
+            <Link className="button secondary" href="/sample-report">View Sample Report</Link>
+            <Link className="button secondary" href="/audit">Start Audit</Link>
           </div>
           <div className="hero-trust-row" aria-label="Trust indicators">
             <div className="avatar-stack" aria-hidden>
-              <span>A</span><span>N</span><span>R</span><span>S</span><strong>+28</strong>
+              <span>C</span><span>R</span><span>N</span><span>D</span><strong>CSV</strong>
             </div>
-            <p>Dashboard visibility is only the control room. Every capability now shows whether it is missing, mock, local automation, AI decision, or execution-ready.</p>
+            <p>Current promise: leakage check, sample report, audit, and a manual/mock-assisted recovery workflow. Future AI Operations OS comes only after proof gates and real provider integrations.</p>
           </div>
           <div className="segment-row" aria-label="Seller segments">
-            <small>Trusted by</small>
+            <small>Built for</small>
             {sellerSegments.map((segment) => <span key={segment}>{segment}</span>)}
           </div>
         </div>
@@ -151,8 +151,8 @@ export default function HomePage() {
 
       <section className="saas-section feature-command">
         <div className="saas-section-heading center">
-          <span className="eyebrow">AI Operations OS modules</span>
-          <h2>Detect, decide, act, and learn across the seller business.</h2>
+          <span className="eyebrow">Revenue Leakage Control modules</span>
+          <h2>Measure leakage, prioritize rescue work, and record savings proof.</h2>
         </div>
         <div className="feature-grid">
           {featureCards.map((feature) => (
@@ -163,7 +163,7 @@ export default function HomePage() {
               <ul>
                 {feature.bullets.map((item) => <li key={item}>{item}</li>)}
               </ul>
-              <Link href="/automation-coverage">Explore automation status →</Link>
+              <Link href="/sample-report">View sample report -&gt;</Link>
             </article>
           ))}
         </div>
@@ -287,12 +287,12 @@ export default function HomePage() {
         <span className="cta-shield" aria-hidden>W</span>
         <div>
           <span className="eyebrow">Ready to see your real loss?</span>
-          <h2>Start by connecting the business. Wembro shows what it can automate and what is still manual.</h2>
-          <p>Five-minute setup, then an exception-first operating room: approvals, failures, proof, and uncovered manual work.</p>
+          <h2>Start with a free leakage check before sharing customer data.</h2>
+          <p>Use summary numbers first, then inspect a sample report or start a privacy-safe audit when the leak is worth investigating.</p>
         </div>
         <div className="saas-actions">
-          <Link className="button secondary" href="/automation-coverage">See coverage</Link>
-          <Link className="button" href="/onboarding">Connect business</Link>
+          <Link className="button secondary" href="/sample-report">View Sample Report</Link>
+          <Link className="button" href="/calculator">Run Free Leakage Check</Link>
         </div>
       </section>
     </MarketingPage>
@@ -301,10 +301,10 @@ export default function HomePage() {
 
 function HeroDashboardMock() {
   const drivers = [
-    { label: "Risky cash orders", value: "₹4.5L", width: 84 },
-    { label: "Fake / invalid orders", value: "₹3.2L", width: 62 },
-    { label: "Wrong address / pincode", value: "₹2.1L", width: 45 },
-    { label: "Customer unreachable", value: "₹1.7L", width: 36 }
+    { label: "RTO return loss", value: "₹4.5L", width: 84 },
+    { label: "Risky COD orders", value: "₹3.2L", width: 62 },
+    { label: "NDR rescue window", value: "₹2.1L", width: 45 },
+    { label: "Weak address / pincode", value: "₹1.7L", width: 36 }
   ];
 
   return (
@@ -316,21 +316,21 @@ function HeroDashboardMock() {
           {["Daily Briefing", "Priority Queue", "Leakage Map", "NDR Rescue", "Savings Ledger"].map((item, index) => (
             <span className={index === 0 ? "active" : ""} key={item}>{item}</span>
           ))}
-          <small>Updated 5m ago</small>
+          <small>CSV sample view</small>
         </aside>
         <main>
           <div className="mock-topbar">
             <div>
-              <span>Daily Briefing</span>
-              <strong>Good morning. Here's where to recover today.</strong>
+              <span>Post-checkout leakage briefing</span>
+              <strong>Good morning. Here is what to recover today.</strong>
             </div>
             <em>Data quality 96/100</em>
           </div>
           <div className="mock-kpi-grid">
             <div className="mock-kpi main-kpi">
-              <span>Money you can save this month</span>
+              <span>Estimated recoverable leakage</span>
               <strong>₹14,27,500</strong>
-              <small>+12.6% vs last 30 days</small>
+              <small>Formula-based estimate</small>
             </div>
             <div className="mock-kpi">
               <span>Critical actions</span>
@@ -338,9 +338,9 @@ function HeroDashboardMock() {
               <small>Needs attention</small>
             </div>
             <div className="mock-kpi">
-              <span>Rescues near deadline</span>
+              <span>NDR rescues near deadline</span>
               <strong>4</strong>
-              <small>Act within 2h</small>
+              <small>Manual action due</small>
             </div>
           </div>
           <div className="mock-chart-row">
@@ -364,7 +364,7 @@ function HeroDashboardMock() {
             </div>
           </div>
           <div className="mock-actions">
-            {["Open queue", "Run analysis", "Review rescues", "Message team"].map((action) => <button key={action}>{action}</button>)}
+            {["Open queue", "Review NDRs", "Check COD risk", "Log savings"].map((action) => <button key={action}>{action}</button>)}
           </div>
         </main>
       </div>
@@ -387,9 +387,9 @@ function HomeRoiEstimator() {
   return (
     <section className="roi-preview" aria-label="Profit recovery savings preview">
       <div>
-        <span className="eyebrow">Real impact. Real numbers.</span>
-        <h2>How much could you save?</h2>
-        <p>Move the sliders. We'll show you the size of the leak — using transparent assumptions you can audit.</p>
+        <span className="eyebrow">Estimate before upload</span>
+        <h2>Size the COD/RTO/NDR leak first.</h2>
+        <p>Move the numbers to estimate the leak. This is a transparent scenario, not a savings guarantee.</p>
         <div className="roi-input-grid">
           <label>
             <span>Orders / month</span>
@@ -411,19 +411,19 @@ function HomeRoiEstimator() {
       </div>
       <div className="roi-output-grid">
         <div>
-          <span>Could save in a year</span>
+          <span>Scenario recovery target</span>
           <strong>{formatInr(potentialAnnualSavings)}</strong>
         </div>
         <div>
-          <span>Monthly return loss</span>
+          <span>Monthly RTO loss estimate</span>
           <strong>{formatInr(monthlyLeakage)}</strong>
         </div>
         <div>
-          <span>Failed-delivery savings</span>
+          <span>NDR loss at risk</span>
           <strong>{formatInr(ndrLeakage)}</strong>
         </div>
         <div>
-          <span>Estimated return</span>
+          <span>Scenario multiple</span>
           <strong>{roi.toFixed(1)}x</strong>
         </div>
       </div>

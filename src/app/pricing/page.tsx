@@ -1,4 +1,5 @@
 import Link from "next/link";
+import Image from "next/image";
 import { MarketingPage } from "@/components/marketing/MarketingChrome";
 import { serviceLedOffers } from "@/features/marketing";
 import { planConfigs, type PlanId } from "@/features/plans";
@@ -23,7 +24,14 @@ export default function PricingPage() {
   return (
     <MarketingPage>
       <section className="pricing-hero">
-        <img className="product-hero__bg" src="/media/dashboard-control-room.png" alt="Wembro dashboard interface" />
+        <Image
+          className="product-hero__bg"
+          src="/media/dashboard-control-room.png"
+          alt="Wembro dashboard interface"
+          fill
+          priority
+          sizes="100vw"
+        />
         <div className="pricing-hero__content">
           <span className="eyebrow">Pricing</span>
           <h1>Start service-led. Stay only when the recovery is real.</h1>

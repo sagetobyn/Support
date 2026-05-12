@@ -1,4 +1,4 @@
-export type MarketingRoute = "/" | "/product" | "/pricing" | "/calculator" | "/audit" | "/pilot" | "/dashboard" | "/personas/founder" | "/personas/operations" | "/personas/growth-lead";
+export type MarketingRoute = "/" | "/product" | "/pricing" | "/calculator" | "/audit" | "/pilot" | "/sample-report" | "/dashboard" | "/personas/founder" | "/personas/operations" | "/personas/growth-lead";
 
 export interface ServiceModule {
   id: string;
@@ -153,7 +153,7 @@ export const serviceLedOffers: ServiceLedOffer[] = [
     buyerPromise: "Find out if failed COD deliveries are a real profit leak before sharing customer data.",
     teamDoes: "We use the calculator, sample report, and summary numbers to size the monthly loss.",
     proofArtifact: "Two-minute leakage estimate and privacy-safe next step.",
-    ctaLabel: "Run free check",
+    ctaLabel: "Run Free Leakage Check",
     route: "/calculator"
   },
   {
@@ -164,7 +164,7 @@ export const serviceLedOffers: ServiceLedOffer[] = [
     buyerPromise: "See the exact couriers, pincodes, products, and COD patterns causing the leak.",
     teamDoes: "We review summary or anonymized CSV data and turn it into a ranked recovery plan.",
     proofArtifact: "Written audit with top leakage drivers and pilot recommendation.",
-    ctaLabel: "Start audit",
+    ctaLabel: "Start Audit",
     route: "/audit"
   },
   {
@@ -196,7 +196,7 @@ export const serviceLedOffers: ServiceLedOffer[] = [
     priceLabel: "Pilot to Growth",
     buyerPromise: "Use software for prioritization and proof while operators handle the human rescue work.",
     teamDoes: "We keep the work queue, mock/manual messaging, response capture, and savings proof in one operating loop.",
-    proofArtifact: "Auditable workflow from order risk to verified savings.",
+    proofArtifact: "Auditable workflow from order risk to estimated or seller-verified savings.",
     ctaLabel: "Preview workflow",
     route: "/dashboard"
   }
@@ -240,8 +240,8 @@ export const benefitCards: BenefitCard[] = [
   },
   {
     title: "More profit kept",
-    description: "Stop bleeding margin to shipping both ways. Every saved order shows up on your ledger.",
-    metric: "Verified savings",
+    description: "Stop bleeding margin to shipping both ways. Every protected order shows estimate and verification status.",
+    metric: "Estimated / verified ledger",
     accent: "copper"
   },
   {
@@ -256,13 +256,13 @@ export const featureCards: FeatureCard[] = [
   {
     title: "Daily Briefing",
     description: "Open the app and see today's leakage, urgent rescues, risky orders, and the next action — in one screen.",
-    bullets: ["Today's headline number", "Next best action", "Quick KPI scorecard"],
+    bullets: ["COD/RTO/NDR headline number", "Next manual action", "Transparent KPI scorecard"],
     accent: "green"
   },
   {
     title: "Priority Work Queue",
     description: "Tasks ranked by what they save, not by what came in last. Highest-impact orders are first.",
-    bullets: ["Critical and high actions on top", "Smart prioritization", "One-click outcomes"],
+    bullets: ["Critical and high actions on top", "Rule-based priority", "Human-owned outcomes"],
     accent: "gold"
   },
   {
@@ -274,13 +274,13 @@ export const featureCards: FeatureCard[] = [
   {
     title: "NDR Rescue",
     description: "Catch failed deliveries during the rescue window — before they convert to returns.",
-    bullets: ["Live rescue tracker", "SLA breach alerts", "Reason-specific playbooks"],
+    bullets: ["Manual rescue tracker", "SLA warning labels", "Reason-specific playbooks"],
     accent: "blue"
   },
   {
     title: "Savings Ledger",
-    description: "An honest ledger that separates estimates from what you've actually saved. No marketing math.",
-    bullets: ["Daily savings tracker", "Per-team performance", "Audit-ready exports"],
+    description: "An honest ledger that separates estimates from what the seller marks as actually saved. No marketing math.",
+    bullets: ["Daily savings tracker", "Estimated vs verified state", "Audit-ready exports"],
     accent: "teal"
   }
 ];

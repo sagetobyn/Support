@@ -25,6 +25,7 @@ export default [
   {
     rules: {
       "@typescript-eslint/no-namespace": "off",
+      "@typescript-eslint/no-unused-vars": ["warn", { argsIgnorePattern: "^_", varsIgnorePattern: "^_", caughtErrorsIgnorePattern: "^_" }],
       "@typescript-eslint/no-unsafe-function-type": "off",
       "react/no-unescaped-entities": "off",
     },

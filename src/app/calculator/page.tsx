@@ -14,6 +14,8 @@ import {
 } from "@/lib/calculator";
 import { saveCalculatorLead, type CalculatorLead } from "@/lib/leadStore";
 import { formatCurrency, formatNumber, formatPercent } from "@/lib/reporting";
+import { CALCULATOR_FORMULA_REGISTRY, calculatorFormulaList, calculateRtoLeakageEstimate } from "@/features/calculator";
+import { buildCalculatorPreSalesProofSnippet, qualifyCalculatorLead, type LeadQualificationResult } from "@/features/leads";
 
 const advancedFields: Array<{ key: keyof CalculatorInputs; label: string; suffix?: string; optional?: boolean }> = [
   { key: "averageOrderValue", label: "Average order value (₹)" },
@@ -48,16 +50,11 @@ function blankLead(inputs: CalculatorInputs): Omit<CalculatorLead, "id" | "creat
 function quickEstimate(monthlyOrders: number, codPercentage: number, overallRtoPercentage: number) {
   const defaults = defaultCalculatorInputs;
   const codOrders = Math.round(monthlyOrders * (codPercentage / 100));
-  const totalRtoOrders = Math.round(monthlyOrders * (overallRtoPercentage / 100));
-  const rtoLossPerOrder =
-    (defaults.forwardShippingCost || 0) +
-    (defaults.returnShippingCost || 0) +
-    (defaults.packagingCost || 0) +
-    (defaults.estimatedCac || 0) +
-    (defaults.codFee || 0) +
-    (defaults.supportOpsCost || 0);
-  const monthlyLeakage = totalRtoOrders * rtoLossPerOrder;
-  const dailyLeakage = monthlyLeakage / 30;
+  const leakage = calculateRtoLeakageEstimate({ ...defaults, monthlyOrders, overallRtoPercentage });
+  const totalRtoOrders = Math.round(leakage.totalRtoOrders);
+  const rtoLossPerOrder = leakage.rtoLossPerOrder;
+  const monthlyLeakage = leakage.monthlyRtoLeakage;
+  const dailyLeakage = leakage.dailyRtoLeakage;
   const codDrivenRtoOrders = Math.round(totalRtoOrders * 0.85);
   const codDrivenLeakage = codDrivenRtoOrders * rtoLossPerOrder;
   return { codOrders, totalRtoOrders, rtoLossPerOrder, monthlyLeakage, dailyLeakage, codDrivenRtoOrders, codDrivenLeakage };
@@ -73,6 +70,7 @@ export default function CalculatorPage() {
   const [inputs, setInputs] = useState<CalculatorInputs>(defaultCalculatorInputs);
   const [lead, setLead] = useState<Omit<CalculatorLead, "id" | "createdAt">>(() => blankLead(defaultCalculatorInputs));
   const [message, setMessage] = useState("");
+  const [proofMessage, setProofMessage] = useState("");
   const [showAdvanced, setShowAdvanced] = useState(false);
   const outputs = useMemo(() => calculateCalculatorOutputs(inputs), [inputs]);
 
@@ -82,6 +80,31 @@ export default function CalculatorPage() {
   );
   const benchmark = benchmarkLabel(inputs.overallRtoPercentage || 0);
   const acquisitionsWasted = Math.round(quick.monthlyLeakage / (inputs.estimatedCac || 1));
+  const qualification = useMemo(
+    () =>
+      qualifyCalculatorLead({
+        monthlyOrders: inputs.monthlyOrders || 0,
+        codPercentage: inputs.codPercentage || 0,
+        rtoPercentage: inputs.overallRtoPercentage || 0,
+        monthlyLeakage: outputs.monthlyRtoLeakage,
+        category: inputs.category
+      }),
+    [inputs.monthlyOrders, inputs.codPercentage, inputs.overallRtoPercentage, inputs.category, outputs.monthlyRtoLeakage]
+  );
+  const proofSnippet = useMemo(
+    () =>
+      buildCalculatorPreSalesProofSnippet({
+        brandName: lead.brandName,
+        monthlyOrders: inputs.monthlyOrders || 0,
+        codPercentage: inputs.codPercentage || 0,
+        rtoPercentage: inputs.overallRtoPercentage || 0,
+        monthlyLeakage: outputs.monthlyRtoLeakage,
+        rtoLossPerOrder: outputs.rtoLossPerOrder,
+        formulaBasis: CALCULATOR_FORMULA_REGISTRY.rtoLossPerOrder.formula,
+        nextStep: qualification.nextStep
+      }),
+    [lead.brandName, inputs.monthlyOrders, inputs.codPercentage, inputs.overallRtoPercentage, outputs.monthlyRtoLeakage, outputs.rtoLossPerOrder, qualification.nextStep]
+  );
 
   useEffect(() => {
     setLead((current) => ({
@@ -123,20 +146,51 @@ export default function CalculatorPage() {
       setMessage(error);
       return;
     }
-    saveCalculatorLead(lead, window.localStorage);
-    setMessage("Thanks. We've saved your summary. Next step: get the privacy-safe written audit.");
+    saveCalculatorLead({
+      ...lead,
+      assumptions: {
+        monthlyLeakage: outputs.monthlyRtoLeakage,
+        dailyLeakage: outputs.dailyRtoLeakage,
+        rtoLossPerOrder: outputs.rtoLossPerOrder,
+        savingAt10: outputs.saving10,
+        savingAt20: outputs.saving20,
+        savingAt30: outputs.saving30,
+        pilotSoftwareCost: inputs.pilotSoftwareCost || 0,
+        targetRtoReductionPercentage: inputs.targetRtoReductionPercentage || 0,
+        grossMarginPercentage: inputs.grossMarginPercentage || 0,
+        forwardShippingCost: inputs.forwardShippingCost || 0,
+        returnShippingCost: inputs.returnShippingCost || 0,
+        packagingCost: inputs.packagingCost || 0,
+        estimatedCac: inputs.estimatedCac || 0,
+        codFee: inputs.codFee || 0,
+        supportOpsCost: inputs.supportOpsCost || 0,
+        formulaBasis: CALCULATOR_FORMULA_REGISTRY.rtoLossPerOrder.formula
+      },
+      qualification: {
+        stage: qualification.stage,
+        score: qualification.score,
+        title: qualification.title,
+        nextStep: qualification.nextStep
+      }
+    }, window.localStorage);
+    setMessage(`Thanks. We've saved your summary. Next step: ${qualification.nextStep}`);
+  }
+
+  async function copyProofSnippet() {
+    await navigator.clipboard.writeText(proofSnippet);
+    setProofMessage("Founder-safe snippet copied. It contains estimates and assumptions only.");
   }
 
   return (
     <MarketingPage tone="dark">
       <section className="calc-hero">
         <div className="calc-hero__content">
-          <span className="eyebrow">Free · No customer data needed</span>
+          <span className="eyebrow">Leakage check · No customer data needed</span>
           <h1>How much money are returns and failed deliveries costing you?</h1>
           <p>Type in three numbers from your store. We'll show you the loss, the benchmark, and what a 20% reduction looks like.</p>
           <div className="saas-actions">
-            <a className="button" href="#calculator">Calculate my loss</a>
-            <Link className="button secondary" href="/sample-report">See a sample report</Link>
+            <a className="button" href="#calculator">Run leakage check</a>
+            <Link className="button secondary" href="/sample-report">See sample profit audit</Link>
           </div>
         </div>
         <aside className="calc-hero__stat">
@@ -242,6 +296,8 @@ export default function CalculatorPage() {
             <span>Benchmark for fashion D2C your size: 12–15% return rate. You are in the <b>{benchmark.label}</b> zone.</span>
           </div>
 
+          <QualificationPanel result={qualification} />
+
           <ul className="calc-results">
             <Result label="Cash orders / month" value={formatNumber(quick.codOrders)} />
             <Result label="Returned orders / month" value={formatNumber(quick.totalRtoOrders)} />
@@ -252,6 +308,29 @@ export default function CalculatorPage() {
           <div className="calc-insight">
             <strong>What this money could buy</strong>
             <span>That's roughly <b>{acquisitionsWasted}</b> wasted customer acquisitions every month — money you could redirect to growth.</span>
+          </div>
+
+          <div className="calc-insight">
+            <strong>Formula assumptions</strong>
+            <ul className="calc-formula-list">
+              {calculatorFormulaList.map((formula) => (
+                <li key={formula.id}>
+                  <span>{formula.label}</span>
+                  <small>{formula.formula}</small>
+                </li>
+              ))}
+            </ul>
+            <span>These are estimates until your CSV audit or pilot outcomes prove the actual savings.</span>
+          </div>
+
+          <div className="calc-insight">
+            <strong>Founder-safe proof snippet</strong>
+            <span>Copy this for manual follow-up. It is estimate-labeled and excludes customer-level data.</span>
+            <textarea aria-label="Founder-safe calculator proof snippet" className="input" readOnly rows={8} value={proofSnippet} />
+            <div className="toolbar tight">
+              <button className="button secondary" type="button" onClick={copyProofSnippet}>Copy snippet</button>
+            </div>
+            {proofMessage ? <span className="calc-success">{proofMessage}</span> : null}
           </div>
 
           {showAdvanced && (
@@ -289,11 +368,11 @@ export default function CalculatorPage() {
         </ExplainerBlock>
         <ExplainerBlock title="What to do next" tone="violet">
           <ol>
-            <li>Run this free check.</li>
+            <li>Run the leakage check.</li>
             <li>Share only summary numbers — no customer data.</li>
-            <li>Get a written audit.</li>
-            <li>Optionally upload anonymized data.</li>
-            <li>Run a 14-day pilot.</li>
+            <li>Move to a profit audit if leakage is material.</li>
+            <li>Upload anonymized CSV only when driver ranking is needed.</li>
+            <li>Run a rescue pilot only when the profit audit shows an action queue.</li>
           </ol>
         </ExplainerBlock>
       </section>
@@ -301,9 +380,9 @@ export default function CalculatorPage() {
       <section className="calc-lead" id="lead">
         <form className="calc-lead__form" onSubmit={submitLead}>
           <header>
-            <span className="eyebrow">Want a written audit?</span>
-            <h2>Get a privacy-safe profit audit</h2>
-            <p>You don't need to upload customer names, phones, or addresses. Summary numbers are enough.</p>
+            <span className="eyebrow">Recommended next step</span>
+            <h2>{qualification.title}</h2>
+            <p>{qualification.nextStep} You still do not need to upload customer names, phones, or addresses.</p>
           </header>
 
           <div className="calc-grid">
@@ -333,20 +412,45 @@ export default function CalculatorPage() {
             <input type="checkbox" checked={lead.consent} onChange={(event) => setLead((current) => ({ ...current, consent: event.target.checked }))} />
             <span>I understand this is an estimate and I'm not uploading any customer data.</span>
           </label>
+          <p className="calc-consent-note">Saved locally as a summary lead: assumptions, consent flag, timestamp, and recommended next step only.</p>
 
-          <button className="button" type="submit">Start my audit</button>
+          <button className="button" type="submit">{qualification.leadCtaLabel}</button>
           {message && (
             <p className={message.startsWith("Thanks") ? "calc-success" : "calc-error"}>{message}</p>
           )}
           {message.startsWith("Thanks") && (
             <div className="saas-actions">
-              <Link className="button secondary" href="/sample-report">View sample report</Link>
-              <Link className="button" href="/audit">Open audit flow</Link>
+              <Link className="button secondary" href={qualification.secondaryCtaHref}>{qualification.secondaryCtaLabel}</Link>
+              <Link className="button" href={qualification.primaryCtaHref}>{qualification.primaryCtaLabel}</Link>
             </div>
           )}
         </form>
       </section>
     </MarketingPage>
+  );
+}
+
+function QualificationPanel({ result }: { result: LeadQualificationResult }) {
+  return (
+    <div className={`calc-qualification calc-qualification--${result.stage}`}>
+      <div className="calc-qualification__head">
+        <span>{result.title}</span>
+        <strong>{result.score}/100</strong>
+      </div>
+      <p>{result.summary}</p>
+      <ul>
+        {result.reasons.slice(0, 3).map((reason) => (
+          <li key={reason}>{reason}</li>
+        ))}
+      </ul>
+      <div className="calc-qualification__next">
+        <span>{result.nextStep}</span>
+        <div className="saas-actions">
+          <Link className="button secondary" href={result.secondaryCtaHref}>{result.secondaryCtaLabel}</Link>
+          <Link className="button" href={result.primaryCtaHref}>{result.primaryCtaLabel}</Link>
+        </div>
+      </div>
+    </div>
   );
 }
 

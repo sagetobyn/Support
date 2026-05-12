@@ -14,6 +14,8 @@ export interface PilotDayMetrics {
   ndrsRescued: number;
   ordersCancelledBeforeShipping: number;
   estimatedSavings: number;
+  proofNote: string;
+  blocker: string;
   notes: string;
 }
 
@@ -21,6 +23,15 @@ export interface PilotChecklistItem {
   id: string;
   label: string;
   complete: boolean;
+}
+
+export interface PilotOwnerDiscipline {
+  ownerRole: string;
+  ownerName?: string;
+  morningWindow: string;
+  afternoonWindow: string;
+  eveningWindow: string;
+  escalationChannel: string;
 }
 
 export interface PilotPlan {
@@ -38,6 +49,7 @@ export interface PilotPlan {
     rtoLossPerOrder: number;
     monthlyLeakage: number;
   };
+  ownerDiscipline?: PilotOwnerDiscipline;
   selectedActionRules: string[];
   checklist: PilotChecklistItem[];
   days: PilotDayMetrics[];
@@ -101,6 +113,8 @@ export function emptyPilotDay(day: number): PilotDayMetrics {
     ndrsRescued: 0,
     ordersCancelledBeforeShipping: 0,
     estimatedSavings: 0,
+    proofNote: "",
+    blocker: "",
     notes: ""
   };
 }

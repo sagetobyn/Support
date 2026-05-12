@@ -1,3 +1,12 @@
+import {
+  calculateRoiMultiple,
+  calculateRtoLeakageEstimate,
+  calculateSavingsPlan,
+  cleanNumber,
+  cleanPercent,
+  roundTo
+} from "@/features/calculator";
+
 export const sellerCategories = [
   "Fashion",
   "Footwear",
@@ -90,45 +99,8 @@ export const defaultCalculatorInputs: CalculatorInputs = {
   shippingPlatform: "Shiprocket"
 };
 
-function clamp(value: number, min: number, max: number) {
-  return Math.min(max, Math.max(min, value));
-}
-
-function cleanPercent(value: number) {
-  if (!Number.isFinite(value)) return 0;
-  return clamp(value, 0, 100);
-}
-
-function cleanNumber(value: number) {
-  return Number.isFinite(value) ? Math.max(0, value) : 0;
-}
-
-function roundTo(value: number, decimals: number) {
-  const factor = 10 ** decimals;
-  return Math.round(value * factor) / factor;
-}
-
 export function calculateRtoLeakage(input: Pick<CalculatorInputs, "forwardShippingCost" | "returnShippingCost" | "packagingCost" | "estimatedCac" | "codFee" | "supportOpsCost" | "averageOrderValue" | "grossMarginPercentage" | "monthlyOrders" | "overallRtoPercentage">) {
-  const monthlyOrders = cleanNumber(input.monthlyOrders);
-  const overallRtoPercentage = cleanPercent(input.overallRtoPercentage);
-  const rtoLossPerOrder =
-    cleanNumber(input.forwardShippingCost) +
-    cleanNumber(input.returnShippingCost) +
-    cleanNumber(input.packagingCost) +
-    cleanNumber(input.estimatedCac) +
-    cleanNumber(input.codFee) +
-    cleanNumber(input.supportOpsCost);
-  const totalRtoOrders = monthlyOrders * (overallRtoPercentage / 100);
-  const monthlyRtoLeakage = totalRtoOrders * rtoLossPerOrder;
-
-  return {
-    rtoLossPerOrder,
-    contributionMargin: cleanNumber(input.averageOrderValue) * (cleanPercent(input.grossMarginPercentage) / 100),
-    totalRtoOrders,
-    monthlyRtoLeakage,
-    dailyRtoLeakage: monthlyRtoLeakage / 30,
-    lossPer100Orders: monthlyOrders > 0 ? (monthlyRtoLeakage / monthlyOrders) * 100 : 0
-  };
+  return calculateRtoLeakageEstimate(input);
 }
 
 export function calculateCodDecomposition(input: Pick<CalculatorInputs, "monthlyOrders" | "codPercentage" | "overallRtoPercentage" | "codRtoPercentage">): CodDecomposition {
@@ -154,33 +126,22 @@ export function calculateCodDecomposition(input: Pick<CalculatorInputs, "monthly
     prepaidOrders,
     totalRtoOrders,
     codRtoOrders,
-    prepaidRtoPercentage: inferred === null ? null : roundTo(clamp(inferred, 0, 100), 3),
+    prepaidRtoPercentage: inferred === null ? null : roundTo(Math.min(100, Math.max(0, inferred)), 3),
     codRtoShareOfTotalRto: totalRtoOrders > 0 ? codRtoOrders / totalRtoOrders : null
   };
 }
 
 export function calculateSavingsOpportunity(monthlyRtoLeakage: number, targetRtoReductionPercentage: number, pilotSoftwareCost: number): SavingsOpportunity {
-  const leakage = cleanNumber(monthlyRtoLeakage);
-  const target = cleanPercent(targetRtoReductionPercentage);
-  const pilotCost = cleanNumber(pilotSoftwareCost);
-  const targetSaving = leakage * (target / 100);
-  const netBenefit = targetSaving - pilotCost;
+  const plan = calculateSavingsPlan(monthlyRtoLeakage, targetRtoReductionPercentage, pilotSoftwareCost);
 
   return {
-    saving10: leakage * 0.1,
-    saving20: leakage * 0.2,
-    saving30: leakage * 0.3,
-    targetSaving,
-    netBenefit,
-    roiMultiple: pilotCost > 0 ? targetSaving / pilotCost : null,
-    paybackStatus: netBenefit > 0 ? "Estimated positive payback" : "Needs higher volume, higher RTO, or lower pilot cost"
+    ...plan,
+    paybackStatus: plan.netBenefit > 0 ? "Estimated positive payback" : "Needs higher volume, higher RTO, or lower pilot cost"
   };
 }
 
 export function calculateRoi(targetSaving: number, pilotSoftwareCost: number) {
-  const pilotCost = cleanNumber(pilotSoftwareCost);
-  if (pilotCost <= 0) return null;
-  return cleanNumber(targetSaving) / pilotCost;
+  return calculateRoiMultiple(targetSaving, pilotSoftwareCost);
 }
 
 export function estimateExpectedProfit(params: {

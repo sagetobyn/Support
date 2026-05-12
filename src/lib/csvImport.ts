@@ -48,14 +48,14 @@ export const csvAliases: Record<string, string[]> = {
 const requiredFields = ["order_id"];
 const proMaxImportRows = 10000;
 
-function normalizeHeader(header: string) {
+export function normalizeCsvHeader(header: string) {
   return header.trim().toLowerCase().replace(/[_-]+/g, " ").replace(/\s+/g, " ");
 }
 
-function canonicalHeader(header: string) {
-  const normalized = normalizeHeader(header);
+export function canonicalCsvHeader(header: string) {
+  const normalized = normalizeCsvHeader(header);
   for (const [canonical, values] of Object.entries(csvAliases)) {
-    if (values.map(normalizeHeader).includes(normalized)) return canonical;
+    if (values.map(normalizeCsvHeader).includes(normalized)) return canonical;
   }
   return normalized.replace(/\s+/g, "_");
 }
@@ -100,7 +100,7 @@ export function parseCsvText(csv: string, manualMapping: Record<string, string> 
   const lines = csv.replace(/^\uFEFF/, "").split(/\r?\n/).filter((line) => line.trim().length);
   if (!lines.length) return { rows: [] as Array<Record<string, string>>, mapping: {} as Record<string, string> };
   const rawHeaders = parseCsvLine(lines[0]);
-  const headers = rawHeaders.map((header) => manualMapping[header] || canonicalHeader(header));
+  const headers = rawHeaders.map((header) => manualMapping[header] || canonicalCsvHeader(header));
   const mapping = Object.fromEntries(headers.map((header, index) => [header, rawHeaders[index]]));
   const rows = lines.slice(1).map((line) => {
     const values = parseCsvLine(line);

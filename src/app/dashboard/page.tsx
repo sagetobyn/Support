@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import { ordersApi, ndrApi, savingsApi, auditApi } from "@/lib/api/client";
+import { ordersApi, ndrApi, savingsApi } from "@/lib/api/client";
 import type { CSSProperties, ReactNode } from "react";
 import Link from "next/link";
 import { defaultBrand, seedOrders, seedSavingsEvents } from "@/data/seed";
@@ -276,10 +276,6 @@ const serviceProducts: Array<{
     view: "weekly"
   }
 ];
-
-const viewLabels = Object.fromEntries(
-  allNavGroups.flatMap((group) => group.links.filter((link) => link.id).map((link) => [link.id, link.label]))
-) as Record<View, string>;
 
 const templateTypes = Object.keys(templates) as TemplateType[];
 
@@ -1196,7 +1192,7 @@ export default function Home() {
 
         {view === "upload" && (
           <UploadView
-            upload={upload} handleCsvSelected={handleCsvSelected} runImport={runImport}
+            upload={upload} runImport={runImport}
             uploadQueue={uploadQueue} handleFilesSelected={handleFilesSelected} runBatchImport={runBatchImport}
             removeFromQueue={(filename) => setUploadQueue((q) => q.filter((f) => f.filename !== filename))}
             imports={imports} orders={orders} setView={setView}
@@ -1497,11 +1493,9 @@ function MorningBriefing({ orders, ndrCases, actionGroups, brand, savingsEvents,
     .filter((ndr) => (ndr.hoursSinceNdr || 0) >= 8 && !["delivered_after_ndr", "rto"].includes(ndr.state))
     .sort((a, b) => (b.hoursSinceNdr || 0) - (a.hoursSinceNdr || 0));
   const ndrBreachingSoon = urgentNdrs.filter((ndr) => (ndr.hoursSinceNdr || 0) >= 10).length;
-  const completedToday = orders.filter((order) => order.actionStatus === "done").length;
   const missionProgress = getMissionProgress(orders);
   const roi = calculateRoi(orders, savingsEvents, brand);
   const atlasDrivers = buildLeakageAtlas(orders, ndrCases, brand);
-  const topDriver = getTopLeakageDriver(atlasDrivers);
   const riskPriority: Record<string, number> = { Critical: 4, High: 3, Medium: 2, Low: 1 };
   const topActionRows = [...allActions]
     .sort((a, b) => {
@@ -2695,13 +2689,12 @@ function BrandView({ brand, updateBrand }: { brand: BrandSettings; updateBrand: 
 }
 
 function UploadView({
-  upload, handleCsvSelected, runImport,
+  upload, runImport,
   uploadQueue, handleFilesSelected, runBatchImport, removeFromQueue,
   imports, orders, ndrCases, savingsEvents, setView,
   exportOrdersCsv, exportOrdersJson, exportNdrCsv, exportSavingsCsv
 }: {
   upload: { filename: string; csv: string; analysis?: ReturnType<typeof analyzeCsvImport> };
-  handleCsvSelected: (file?: File) => void;
   runImport: () => void;
   uploadQueue: Array<{ filename: string; csv: string; analysis: ReturnType<typeof analyzeCsvImport> }>;
   handleFilesSelected: (files: FileList | null) => void;
@@ -3451,10 +3444,11 @@ function TemplatesView({ orders, ndrCases, brand, selectedOrder, setSelectedOrde
 }) {
   const [responseText, setResponseText] = useState("Confirm delivery");
   const deliveredNoAction = isDeliveredNoAction(selectedOrder);
+  const defaultTemplate = defaultTemplateForOrder(selectedOrder);
 
   useEffect(() => {
-    setTemplateType(defaultTemplateForOrder(selectedOrder));
-  }, [selectedOrder.id, setTemplateType]);
+    setTemplateType(defaultTemplate);
+  }, [defaultTemplate, selectedOrder.id, setTemplateType]);
 
   function exportOutbox() {
     const blob = new Blob([exportMessagesCsv(messages)], { type: "text/csv" });
@@ -3855,8 +3849,10 @@ function ProView({ view, brand, orders, stores, messages, savingsEvents, role, d
           <ReportPanel title={sop.title} key={sop.id}>
             <p>{sop.purpose}</p>
             <p className="muted">Owner: {sop.owner} · Metric: {sop.successMetric}</p>
+            {sop.docPath ? <p className="notice">Source doc: {sop.docPath}</p> : null}
             <div className="toolbar tight">
               <button className="button secondary" onClick={() => setView(sop.targetView)}>Open workflow</button>
+              {sop.routeHref ? <Link className="button secondary" href={sop.routeHref}>Open pilot SOP</Link> : null}
             </div>
             {sop.steps.map((step) => <div className="action-row" key={step}>{step}</div>)}
           </ReportPanel>

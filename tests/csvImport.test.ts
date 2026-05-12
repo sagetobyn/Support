@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { defaultBrand } from "@/data/seed";
 import { importOrdersFromCsv } from "@/lib/csvImport";
+import { validateAnonymizedAuditCsvSchema } from "@/features/imports";
 
 describe("CSVImportService", () => {
   it("parses, normalizes, validates, and scores CSV rows", () => {
@@ -60,5 +61,37 @@ T-12,1299,COD`;
     expect(summary.analysisReadiness?.find((item) => item.area === "RTO/NDR leakage")?.status).toBe("limited");
     expect(summary.analysisReadiness?.find((item) => item.area === "Pincode and courier analysis")?.status).toBe("blocked");
     expect(summary.analysisReadiness?.find((item) => item.area === "Margin-aware profit")?.status).toBe("blocked");
+  });
+
+  it("validates anonymized audit schema and blocks PII columns with cleanup instructions", () => {
+    const validation = validateAnonymizedAuditCsvSchema([
+      "order_id",
+      "pincode",
+      "payment_mode",
+      "order_value",
+      "courier",
+      "shipment_status",
+      "ndr_reason",
+      "final_status",
+      "customer_phone",
+      "shipping_address",
+      "buyer_name"
+    ]);
+
+    expect(validation.canGenerateAudit).toBe(false);
+    expect(validation.disallowedFields.map((field) => field.field)).toEqual(["phone", "full_address", "customer_name"]);
+    expect(validation.blockingIssues.join(" ")).toContain("Remove phone or whatsapp number column");
+    expect(validation.cleanupInstructions.join(" ")).toContain("customer_phone");
+    expect(validation.cleanupInstructions.join(" ")).toContain("Keep only pincode, city, and state");
+  });
+
+  it("reports missing anonymized audit fields as actionable blockers", () => {
+    const validation = validateAnonymizedAuditCsvSchema(["order_id", "pincode", "payment_mode"]);
+
+    expect(validation.canGenerateAudit).toBe(false);
+    expect(validation.missingRequiredFields).toEqual(["order_value", "courier", "shipment_status", "ndr_reason", "final_status"]);
+    expect(validation.cleanupInstructions).toContain("order_value: Add this required anonymized audit column.");
+    expect(validation.blockingIssues.join(" ")).toContain("Missing courier blocks courier-lane leakage ranking.");
+    expect(validation.warnings.join(" ")).toContain("Missing ndr_reason blocks NDR reason leakage ranking.");
   });
 });

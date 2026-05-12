@@ -1,4 +1,5 @@
 import Link from "next/link";
+import Image from "next/image";
 import { DashboardPreview } from "@/components/marketing/DashboardPreview";
 import { MarketingPage } from "@/components/marketing/MarketingChrome";
 import { recoverySteps, serviceModules } from "@/features/marketing";
@@ -7,7 +8,14 @@ export default function ProductPage() {
   return (
     <MarketingPage>
       <section className="product-hero">
-        <img className="product-hero__bg" src="/media/dashboard-control-room.png" alt="Wembro dashboard interface" />
+        <Image
+          className="product-hero__bg"
+          src="/media/dashboard-control-room.png"
+          alt="Wembro dashboard interface"
+          fill
+          priority
+          sizes="100vw"
+        />
         <div>
           <span className="eyebrow">Product</span>
           <h1>One workspace for everything that happens after checkout.</h1>

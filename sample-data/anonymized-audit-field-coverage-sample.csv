@@ -1,0 +1,5 @@
+order_id,pincode,payment_mode,order_value,courier,shipment_status,ndr_reason,final_status,order_date,sku,product_name,city,state,source_platform,campaign_name,attempt_count
+FIELD-001,560095,COD,1499,Delhivery,NDR,customer_unavailable,RTO,2026-04-02,TOP-RED-S,Cotton top,Bengaluru,Karnataka,Website,summer_cod_check,2
+FIELD-002,400053,Prepaid,999,Xpressbees,Delivered,none,Delivered,2026-04-03,TEE-BLK-M,Black tee,Mumbai,Maharashtra,Website,summer_cod_check,1
+FIELD-003,110092,COD,2199,Ecom Express,NDR,pincode_issue,RTO,2026-04-04,SHOE-BRN-8,Brown sandal,Delhi,Delhi,Marketplace,north_launch,3
+FIELD-004,700091,COD,1299,Shadowfax,In Transit,none,Unresolved,2026-04-05,KUR-BLU-M,Blue kurta,Kolkata,West Bengal,Website,east_cod_offer,1

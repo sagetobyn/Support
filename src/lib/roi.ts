@@ -1,5 +1,11 @@
 import type { BrandSettings, Message, Order, SavingsEvent } from "@/types/domain";
 import { totalEstimatedMessagingCost } from "@/lib/messaging";
+import {
+  brandToRtoCostAssumptions,
+  calculateCancelledBeforeShippingSaving,
+  calculateCodConvertedPrepaidSaving,
+  calculateRtoLossPerOrder
+} from "@/features/calculator";
 
 export interface RoiSummary {
   totalOrders: number;
@@ -27,12 +33,31 @@ export interface RoiSummary {
   lowSampleSize: boolean;
 }
 
+export interface PilotBreakEvenInput {
+  pilotFee: number;
+  rtoLossPerOrder: number;
+  estimatedSavings?: number;
+}
+
+export interface PilotBreakEvenSummary {
+  pilotFee: number;
+  rtoLossPerOrder: number;
+  breakEvenSavedOrders: number;
+  currentEstimatedSavings: number;
+  currentSavedOrderEquivalent: number;
+  remainingSavingsToBreakEven: number;
+  remainingSavedOrdersToBreakEven: number;
+  label: string;
+  formula: string;
+  caveat: string;
+}
+
 export function estimatedRtoLossPerOrder(settings: BrandSettings) {
-  return settings.forwardShippingCost + settings.returnShippingCost + settings.packagingCost + settings.estimatedCac + settings.codFee + (settings.supportOpsCost || 0);
+  return calculateRtoLossPerOrder(brandToRtoCostAssumptions(settings));
 }
 
 export function cancelledBeforeShippingSaving(settings: BrandSettings) {
-  return settings.forwardShippingCost + settings.packagingCost + settings.estimatedCac;
+  return calculateCancelledBeforeShippingSaving(brandToRtoCostAssumptions(settings));
 }
 
 export function ndrRescuedDeliveredSaving(settings: BrandSettings) {
@@ -44,7 +69,30 @@ export function addressCorrectedDeliveredSaving(settings: BrandSettings) {
 }
 
 export function codConvertedPrepaidSaving(settings: BrandSettings) {
-  return Math.round(estimatedRtoLossPerOrder(settings) * 0.5);
+  return calculateCodConvertedPrepaidSaving(brandToRtoCostAssumptions(settings));
+}
+
+export function calculatePilotBreakEven(input: PilotBreakEvenInput): PilotBreakEvenSummary {
+  const pilotFee = Math.max(0, input.pilotFee);
+  const rtoLossPerOrder = Math.max(0, input.rtoLossPerOrder);
+  const currentEstimatedSavings = Math.max(0, input.estimatedSavings ?? 0);
+  const breakEvenSavedOrders = rtoLossPerOrder > 0 ? Math.ceil(pilotFee / rtoLossPerOrder) : 0;
+  const currentSavedOrderEquivalent = rtoLossPerOrder > 0 ? Math.floor(currentEstimatedSavings / rtoLossPerOrder) : 0;
+  const remainingSavingsToBreakEven = Math.max(0, pilotFee - currentEstimatedSavings);
+  const remainingSavedOrdersToBreakEven = rtoLossPerOrder > 0 ? Math.ceil(remainingSavingsToBreakEven / rtoLossPerOrder) : 0;
+
+  return {
+    pilotFee,
+    rtoLossPerOrder,
+    breakEvenSavedOrders,
+    currentEstimatedSavings,
+    currentSavedOrderEquivalent,
+    remainingSavingsToBreakEven,
+    remainingSavedOrdersToBreakEven,
+    label: "Estimated break-even only",
+    formula: "Break-even saved orders = pilot fee / assumed RTO loss per order, rounded up.",
+    caveat: "This uses seller cost assumptions. It becomes verified only when saved orders are confirmed in the savings ledger."
+  };
 }
 
 export function calculateRoi(orders: Order[], savingsEvents: SavingsEvent[], settings: BrandSettings, messages: Message[] = []): RoiSummary {

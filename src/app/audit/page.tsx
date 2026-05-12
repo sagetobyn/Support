@@ -1,12 +1,11 @@
 "use client";
 
 import Link from "next/link";
-import { FormEvent, useEffect, useMemo, useState } from "react";
+import { FormEvent, useEffect, useState } from "react";
 import { MarketingPage } from "@/components/marketing/MarketingChrome";
 import { defaultCalculatorInputs, sellerCategories, shippingPlatforms, type SellerCategory, type ShippingPlatform } from "@/lib/calculator";
 import {
   exportAuditSessionsCsv,
-  generateActionPreview,
   generateCsvAudit,
   generateSummaryAudit,
   parseAnonymizedAuditCsv,
@@ -15,9 +14,36 @@ import {
   type SummaryAuditInputs
 } from "@/lib/audit";
 import { formatCurrency, formatNumber, formatPercent } from "@/lib/reporting";
+import { CALCULATOR_FORMULA_REGISTRY, calculateRtoLossPerOrder } from "@/features/calculator";
+import {
+  ANONYMIZED_AUDIT_DISALLOWED_FIELDS,
+  ANONYMIZED_AUDIT_OPTIONAL_FIELDS,
+  ANONYMIZED_AUDIT_REQUIRED_FIELDS,
+  ANONYMIZED_CSV_SCHEMA_ANCHOR,
+  ANONYMIZED_CSV_SCHEMA_DOC_PATH,
+  AUDIT_MODE_REGISTRY,
+  PAID_AUDIT_DELIVERABLES,
+  PAID_AUDIT_DOC_PATH,
+  PAID_AUDIT_NOT_INCLUDED,
+  PAID_AUDIT_OFFER,
+  PAID_AUDIT_PROCESS,
+  PAID_AUDIT_SAMPLE_OUTLINE,
+  SAMPLE_CSV_FIELD_COVERAGE_ANCHOR,
+  SAMPLE_CSV_FIELD_COVERAGE_DOC_PATH,
+  SAVED_AUDIT_LOCAL_ONLY_LABEL,
+  auditModeById,
+  buildSavedAuditSessionCards,
+  buildSavedAuditSessionExport,
+  buildPaidAuditOfferCopy
+} from "@/features/audit";
+import { buildAuditToPilotHandoff, type AuditToPilotHandoff } from "@/features/pilot-handoff";
+import { buildAuditExecutiveSummary } from "@/features/reports";
+import { buildAuditPreSalesProofSnippet } from "@/features/leads";
 
 const auditStorageKey = "wembro:audit-sessions";
 const previousAuditStorageKey = "rtoshield:audit-sessions";
+const auditPilotHandoffStorageKey = "wembro:audit-pilot-handoff";
+const paidAuditOfferCopy = buildPaidAuditOfferCopy();
 
 function initialSummary(): SummaryAuditInputs {
   return {
@@ -62,10 +88,14 @@ export default function AuditPage() {
 
   function saveSession(session: AuditSession) {
     const next = [session, ...sessions];
-    setSessions(next);
+    persistSessions(next);
     setActiveSession(session);
+    setMessage("Profit audit estimate saved locally. No external API was called.");
+  }
+
+  function persistSessions(next: AuditSession[]) {
+    setSessions(next);
     localStorage.setItem(auditStorageKey, JSON.stringify(next));
-    setMessage("Audit estimate saved locally. No external API was called.");
   }
 
   function submitSummary(event: FormEvent<HTMLFormElement>) {
@@ -84,15 +114,20 @@ export default function AuditPage() {
   async function handleCsv(file?: File) {
     if (!file) return;
     const csv = await file.text();
-    const parsed = parseAnonymizedAuditCsv(csv, summary.forwardShippingCost + summary.returnShippingCost + summary.packagingCost + summary.estimatedCac + summary.codFee + summary.supportOpsCost);
+    const parsed = parseAnonymizedAuditCsv(csv, calculateRtoLossPerOrder(summary));
     setCsvFileName(file.name);
     setParseResult(parsed);
-    setMessage(`${file.name} parsed: ${parsed.rows.length} valid rows, ${parsed.invalidRows.length} invalid rows.`);
+    const schemaWarning = parsed.schemaValidation.blockingIssues.length ? ` Fix before audit: ${parsed.schemaValidation.blockingIssues.join(" ")}` : "";
+    setMessage(`${file.name} parsed: ${parsed.rows.length} valid rows, ${parsed.invalidRows.length} invalid rows.${schemaWarning}`);
   }
 
   function generateCsvSession() {
     if (!parseResult?.rows.length) {
       setMessage("Upload an anonymized CSV with valid rows first.");
+      return;
+    }
+    if (!parseResult.schemaValidation.canGenerateAudit) {
+      setMessage(`Fix the anonymized CSV schema before generating the audit: ${parseResult.schemaValidation.cleanupInstructions.join(" ")}`);
       return;
     }
     saveSession(generateCsvAudit({
@@ -103,49 +138,159 @@ export default function AuditPage() {
       rows: parseResult.rows,
       invalidRowCount: parseResult.invalidRows.length,
       missingFields: parseResult.missingFields,
-      rtoLossPerOrder: summary.forwardShippingCost + summary.returnShippingCost + summary.packagingCost + summary.estimatedCac + summary.codFee + summary.supportOpsCost
+      rtoLossPerOrder: calculateRtoLossPerOrder(summary)
     }));
+  }
+
+  function saveAuditPilotHandoff() {
+    if (!activeSession) {
+      setMessage("Generate or select a profit audit before saving a rescue pilot handoff.");
+      return;
+    }
+    const handoff = buildAuditToPilotHandoff(activeSession);
+    localStorage.setItem(auditPilotHandoffStorageKey, JSON.stringify(handoff));
+    setMessage("Profit-audit-to-rescue-pilot handoff saved locally. Open the rescue pilot planner and create the plan when ready.");
+  }
+
+  function exportAuditPilotHandoff() {
+    if (!activeSession) {
+      setMessage("Generate or select a profit audit before exporting a rescue pilot handoff.");
+      return;
+    }
+    const handoff = buildAuditToPilotHandoff(activeSession);
+    const blob = new Blob([JSON.stringify(handoff, null, 2)], { type: "application/json;charset=utf-8" });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = handoff.exportFileName;
+    link.click();
+    URL.revokeObjectURL(url);
+    setMessage("Profit-audit-to-rescue-pilot handoff exported locally. No customer-level data was included.");
+  }
+
+  function deleteSavedSession(sessionId: string) {
+    const next = sessions.filter((session) => session.id !== sessionId);
+    persistSessions(next);
+    if (activeSession?.id === sessionId) setActiveSession(null);
+    setMessage("Saved profit audit deleted from this browser. No server data was changed.");
+  }
+
+  function exportSavedSession(session: AuditSession) {
+    const auditExport = buildSavedAuditSessionExport(session);
+    const blob = new Blob([auditExport.json], { type: "application/json;charset=utf-8" });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = auditExport.fileName;
+    link.click();
+    URL.revokeObjectURL(url);
+    setMessage("Saved profit audit exported locally. No customer-level data was included.");
   }
 
   const exportJson = `data:application/json;charset=utf-8,${encodeURIComponent(JSON.stringify(sessions, null, 2))}`;
   const exportCsv = `data:text/csv;charset=utf-8,${encodeURIComponent(exportAuditSessionsCsv(sessions))}`;
-  const actionPreview = useMemo(() => activeSession ? generateActionPreview(activeSession.recommendations) : [], [activeSession]);
+  const savedAuditCards = buildSavedAuditSessionCards(sessions);
+  const activeMode = auditModeById[mode];
+  const piiLabels = ANONYMIZED_AUDIT_DISALLOWED_FIELDS.map((field) => field.label).join(", ");
+  const messageIsSuccess = message.includes("saved") || (message.includes("parsed") && !message.includes("Fix before audit"));
+  const activeHandoff = activeSession ? buildAuditToPilotHandoff(activeSession) : null;
 
   return (
     <MarketingPage>
       <section className="report-hero">
         <p className="eyebrow">Profit Audit</p>
-        <h1>Find exactly where money is leaking — before you commit to a pilot.</h1>
-        <p className="hero-copy">Start with summary numbers. If the estimate is useful, upload an anonymized CSV — no customer names, phones, emails, or full addresses required.</p>
-        <p className="muted">We use customer-level data only to operate the rescue, never for marketing.</p>
+        <h1>Find exactly where money is leaking — before you commit to a rescue pilot.</h1>
+        <p className="hero-copy">Start with summary numbers. If the estimate is useful, move to an anonymized CSV. Customer names, phones, emails, and full addresses are not accepted in public audit modes.</p>
+        <p className="muted">Full pilot prep is a readiness checklist only here. Customer contact data belongs only in a separately agreed rescue workflow.</p>
       </section>
 
       <section className="mode-tabs">
-        <button className={mode === "summary" ? "button" : "button secondary"} onClick={() => setMode("summary")}>Summary audit</button>
-        <button className={mode === "csv" ? "button" : "button secondary"} onClick={() => setMode("csv")}>Upload anonymized CSV</button>
-        <button className={mode === "pilot" ? "button" : "button secondary"} onClick={() => setMode("pilot")}>Plan a 14-day pilot</button>
+        {AUDIT_MODE_REGISTRY.map((item) => (
+          <button className={mode === item.id ? "button" : "button secondary"} key={item.id} onClick={() => setMode(item.id)}>
+            {item.label}
+          </button>
+        ))}
       </section>
 
-      {message && <section className="calculator-layout single"><div className={message.includes("saved") || message.includes("parsed") ? "success" : "notice"}>{message}</div></section>}
+      <section className="calculator-layout single">
+        <div className="panel">
+          <p className="eyebrow">Audit mode boundary</p>
+          <h2>{activeMode.title}</h2>
+          <div className="result-list">
+            <Result label="Boundary" value={activeMode.boundary} />
+            <Result label="Seller should share" value={activeMode.sellerAction} />
+            <Result label="Next step" value={activeMode.nextStep} />
+          </div>
+        </div>
+      </section>
+
+      <section className="calculator-layout single" id="paid-audit-offer">
+        <div className="panel">
+          <p className="eyebrow">Profit audit artifact</p>
+          <h2>{PAID_AUDIT_OFFER.priceLabel} {PAID_AUDIT_OFFER.title}</h2>
+          <p className="muted">A written pre-rescue-pilot artifact for sellers who want the leakage estimate, driver diagnosis, and next-step recommendation packaged clearly before committing to a rescue pilot.</p>
+          <div className="metrics grid">
+            <Metric label="Price" value={PAID_AUDIT_OFFER.priceLabel} />
+            <Metric label="Data" value="Summary or anonymized CSV" />
+            <Metric label="Timeline" value={PAID_AUDIT_OFFER.timelineLabel} />
+          </div>
+          <h3>Deliverables</h3>
+          <div className="result-list">
+            {PAID_AUDIT_DELIVERABLES.map((item) => <Result key={item.label} label={item.label} value={item.detail} />)}
+          </div>
+          <h3>Timeline and process</h3>
+          {PAID_AUDIT_PROCESS.map((item) => (
+            <div className="action-row" key={item.step}>
+              <strong>{item.step}. {item.title}</strong>
+              <p className="muted">{item.detail}</p>
+            </div>
+          ))}
+          <h3>Sample outline</h3>
+          <TextList items={PAID_AUDIT_SAMPLE_OUTLINE} />
+          <h3>Not included</h3>
+          <TextList items={PAID_AUDIT_NOT_INCLUDED} />
+          <label>
+            <span>Copyable scope</span>
+            <textarea aria-label="Copyable profit audit scope" className="input" readOnly rows={16} value={paidAuditOfferCopy} />
+          </label>
+          <p className="notice">Canonical repo guide: <code>{PAID_AUDIT_DOC_PATH}</code>. No checkout or payment integration is connected on this page.</p>
+        </div>
+      </section>
+
+      {message && <section className="calculator-layout single"><div className={messageIsSuccess ? "success" : "notice"}>{message}</div></section>}
+
+      {activeHandoff && (
+        <AuditToPilotHandoffPanel
+          handoff={activeHandoff}
+          onExport={exportAuditPilotHandoff}
+          onSave={saveAuditPilotHandoff}
+        />
+      )}
 
       {mode === "summary" && (
         <section className="calculator-layout">
           <form className="panel" onSubmit={submitSummary}>
-            <h2>Mode 1: Summary-Only Audit</h2>
-            <p className="muted">No customer data. Use only operating numbers and known problem clusters.</p>
+            <h2>{auditModeById.summary.title}</h2>
+            <p className="muted">{auditModeById.summary.boundary}</p>
+            <p className="notice">Allowed: monthly orders, COD share, RTO rate, average order value, cost assumptions, top return reasons, problem pincodes, and problem couriers.</p>
             <SummaryForm summary={summary} setSummary={setSummary} />
-            <button className="button" type="submit">Generate audit estimate</button>
+            <button className="button" type="submit">Generate profit audit</button>
           </form>
-          <AuditResult session={activeSession} actionPreview={actionPreview} />
+          <AuditResult session={activeSession} />
         </section>
       )}
 
       {mode === "csv" && (
         <section className="calculator-layout">
           <div className="panel">
-            <h2>Mode 2: Anonymized CSV Audit</h2>
-            <p className="muted">Required fields: order_id, pincode, payment_mode, order_value, courier, shipment_status, ndr_reason, final_status.</p>
-            <p className="notice">No customer name, phone, email, or full address is required for this audit.</p>
+            <h2>{auditModeById.csv.title}</h2>
+            <p className="muted">{auditModeById.csv.boundary}</p>
+            <p className="notice">Disallowed PII: {piiLabels}. <a href={ANONYMIZED_CSV_SCHEMA_ANCHOR}>View the anonymized CSV schema</a>.</p>
+            <p className="notice">Need to know why each field matters? <a href={SAMPLE_CSV_FIELD_COVERAGE_ANCHOR}>View CSV field coverage</a>. Full guide: <code>{SAMPLE_CSV_FIELD_COVERAGE_DOC_PATH}</code>.</p>
+            <h3>Required fields</h3>
+            <FieldPills fields={ANONYMIZED_AUDIT_REQUIRED_FIELDS} />
+            <h3>Optional fields</h3>
+            <FieldPills fields={ANONYMIZED_AUDIT_OPTIONAL_FIELDS} />
             <div className="form-grid one">
               <Field label="Brand name" value={summary.brandName} onChange={(value) => setSummary((current) => ({ ...current, brandName: value }))} />
               <label>
@@ -159,78 +304,190 @@ export default function AuditPage() {
                   <Metric label="Valid rows" value={parseResult.rows.length} />
                   <Metric label="Invalid rows" value={parseResult.invalidRows.length} />
                   <Metric label="Missing fields" value={parseResult.missingFields.length || "None"} />
+                  <Metric label="PII columns" value={parseResult.disallowedFields.length || "None"} />
                 </div>
+                {!parseResult.schemaValidation.canGenerateAudit && (
+                  <div className="notice">
+                    <strong>Fix these schema issues before generating the audit:</strong>
+                    <ul>
+                      {parseResult.schemaValidation.cleanupInstructions.map((item) => <li key={item}>{item}</li>)}
+                    </ul>
+                  </div>
+                )}
+                {parseResult.schemaValidation.canGenerateAudit && (
+                  <p className="success">Schema check passed. No name, phone, email, full address, or customer ID columns were detected.</p>
+                )}
                 <h3>Preview</h3>
                 <MiniTable rows={parseResult.previewRows.map((row) => [row.order_id, row.pincode, row.payment_mode, row.order_value, row.courier, row.final_status])} headers={["Order", "Pincode", "Payment", "Value", "Courier", "Final"]} />
                 <h3>Invalid rows</h3>
                 {parseResult.invalidRows.length ? <MiniTable rows={parseResult.invalidRows.slice(0, 8).map((row) => [row.row, row.issues.join("; ")])} headers={["Row", "Issues"]} /> : <p className="muted">No invalid rows detected.</p>}
-                <button className="button" onClick={generateCsvSession}>Generate CSV audit report</button>
+                <button className="button" onClick={generateCsvSession}>Generate CSV profit audit</button>
               </>
             )}
           </div>
-          <AuditResult session={activeSession} actionPreview={actionPreview} />
+          <AuditResult session={activeSession} />
         </section>
       )}
 
       {mode === "pilot" && (
         <section className="calculator-layout">
           <div className="panel">
-            <h2>Mode 3: Full Pilot Preparation</h2>
-            <p className="muted">No external APIs yet. This simply defines what the seller can provide and the workflow to start a 14-day pilot.</p>
+            <h2>{auditModeById.pilot.title}</h2>
+            <p className="muted">{auditModeById.pilot.boundary}</p>
+            <p className="notice">Do not upload customer names, phone numbers, emails, or full addresses on this public audit page.</p>
             <Checklist items={[
-              "Last 30 days order CSV",
-              "Daily order CSV",
-              "Daily NDR CSV",
-              "Shipping platform access",
-              "WhatsApp/manual contact process",
+              "Summary audit result",
+              "Anonymized last-30-days order/shipment/NDR CSV",
+              "Daily CSV export owner",
+              "Manual WhatsApp/call process owner",
               "Brand cost assumptions",
-              "Ops contact person"
+              "Ops contact person",
+              "Approval rules for hold, reattempt, address correction, cancellation"
             ]} />
           </div>
           <div className="panel">
-            <h2>Pilot Readiness Checklist</h2>
+            <h2>Rescue Pilot Readiness Checklist</h2>
             <Checklist items={[
               "Confirm brand cost assumptions",
-              "Upload baseline order/shipment CSV",
-              "Review audit report",
+              "Upload anonymized baseline order/shipment/NDR CSV",
+              "Review profit audit",
               "Define action rules",
-              "Start 14-day pilot",
+              "Start rescue pilot",
               "Track daily actions",
               "Produce weekly savings report"
             ]} />
-            <Link className="button" href="/pilot">Create 14-day pilot plan</Link>
+            <Link className="button" href="/pilot">Create rescue pilot plan</Link>
           </div>
         </section>
       )}
 
+      <section className="calculator-layout single" id="anonymized-csv-schema">
+        <div className="panel">
+          <p className="eyebrow">Schema doc</p>
+          <h2>Anonymized CSV fields</h2>
+          <p className="muted">Canonical repo guide: <code>{ANONYMIZED_CSV_SCHEMA_DOC_PATH}</code>. Use this schema for the public profit audit only; the rescue pilot has a separate data-sharing boundary.</p>
+          <MiniTable
+            headers={["Field", "Mode", "Purpose"]}
+            rows={[
+              ...ANONYMIZED_AUDIT_REQUIRED_FIELDS.map((field) => [field, "Required", fieldPurpose(field)]),
+              ...ANONYMIZED_AUDIT_OPTIONAL_FIELDS.map((field) => [field, "Optional", fieldPurpose(field)])
+            ]}
+          />
+          <p className="notice">Do not include: {piiLabels}. If the seller's export contains them, remove those columns before upload.</p>
+        </div>
+      </section>
+
+      <section className="calculator-layout single" id="csv-field-coverage">
+        <div className="panel">
+          <p className="eyebrow">Field coverage</p>
+          <h2>What each anonymized CSV field unlocks</h2>
+          <p className="muted">Canonical repo guide: <code>{SAMPLE_CSV_FIELD_COVERAGE_DOC_PATH}</code>. Fictional fixture: <code>sample-data/anonymized-audit-field-coverage-sample.csv</code>.</p>
+          <MiniTable
+            headers={["Field", "Insight unlocked", "Seller decision"]}
+            rows={[
+              ["pincode", "Pincode leakage ranking", "Where to narrow delivery rescue first"],
+              ["courier", "Courier and lane leakage ranking", "Which courier lanes need review before pilot action"],
+              ["payment_mode", "COD vs prepaid leakage comparison", "Whether COD conversion or verification should be considered"],
+              ["order_value", "Estimated INR impact", "Which leakage cluster is worth acting on first"],
+              ["ndr_reason", "Failed-delivery reason ranking", "Which manual rescue playbook to use"],
+              ["final_status", "Delivered vs RTO outcome baseline", "Whether the estimate is grounded enough for a pilot"],
+              ["sku / product_name", "Product leakage grouping", "Whether the problem is product-specific"],
+              ["attempt_count", "NDR urgency", "Whether to continue, narrow, or stop rescue attempts"]
+            ]}
+          />
+          <p className="notice">No customer name, phone, email, full address, customer ID, or profile link is needed for this field coverage. Missing fields reduce confidence; they do not justify overclaiming savings.</p>
+        </div>
+      </section>
+
       <section className="lead-layout">
         <div className="panel">
-          <h2>Your saved audits</h2>
-          <p className="muted">Saved on this browser only. Nothing is sent to our servers until you choose to share it.</p>
+          <h2>Your saved profit audits</h2>
+          <p className="muted">{SAVED_AUDIT_LOCAL_ONLY_LABEL}</p>
           <div className="toolbar">
-            <a className="button secondary" href={exportJson} download="audit-sessions.json">Download as JSON</a>
-            <a className="button secondary" href={exportCsv} download="audit-sessions.csv">Download as CSV</a>
+            <a className="button secondary" href={exportJson} download="audit-sessions.json">Export all JSON</a>
+            <a className="button secondary" href={exportCsv} download="audit-sessions.csv">Export all CSV</a>
           </div>
           <div className="lead-list">
-            {sessions.length ? sessions.map((session) => (
-              <button className="action-row text-left" key={session.id} onClick={() => setActiveSession(session)}>
-                <strong>{session.brand_name}</strong>
-                <div className="muted">{session.mode} · {session.status} · {new Date(session.created_at).toLocaleString()}</div>
-                <div>{formatCurrency(session.calculated_metrics.monthlyLeakage)} loss · {formatCurrency(session.calculated_metrics.savings20)} saved at 20%</div>
-              </button>
-            )) : <p className="empty">No saved audits yet — run one above.</p>}
+            {savedAuditCards.length ? savedAuditCards.map((card) => (
+              <article className="action-row text-left" key={card.id}>
+                <div className="split">
+                  <div>
+                    <strong>{card.title}</strong>
+                    <div className="muted">{card.timestampLabel} · {card.modeLabel} · {card.statusLabel}</div>
+                  </div>
+                  <span className="badge neutral">{card.qualificationLabel}</span>
+                </div>
+                <div>{card.leakageLabel} · {card.sampleLabel}</div>
+                <p className="muted">{card.nextAction}</p>
+                <div className="toolbar tight">
+                  <button className="button secondary" type="button" onClick={() => {
+                    const session = sessions.find((item) => item.id === card.id);
+                    if (session) setActiveSession(session);
+                  }}>Open audit</button>
+                  <button className="button secondary" type="button" onClick={() => {
+                    const session = sessions.find((item) => item.id === card.id);
+                    if (session) exportSavedSession(session);
+                  }}>Export</button>
+                  <button className="button secondary" type="button" onClick={() => deleteSavedSession(card.id)}>Delete local copy</button>
+                </div>
+              </article>
+            )) : <p className="empty">No saved profit audits yet — run one above.</p>}
           </div>
         </div>
         <div className="panel">
           <h2>What's next?</h2>
-          <p>Use this audit to decide if a deeper review (anonymized CSV) or a 14-day pilot is worth your time.</p>
+          <p>Use this profit audit to decide if a deeper review (anonymized CSV) or a rescue pilot is worth your time.</p>
           <div className="hero-actions">
-            <Link className="button secondary" href="/sample-report">View sample report</Link>
-            <Link className="button" href="/pilot">Plan a 14-day pilot</Link>
+            <Link className="button secondary" href="/sample-report">View sample profit audit</Link>
+            <Link className="button" href="/pilot">Plan rescue pilot</Link>
           </div>
         </div>
       </section>
     </MarketingPage>
+  );
+}
+
+function AuditToPilotHandoffPanel({
+  handoff,
+  onExport,
+  onSave
+}: {
+  handoff: AuditToPilotHandoff;
+  onExport: () => void;
+  onSave: () => void;
+}) {
+  return (
+    <section className={`panel wide-section pilot-handoff audit-handoff audit-handoff--${handoff.status}`}>
+      <div className="split">
+        <div>
+          <p className="eyebrow">Profit-audit-to-rescue-pilot handoff</p>
+          <h2>{handoff.headline}</h2>
+          <p className="muted">{handoff.nextMission}</p>
+        </div>
+        <span className="badge neutral">{handoff.status.replaceAll("_", " ")}</span>
+      </div>
+      <p className="notice">{handoff.privacyLabel}</p>
+      <div className="result-list">
+        {handoff.summaryFields.map((field) => <Result key={field.label} label={field.label} value={field.value} />)}
+        <Result label="Source" value={handoff.modeLabel} />
+      </div>
+      <div className="pilot-handoff__risks">
+        <div>
+          <strong>Assumptions carried forward</strong>
+          {handoff.assumptions.map((item) => <p key={item}>{item}</p>)}
+        </div>
+        <div>
+          <strong>Proof needed before claiming results</strong>
+          {handoff.proofRequests.map((item) => <p key={item}>{item}</p>)}
+        </div>
+      </div>
+      <p className="notice">{handoff.localTransferNote}</p>
+      <div className="toolbar tight">
+        <button className="button secondary" type="button" onClick={onSave}>Save rescue pilot handoff</button>
+        <button className="button secondary" type="button" onClick={onExport}>Export handoff JSON</button>
+        <Link className="button" href="/pilot">Open rescue pilot planner</Link>
+      </div>
+    </section>
   );
 }
 
@@ -263,62 +520,79 @@ function SummaryForm({ summary, setSummary }: { summary: SummaryAuditInputs; set
   );
 }
 
-function topLeakageStory(session: AuditSession) {
-  const metrics = session.calculated_metrics;
-  const drivers = [
-    { label: "Pincode", rows: metrics.pincodeLeakage },
-    { label: "Courier", rows: metrics.courierLeakage },
-    { label: "SKU", rows: metrics.skuLeakage },
-    { label: "NDR reason", rows: metrics.ndrReasonLeakage }
-  ].filter((d) => d.rows && d.rows.length > 0) as Array<{ label: string; rows: Array<{ label: string; total: number; rto: number; loss: number; rate: number }> }>;
-
-  const topDriver = drivers.sort((a, b) => (b.rows[0]?.loss || 0) - (a.rows[0]?.loss || 0))[0];
-  const topRow = topDriver?.rows[0];
-
-  return {
-    headline: topRow
-      ? `Your biggest leakage driver is ${topDriver.label.toLowerCase()} ${topRow.label} — ${formatPercent(topRow.rate * 100)} RTO rate, ${formatCurrency(topRow.loss)} estimated loss.`
-      : `Your estimated monthly RTO leakage is ${formatCurrency(metrics.monthlyLeakage)}. Upload an anonymized CSV to identify the top driver.`
-    ,
-    recommendation: topRow
-      ? `Recommended: verify COD orders to this ${topDriver.label.toLowerCase()} or switch to a better-performing courier lane.`
-      : "Upload anonymized order data to get precise pincode, courier, and SKU recommendations.",
-    drivers: drivers.map((d) => ({
-      label: d.label,
-      top: d.rows[0],
-      totalLoss: d.rows.reduce((sum, r) => sum + r.loss, 0)
-    })),
-    annualProjection: metrics.monthlyLeakage * 12
-  };
-}
-
-function AuditResult({ session, actionPreview }: { session: AuditSession | null; actionPreview: ReturnType<typeof generateActionPreview> }) {
+function AuditResult({ session }: { session: AuditSession | null }) {
+  const [proofMessage, setProofMessage] = useState("");
   if (!session) {
-    return <div className="panel"><h2>Audit Output</h2><p className="muted">Generate an audit estimate to see leakage, drivers, savings, and recommendations.</p></div>;
+    return <div className="panel"><h2>Profit Audit Output</h2><p className="muted">Generate a profit audit estimate to see the top leak, first action, confidence, and ranked next actions.</p></div>;
   }
   const metrics = session.calculated_metrics;
-  const story = topLeakageStory(session);
+  const executive = buildAuditExecutiveSummary(session);
+  const drivers = leakageDriverRows(metrics);
+  const proofSnippet = buildAuditPreSalesProofSnippet({
+    session,
+    topLeak: `${executive.topLeak.driverType}: ${executive.topLeak.label}`,
+    firstAction: executive.firstAction.action
+  });
+
+  async function copyProofSnippet() {
+    await navigator.clipboard.writeText(proofSnippet);
+    setProofMessage("Founder-safe snippet copied. It contains estimates and assumptions only.");
+  }
 
   return (
     <div className="panel output-panel">
-      <h2>Your RTO Profit Audit</h2>
+      <h2>Executive Summary</h2>
 
       <div className="recommendation-strip" style={{ marginBottom: 14 }}>
-        <strong>{story.headline}</strong>
-        <span>{story.recommendation}</span>
+        <strong>{executive.topLeak.description}</strong>
+        <span>First action: {executive.firstAction.action}</span>
       </div>
 
       <div className="result-list">
+        <Result label="Top leak" value={`${executive.topLeak.driverType}: ${executive.topLeak.label}`} strong />
+        <Result label="First action" value={executive.firstAction.action} />
+        <Result label="Confidence" value={`${executive.confidence.label} - ${executive.confidence.reason}`} />
+        <Result label="Primary caveat" value={executive.limitations[0]} />
+      </div>
+
+      <h3>Ranked Next Actions</h3>
+      {executive.rankedActions.map((item) => (
+        <div className="action-row" key={`${item.rank}-${item.title}`}>
+          <div className="split">
+            <strong>#{item.rank} {item.title}</strong>
+            <span className="badge">{item.priorityLabel}</span>
+          </div>
+          <p>{item.action}</p>
+          <p className="muted">{item.reason}</p>
+        </div>
+      ))}
+
+      <h3>Confidence and Limitations</h3>
+      {executive.limitations.map((item) => <div className="action-row" key={item}><p>{item}</p></div>)}
+
+      <h3>Founder-safe proof snippet</h3>
+      <div className="action-row">
+        <p className="muted">Copy this for manual follow-up. It is estimate-labeled and excludes customer-level data.</p>
+        <textarea aria-label="Founder-safe audit proof snippet" className="input" readOnly rows={9} value={proofSnippet} />
+        <div className="toolbar tight">
+          <button className="button secondary" type="button" onClick={copyProofSnippet}>Copy snippet</button>
+        </div>
+        {proofMessage ? <p className="success">{proofMessage}</p> : null}
+      </div>
+
+      <h3>Assumptions and Metrics</h3>
+      <div className="result-list">
         <Result label="Estimated monthly leakage" value={formatCurrency(metrics.monthlyLeakage)} strong />
-        <Result label="If nothing changes this year" value={formatCurrency(story.annualProjection)} />
+        <Result label="If nothing changes this year" value={formatCurrency(metrics.monthlyLeakage * 12)} />
         <Result label="Estimated COD leakage" value={metrics.codLeakage === null ? "Not available" : formatCurrency(metrics.codLeakage)} />
         <Result label="Estimated RTO orders" value={formatNumber(metrics.totalRtoOrders)} />
         <Result label="Estimated loss per RTO" value={formatCurrency(metrics.rtoLossPerOrder)} />
+        <Result label="Formula basis" value={CALCULATOR_FORMULA_REGISTRY.rtoLossPerOrder.formula} />
         <Result label="Savings at 10 / 20 / 30%" value={`${formatCurrency(metrics.savings10)} / ${formatCurrency(metrics.savings20)} / ${formatCurrency(metrics.savings30)}`} />
       </div>
 
       <h3>Top Leakage Drivers</h3>
-      {story.drivers.length ? story.drivers.map((driver, index) => (
+      {drivers.length ? drivers.map((driver, index) => (
         <div className="action-row" key={driver.label} style={{ borderLeft: index === 0 ? "4px solid var(--red)" : "4px solid var(--amber)" }}>
           <div className="split">
             <strong>#{index + 1} {driver.label}: {driver.top?.label}</strong>
@@ -329,33 +603,66 @@ function AuditResult({ session, actionPreview }: { session: AuditSession | null;
         </div>
       )) : <p className="muted">Upload an anonymized CSV to unlock pincode, courier, SKU, and NDR driver analysis.</p>}
 
-      <h3>First Recommended Actions</h3>
-      {session.recommendations.map((item) => <div className="action-row" key={item.title}><strong>{item.title}</strong><p>{item.action}</p><p className="muted">{item.body}</p></div>)}
-      <h3>Action Queue Preview</h3>
-      {actionPreview.map((item) => <div className="action-row" key={item.id}><strong>{item.group}</strong><p>{item.action}</p></div>)}
-
       <div className="report-cta" style={{ marginTop: 18, borderRadius: 8 }}>
         <div>
           <h3>Ready to fix this?</h3>
-          <p>Based on this audit, here is your personalized 14-day pilot plan.</p>
+          <p>Based on this profit audit, here is your personalized rescue pilot plan.</p>
         </div>
-        <Link className="button" href="/pilot" style={{ textDecoration: "none" }}>Start 14-day pilot</Link>
+        <Link className="button" href="/pilot" style={{ textDecoration: "none" }}>Start rescue pilot</Link>
       </div>
     </div>
   );
 }
 
-function Grouped({ title, rows }: { title: string; rows: Array<{ label: string; total: number; rto: number; loss: number; rate: number }> }) {
-  return (
-    <>
-      <h3>{title}</h3>
-      {rows.map((row) => <div className="action-row" key={row.label}><strong>{row.label}</strong><div className="muted">{row.total} orders · {row.rto} RTO · {formatPercent(row.rate * 100)} · {formatCurrency(row.loss)} loss</div></div>)}
-    </>
-  );
+function leakageDriverRows(metrics: AuditSession["calculated_metrics"]) {
+  const drivers = [
+    { label: "Pincode", rows: metrics.pincodeLeakage },
+    { label: "Courier", rows: metrics.courierLeakage },
+    { label: "SKU", rows: metrics.skuLeakage },
+    { label: "NDR reason", rows: metrics.ndrReasonLeakage }
+  ].filter((driver) => driver.rows && driver.rows.length > 0) as Array<{ label: string; rows: Array<{ label: string; total: number; rto: number; loss: number; rate: number }> }>;
+
+  return drivers
+    .map((driver) => ({
+      label: driver.label,
+      top: driver.rows[0],
+      totalLoss: driver.rows.reduce((sum, row) => sum + row.loss, 0)
+    }))
+    .sort((a, b) => b.totalLoss - a.totalLoss || (b.top?.rate || 0) - (a.top?.rate || 0));
 }
 
-function Checklist({ items }: { items: string[] }) {
+function Checklist({ items }: { items: readonly string[] }) {
   return <div className="option-list">{items.map((item) => <label className="consent-row" key={item}><input type="checkbox" /> <span>{item}</span></label>)}</div>;
+}
+
+function TextList({ items }: { items: readonly string[] }) {
+  return <div className="option-list">{items.map((item) => <div className="consent-row" key={item}><span>{item}</span></div>)}</div>;
+}
+
+function fieldPurpose(field: string) {
+  const purposes: Record<string, string> = {
+    order_id: "Internal or hashed order reference for row tracing",
+    pincode: "Delivery geography for leakage concentration",
+    payment_mode: "COD vs prepaid leakage comparison",
+    order_value: "INR impact and risk sizing",
+    courier: "Courier concentration and lane diagnosis",
+    shipment_status: "Current delivery/NDR/RTO state",
+    ndr_reason: "Failed-delivery reason analysis",
+    final_status: "Delivered, RTO, cancelled, or unresolved outcome",
+    order_date: "Date-based sample window checks",
+    sku: "SKU leakage concentration",
+    product_name: "Product-level leakage grouping",
+    city: "City-level summary only",
+    state: "State-level summary only",
+    source_platform: "Store/channel grouping",
+    campaign_name: "Campaign leakage grouping",
+    attempt_count: "NDR attempt severity"
+  };
+  return purposes[field] || "Operational audit context";
+}
+
+function FieldPills({ fields }: { fields: readonly string[] }) {
+  return <div className="toolbar">{fields.map((field) => <span className="badge" key={field}>{field}</span>)}</div>;
 }
 
 function MiniTable({ headers, rows }: { headers: string[]; rows: unknown[][] }) {

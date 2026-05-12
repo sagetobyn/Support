@@ -1,20 +1,6 @@
-import type { SellerCategory, ShippingPlatform } from "@/lib/calculator";
+import { buildCalculatorLeadCsv, createCalculatorLeadConsentSnapshot, type CalculatorLead } from "@/features/leads";
 
-export interface CalculatorLead {
-  id: string;
-  brandName: string;
-  contactName: string;
-  category: SellerCategory;
-  monthlyOrders: number;
-  codPercentage: number;
-  rtoPercentage: number;
-  averageOrderValue: number;
-  shippingPlatform: ShippingPlatform;
-  contact: string;
-  notes: string;
-  consent: boolean;
-  createdAt: string;
-}
+export type { CalculatorLead };
 
 export const calculatorLeadStorageKey = "wembro:calculator-leads";
 export const previousCalculatorLeadStorageKey = "rtoshield:calculator-leads";
@@ -35,10 +21,12 @@ export function listCalculatorLeads(storage?: Storage) {
 
 export function saveCalculatorLead(lead: Omit<CalculatorLead, "id" | "createdAt">, storage?: Storage) {
   if (!storage) throw new Error("Storage is required to save calculator leads.");
+  const createdAt = new Date().toISOString();
   const record: CalculatorLead = {
     ...lead,
+    privacyConsent: lead.privacyConsent ?? createCalculatorLeadConsentSnapshot(lead.consent, createdAt),
     id: `lead-${Date.now()}-${Math.random().toString(16).slice(2, 7)}`,
-    createdAt: new Date().toISOString()
+    createdAt
   };
   const next = [record, ...listCalculatorLeads(storage)];
   storage.setItem(calculatorLeadStorageKey, JSON.stringify(next));
@@ -52,25 +40,6 @@ export function deleteLead(id: string, storage?: Storage) {
   return next;
 }
 
-function csvEscape(value: unknown) {
-  return `"${String(value ?? "").replaceAll("\"", "\"\"")}"`;
-}
-
 export function exportLeadsCsv(leads: CalculatorLead[]) {
-  const headers: Array<keyof CalculatorLead> = [
-    "id",
-    "brandName",
-    "contactName",
-    "category",
-    "monthlyOrders",
-    "codPercentage",
-    "rtoPercentage",
-    "averageOrderValue",
-    "shippingPlatform",
-    "contact",
-    "notes",
-    "consent",
-    "createdAt"
-  ];
-  return [headers.join(","), ...leads.map((lead) => headers.map((key) => csvEscape(lead[key])).join(","))].join("\n");
+  return buildCalculatorLeadCsv(leads);
 }

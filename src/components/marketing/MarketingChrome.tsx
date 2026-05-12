@@ -11,7 +11,7 @@ export function MarketingHeader({ variant = "light" }: { variant?: "light" | "da
         <span>W</span>
         <strong>
           Wembro
-          <small>AI Operations OS</small>
+          <small>Profit Recovery</small>
         </strong>
       </Link>
       <nav className="saas-nav" aria-label="Main navigation">
@@ -49,7 +49,7 @@ export function MarketingHeader({ variant = "light" }: { variant?: "light" | "da
         <Link className="button secondary" href={isLoginBypassed ? "/dashboard" : "/login"}>
           {isLoginBypassed ? "Open dashboard" : "Sign in"}
         </Link>
-        <Link className="button" href="/onboarding">Connect marketplace <span aria-hidden>→</span></Link>
+        <Link className="button" href="/calculator">Free leakage check <span aria-hidden>→</span></Link>
       </div>
     </header>
   );
@@ -63,15 +63,14 @@ export function MarketingFooter() {
           <span>W</span>
           <strong>Wembro</strong>
         </Link>
-        <p>Wembro is becoming an AI Operations OS that detects, prevents, and recovers operational losses across ecommerce marketplaces.</p>
+        <p>Wembro starts with CSV-first COD/RTO/NDR profit recovery for Indian D2C sellers. The broader AI Operations OS remains future architecture until the wedge has proof.</p>
       </div>
       <div className="saas-footer__links">
         <Link href="/product">Product</Link>
-        <Link href="/onboarding">Onboarding</Link>
-        <Link href="/data-ingestion">Data Ingestion</Link>
-        <Link href="/ai-operations-engine">AI Engine</Link>
-        <Link href="/pricing">Pricing</Link>
+        <Link href="/calculator">Leakage Check</Link>
+        <Link href="/sample-report">Sample Report</Link>
         <Link href="/audit">Profit Audit</Link>
+        <Link href="/pricing">Pricing</Link>
         <Link href="/pilot">Pilot Workflow</Link>
         <Link href="/dashboard">Dashboard</Link>
       </div>

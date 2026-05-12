@@ -1,4 +1,5 @@
 import Link from "next/link";
+import Image from "next/image";
 import { DashboardPreview } from "@/components/marketing/DashboardPreview";
 import { MarketingPage } from "@/components/marketing/MarketingChrome";
 import type { PersonaContent } from "@/features/marketing";
@@ -7,7 +8,14 @@ export function PersonaPage({ persona }: { persona: PersonaContent }) {
   return (
     <MarketingPage>
       <section className="persona-hero">
-        <img className="product-hero__bg" src="/media/dashboard-control-room.png" alt="Wembro dashboard interface" />
+        <Image
+          className="product-hero__bg"
+          src="/media/dashboard-control-room.png"
+          alt="Wembro dashboard interface"
+          fill
+          priority
+          sizes="100vw"
+        />
         <div>
           <span className="eyebrow">{persona.eyebrow}</span>
           <h1>{persona.headline}</h1>

@@ -7,6 +7,12 @@ import {
 } from "@/lib/calculator";
 import { groupByCourier, groupByNdrReason, groupByPincode, groupBySku, type GroupMetric } from "@/lib/reporting";
 import { parseCsvLine, parseMoney, normalizePaymentMode } from "@/lib/csvImport";
+import { calculateRtoLossPerOrder } from "@/features/calculator";
+import {
+  ANONYMIZED_AUDIT_REQUIRED_FIELDS,
+  validateAnonymizedAuditCsvSchema,
+  type AnonymizedAuditCsvSchemaValidation
+} from "@/features/imports/anonymizedCsvValidator";
 
 export type AuditMode = "summary" | "csv" | "pilot";
 export type AuditStatus = "draft" | "calculated" | "report_ready" | "pilot_recommended" | "pilot_started";
@@ -58,6 +64,8 @@ export interface CsvAuditParseResult {
   previewRows: AuditRow[];
   invalidRows: Array<{ row: number; issues: string[]; raw: Record<string, string> }>;
   missingFields: string[];
+  disallowedFields: string[];
+  schemaValidation: AnonymizedAuditCsvSchemaValidation;
   columnMapping: Record<string, string>;
 }
 
@@ -125,7 +133,8 @@ const csvAliases: Record<keyof AuditRow, string[]> = {
   estimated_loss: ["estimated_loss"]
 };
 
-const requiredFields: Array<keyof AuditRow> = ["order_id", "pincode", "payment_mode", "order_value", "courier", "shipment_status", "ndr_reason", "final_status"];
+const requiredFields = ANONYMIZED_AUDIT_REQUIRED_FIELDS as readonly (keyof AuditRow)[];
+const defaultRtoLossPerOrder = calculateRtoLossPerOrder(defaultCalculatorInputs);
 
 function normalizeHeader(header: string) {
   return header.trim().toLowerCase().replace(/[_-]+/g, " ").replace(/\s+/g, " ");
@@ -305,19 +314,23 @@ export function generateSummaryAudit(input: SummaryAuditInputs): AuditSession {
   };
 }
 
-export function parseAnonymizedAuditCsv(csv: string, rtoLossPerOrder = 395): CsvAuditParseResult {
+export function parseAnonymizedAuditCsv(csv: string, rtoLossPerOrder = defaultRtoLossPerOrder): CsvAuditParseResult {
   const lines = csv.replace(/^\uFEFF/, "").split(/\r?\n/).filter((line) => line.trim().length);
-  if (!lines.length) return { rows: [], previewRows: [], invalidRows: [], missingFields: requiredFields.map(String), columnMapping: {} };
+  if (!lines.length) {
+    const schemaValidation = validateAnonymizedAuditCsvSchema([]);
+    return { rows: [], previewRows: [], invalidRows: [], missingFields: requiredFields.map(String), disallowedFields: [], schemaValidation, columnMapping: {} };
+  }
 
   const rawHeaders = parseCsvLine(lines[0]);
+  const schemaValidation = validateAnonymizedAuditCsvSchema(rawHeaders);
+  const disallowedFields = schemaValidation.disallowedFields.map((field) => field.header);
   const headers = rawHeaders.map(canonicalHeader);
   const columnMapping = Object.fromEntries(headers.map((header, index) => [header, rawHeaders[index]]));
   const rawRows = lines.slice(1).map((line) => {
     const cells = parseCsvLine(line);
     return Object.fromEntries(headers.map((header, index) => [header, cells[index] || ""]));
   });
-  const presentFields = new Set(rawRows.flatMap((row) => Object.keys(row).filter((key) => String(row[key] || "").trim())));
-  const missingFields = requiredFields.filter((field) => !presentFields.has(field)).map(String);
+  const missingFields = schemaValidation.missingRequiredFields;
   const invalidRows: CsvAuditParseResult["invalidRows"] = [];
   const rows: AuditRow[] = [];
 
@@ -358,7 +371,7 @@ export function parseAnonymizedAuditCsv(csv: string, rtoLossPerOrder = 395): Csv
     });
   });
 
-  return { rows, previewRows: rows.slice(0, 10), invalidRows, missingFields, columnMapping };
+  return { rows, previewRows: rows.slice(0, 10), invalidRows, missingFields, disallowedFields, schemaValidation, columnMapping };
 }
 
 export function generateCsvAudit(params: {
@@ -372,7 +385,7 @@ export function generateCsvAudit(params: {
   rtoLossPerOrder?: number;
   pilotSoftwareCost?: number;
 }): AuditSession {
-  const rtoLossPerOrder = params.rtoLossPerOrder || 395;
+  const rtoLossPerOrder = params.rtoLossPerOrder || defaultRtoLossPerOrder;
   const codRows = params.rows.filter((row) => row.payment_mode === "COD");
   const rtoRows = params.rows.filter((row) => isRtoStatus(`${row.final_status} ${row.shipment_status}`));
   const codRtoRows = codRows.filter((row) => isRtoStatus(`${row.final_status} ${row.shipment_status}`));

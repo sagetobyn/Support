@@ -181,7 +181,7 @@ export const seedSavingsEvents: SavingsEvent[] = [
       orderId: order.id,
       eventType: "ndr_rescued_delivered" as const,
       estimatedSaving: estimatedRtoLossPerOrder(defaultBrand),
-      calculation: { formula: "forward_shipping_cost + return_shipping_cost + packaging_cost + estimated_cac + cod_fee" },
+      calculation: { formula: "forward_shipping_cost + return_shipping_cost + packaging_cost + estimated_cac + cod_fee + support_ops_cost" },
       createdAt: new Date().toISOString()
     })),
   ...seedOrders

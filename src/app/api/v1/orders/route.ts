@@ -3,7 +3,6 @@ export const dynamic = 'force-dynamic'
 import { NextResponse } from 'next/server'
 import { getAuthContext } from '@/lib/auth/get-auth-context'
 import { OrderRepository } from '@/backend/repositories/order.repository'
-import { orderImportSchema } from '@/backend/schemas/api.schema'
 
 const orderRepo = new OrderRepository()
 
