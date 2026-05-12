@@ -5,6 +5,8 @@
   "scripts": {
     "dev": "next dev",
     "build": "prisma generate && next build",
+    "lint": "eslint src tests middleware.ts next.config.ts prisma.config.ts vitest.config.ts",
+    "typecheck": "tsc --noEmit",
     "start": "next start",
     "test": "vitest run"
   },
@@ -20,9 +22,12 @@
     "zod": "^3.24.1"
   },
   "devDependencies": {
+    "@eslint/eslintrc": "^3.3.5",
     "@types/node": "^22.10.2",
     "@types/react": "^19.0.1",
     "@types/react-dom": "^19.0.2",
+    "eslint": "^9.39.4",
+    "eslint-config-next": "^15.5.18",
     "prisma": "^7.8.0",
     "typescript": "^5.7.2",
     "vitest": "^2.1.8"
